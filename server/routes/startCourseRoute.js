@@ -2,7 +2,17 @@ const User=require("../schems/userSchema");
 const Course=require("../schems/courseSchema");
 
 const router=require("express").Router();
-
+router.post("/fetchCourse",async(req,res)=>{
+  try{
+  const {id}=req.body;
+  const course=await Course.findOne({
+    _id:id
+  })
+  res.json({status:true,course})
+  }catch(err){
+   console.log(err);
+  }
+})
 router.post("/startLearning",async(req,res)=>{
     try{
         const {_id,userId}=req.body;
@@ -43,12 +53,16 @@ router.post("/startLearning",async(req,res)=>{
                   isCurrent:false
                   },
                 })),
-                questions: course.questions.map(question => ({
+                finalExam:{
+                  isCurrent:false,
+                  isCompleted:false,
+                  questions:course.questions.map(question => ({
                   questionText: question.questionText,
                   options: question.options,
                   correctAnswer: question.correctAnswer,
                   image: question.image
                 }))
+                } 
               };
               const updatedUse=await User.findByIdAndUpdate(
                 userId,
@@ -67,5 +81,326 @@ router.post("/startLearning",async(req,res)=>{
     }
 })
 
+router.post('/updateUser',async(req,res)=>{
+  try{
+    const {selectedTopic,courseId,userId}=req.body;
+console.log(userId);
+console.log(courseId);
+console.log(selectedTopic.chapterIndex);
+console.log(selectedTopic.index);
+const userData = await User.findOne({ _id: userId, 'ongoingCourses.courseId': courseId });
+console.log('User data before update:', JSON.stringify(userData, null, 2));
+await User.updateOne(
+      {
+        _id: userId,
+        'ongoingCourses.courseId': courseId
+      },
+      {
+        $set: {
+          [`ongoingCourses.$[course].chapters.${selectedTopic.chapterIndex}.topics.${selectedTopic.index+1}.isCurrent`]: true
+        }
+      },
+      {
+        arrayFilters: [
+          { 'course.courseId': courseId }
+        ]
+      },
+    
+    );
+    const userAfterUpdate = await User.findOne(
+      { _id: userId, 'ongoingCourses.courseId': courseId }
+    )
+    console.log(userAfterUpdate);
+    return res.json({status:true,userAfterUpdate})
+  }catch(err){
+    console.log(err)
+  }
+})
 
+router.post('/fetchuser',async(req,res)=>{
+const {userId,courseId}=req.body;
+const data = await User.findOne({
+  _id: userId,
+  'ongoingCourses.courseId': courseId
+});
+res.json({status:true,data})
+})
+
+
+router.post('/openquiz',async(req,res)=>{
+  try{
+    const {userId,courseId,selectedTopic}=req.body;
+  await User.updateOne(
+      {
+        _id: userId,
+        'ongoingCourses.courseId': courseId
+      },
+      {
+        $set: {
+          [`ongoingCourses.$[course].chapters.${selectedTopic.chapterIndex}.quiz.isCurrent`]: true
+        }
+      },
+      {
+        arrayFilters: [
+          { 'course.courseId': courseId }
+        ]
+      },
+   );
+   const userAfterUpdate = await User.findOne(
+    { _id: userId, 'ongoingCourses.courseId': courseId }
+  )
+  console.log(userAfterUpdate);
+  return res.json({status:true,userAfterUpdate})
+
+  }
+  catch(err){
+    console.log(err);
+  }
+})
+
+router.post('/openNextChapter',async(req,res)=>{
+  try{
+   const {chapterIndex,courseId,userId}=req.body;
+  await User.updateOne(
+    {
+      _id: userId,
+      'ongoingCourses.courseId': courseId
+    },
+    {
+      $set: {
+        [`ongoingCourses.$[course].chapters.${chapterIndex}.topics.${0}.isCurrent`]: true
+      }
+    },
+    {
+      arrayFilters: [
+        { 'course.courseId': courseId }
+      ]
+    },
+ );
+ const userAfterUpdate = await User.findOne(
+  { _id: userId, 'ongoingCourses.courseId': courseId }
+)
+console.log(userAfterUpdate);
+return res.json({status:true,userAfterUpdate})
+  }catch(err){
+    console.log(err);
+  }
+});
+
+router.post('/openFinalExam',async(req,res)=>{
+  try{
+  const {userId,courseId}=req.body;
+
+  await User.updateOne(
+    {
+      _id: userId,
+      'ongoingCourses.courseId': courseId
+    },
+    {
+      $set: {
+        [`ongoingCourses.$[course].finalExam.isCurrent`]: true
+      }
+    },
+    {
+      arrayFilters: [
+        { 'course.courseId': courseId }
+      ]
+    },
+ );
+ const userAfterUpdate = await User.findOne(
+  { _id: userId, 'ongoingCourses.courseId': courseId }
+)
+console.log(userAfterUpdate);
+return res.json({status:true,userAfterUpdate})
+  }catch(err){
+    console.log(err)
+  }
+});
+
+router.post('/examData',async(req,res)=>{
+  try{
+const {userId,courseId}=req.body;
+ const userAfterUpdate = await User.findOne(
+  { _id: userId, 'ongoingCourses.courseId': courseId }, 
+  { 'ongoingCourses.$': 1 } // Project only the matching element from the array
+);
+ const course = userAfterUpdate?.ongoingCourses?.[0];// Access the specific course
+if(course.finalExam.isCompleted){
+const answers=Object.fromEntries(course.finalExam.result.answers[0]);
+console.log(answers)
+const finalExam = course.finalExam;
+const result = finalExam.questions.reduce(
+  (acc, question, index) => {
+    const userAnswerObj = Object.entries(answers).find(([key, value]) => key === index.toString());
+    const userAnswer = userAnswerObj ? userAnswerObj[1] : null; // Get the user's answer (value) or null
+
+    console.log(userAnswer + '256');
+    acc.totalQuestions+=1
+
+    // Update counters
+    if (userAnswer !== null) {
+      acc.attempted += 1; // Increment attempted if the question was answered
+      if (userAnswer === question.correctAnswer) {
+        acc.analyseAnswers.push({
+          question:question.questionText,
+          yourAnswer:userAnswer,
+          correctAnswer:question.correctAnswer
+        })
+        acc.correct += 1; // Increment correct count if the answer matches
+      } else {
+        acc.analyseAnswers.push({
+          question:question.questionText,
+          yourAnswer:userAnswer,
+          correctAnswer:question.correctAnswer
+        })
+        acc.wrong += 1; // Increment wrong count otherwise
+      }
+    }else{
+      acc.analyseAnswers.push({
+        question:question.text,
+        yourAnswer:'Not Attempted',
+        correctAnswer:question.correctAnswer
+      })
+    }
+
+    return acc;
+  },
+  {
+    totalQuestions:0,
+    correct: 0,
+    attempted: 0,
+    wrong: 0,
+    analyseAnswers: []
+  }
+);
+
+console.log(result )
+const { totalQuestions,correct, attempted, wrong, resultAnswers,analyseAnswers } = result;
+
+
+// Calculate adjusted accuracy
+const adjustedAccuracy = (correct / totalQuestions) * 100 ;
+const accuracy=adjustedAccuracy.toFixed(2)
+const userAfterUpdate = await User.findOne(
+  { _id: userId, 'ongoingCourses.courseId': courseId }, 
+  { 'ongoingCourses.$': 1 } // Project only the matching element from the array
+);
+// console.log(userAfterUpdate)
+const updatedcourse = userAfterUpdate?.ongoingCourses?.[0]; // Access the specific course
+  const updatedData={
+    updatedcourse,
+  correct, attempted, wrong, resultAnswers,analyseAnswers,accuracy,totalQuestions
+}
+return res.json({status:true,updatedData,msg:'found'});
+}else{
+return res.json({status:true,course,msg:'not found'});
+}
+
+
+
+
+  }catch(err){
+    console.log(err);
+  }
+})
+
+router.post('/examresult',async(req,res)=>{
+  try{
+    const {userId,courseId,answers}=req.body;
+
+    const user = await User.findOne(
+      { _id: userId, 'ongoingCourses.courseId': courseId },
+      { 'ongoingCourses.$': 1 } // Only retrieve the matching course
+    );
+
+    if (!user) {
+      throw new Error('User or course not found');
+    }
+
+    const course = user.ongoingCourses[0]; // Matching course
+    const finalExam = course.finalExam;
+
+    if (!finalExam || !finalExam.questions) {
+      throw new Error('Final exam or questions not found');
+    }
+
+    // Compare answers and update the result array
+    const result = finalExam.questions.reduce(
+      (acc, question, index) => {
+        const userAnswerObj = Object.entries(answers).find(([key, value]) => key === index.toString());
+        const userAnswer = userAnswerObj ? userAnswerObj[1] : null; // Get the user's answer (value) or null
+    
+        console.log(userAnswer + '256');
+        acc.totalQuestions+=1
+
+        // Update counters
+        if (userAnswer !== null) {
+          acc.attempted += 1; // Increment attempted if the question was answered
+          if (userAnswer === question.correctAnswer) {
+            acc.analyseAnswers.push({
+              question:question.questionText,
+              yourAnswer:userAnswer,
+              correctAnswer:question.correctAnswer
+            })
+            acc.correct += 1; // Increment correct count if the answer matches
+          } else {
+            acc.analyseAnswers.push({
+              question:question.questionText,
+              yourAnswer:userAnswer,
+              correctAnswer:question.correctAnswer
+            })
+            acc.wrong += 1; // Increment wrong count otherwise
+          }
+        }else{
+          acc.analyseAnswers.push({
+            question:question.text,
+            yourAnswer:'Not Attempted',
+            correctAnswer:question.correctAnswer
+          })
+        }
+    
+        return acc;
+      },
+      {
+        totalQuestions:0,
+        correct: 0,
+        attempted: 0,
+        wrong: 0,
+        analyseAnswers: []
+      }
+    );
+    
+    console.log(result )
+    const { totalQuestions,correct, attempted, wrong, resultAnswers,analyseAnswers } = result;
+    
+
+// Calculate adjusted accuracy
+const adjustedAccuracy = (correct / totalQuestions) * 100 ;
+const accuracy=adjustedAccuracy.toFixed(2)
+    // Update the result field with the user's answers
+    await User.updateOne(
+      { _id: userId, 'ongoingCourses.courseId': courseId },
+      {
+        $set: {
+          'ongoingCourses.$.finalExam.result.answers': answers,
+          'ongoingCourses.$.finalExam.isCompleted': true ,// Mark the exam as completed
+        }
+      }
+    );
+
+    const userAfterUpdate = await User.findOne(
+      { _id: userId, 'ongoingCourses.courseId': courseId }, 
+      { 'ongoingCourses.$': 1 } // Project only the matching element from the array
+    );
+  // console.log(userAfterUpdate)
+    const updatedcourse = userAfterUpdate?.ongoingCourses?.[0]; // Access the specific course
+      const updatedData={
+        updatedcourse,
+      correct, attempted, wrong, resultAnswers,analyseAnswers,accuracy,totalQuestions
+    }
+    return res.json({status:true,updatedData});
+  }catch(err){
+    console.log(err)
+  }
+})
 module.exports=router;

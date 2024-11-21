@@ -6,5 +6,10 @@ module.exports = {
   theme: {
     extend: {},
   },
+  variants: {
+    extend: {
+        borderColor: ['hover'], // Ensure hover for border color is enabled
+    },
+},
   plugins: [ require('tailwind-scrollbar'),],
 };

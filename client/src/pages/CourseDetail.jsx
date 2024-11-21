@@ -7,7 +7,12 @@ import { persistor } from '../redux/store';
 import Player from '@vimeo/player';
 import Video from '../component/Video';
 import Quiz from '../component/Quiz';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom'; 
+import Navbar from '../component/Navbar'
+import FinalExam from './FinalExam';
 const CourseDetail = () => {
+  const navigate=useNavigate();
   const dispatch=useDispatch();
   const [courseData, setCourseData] = useState(null);
   const [selectedTopic, setSelectedTopic] = useState(null);
@@ -19,24 +24,14 @@ const CourseDetail = () => {
   const [isVideoWatched, setIsVideoWatched] = useState(false);
 const {id}=useParams();
 const currentCourse=useSelector((state)=>state.user.currentCourse);
-console.log(currentCourse)
-// useEffect(() => {
-//   const player = new Player(iframeRef.current);
 
-//   player.on('loaded', () => {
-//     player.getDuration().then((duration) => {
-//       setVideoDuration(duration);
-//     });
-//   });
-
-//   return () => {
-//     player.off('loaded');
-//   };
-// }, [videoId]);
   useEffect(() => {
-    console.log(id);
-    console.log(currentCourse)
-    const data=currentCourse.ongoingCourses;
+const call=async()=>{
+ const fetchedData=await axios.post('http://localhost:5000/learn/fetchuser',{
+  userId:currentCourse._id,
+  courseId:id
+ })
+  const data=fetchedData.data.data.ongoingCourses;
     for(let i=0;i<data.length;i++){
       console.log(data[i].courseId)
       if(data[i].courseId===id){
@@ -44,10 +39,11 @@ console.log(currentCourse)
         break;
       }
     }
-    // if (savedCourseData) {
-    //   const parsedData = JSON.parse(savedCourseData);
-    //   setCourseData(parsedData);
-    // }
+ 
+}
+call();
+   
+
   }, []);
   const handleTopicClick = (topic,index,topics,chapterIndex) => {
     console.log({topic,index,topics,chapterIndex})
@@ -97,137 +93,101 @@ console.log(currentCourse)
     return url; // Return the URL as-is for other video platforms
   };
 
-  const handleOptionChange = (questionIndex, option) => {
-    setSelectedOptions((prev) => ({
-      ...prev,
-      [questionIndex]: option,
-    }));
-    console.log(selectedOptions)
-  };
-const [state,setState]=useState(currentCourse);
+
   const nextTopic=async()=>{
-    const updatedState = JSON.parse(JSON.stringify(state));
-    
-   if(selectedTopic.index<selectedTopic.topics.length-1 ){
-    
-        
-    // Find the course by courseId
-    const course = updatedState.ongoingCourses.find(course => course.courseId === id);
-    if (!course) return; // Course not found
-
-    // Get the chapter based on the chapter index
-    const chapter = course.chapters[selectedTopic.chapterIndex];
-    if (!chapter) return; // Chapter not found
-
-    // Get the next topic based on the topic index
-    const nextTopicIndex = selectedTopic.index + 1;
-    const topic = chapter.topics[nextTopicIndex];
-    if (!topic) return; // Topic not found
-
-    // Update the isCurrent property of the topics
-    chapter.topics = chapter.topics.map((t, index) => ({
-      ...t,
-      // Keep topics unlocked if already unlocked or set `isCurrent` for the next topic
-      isCurrent: t.isCurrent || index <= nextTopicIndex,
-    }));
-
-    // Update the selected topic state
-    setSelectedTopic({
-        topic: chapter.topics[nextTopicIndex],
-        index: nextTopicIndex,
+ 
+  if(selectedTopic.index<selectedTopic.topics.length-1 ){
+  const updatedData=await axios.post('http://localhost:5000/learn/updateUser',{
+    selectedTopic,
+    userId:currentCourse._id,
+    courseId:id
+  })
+ 
+  console.log(updatedData.data);
+      const course = updatedData.data.userAfterUpdate.ongoingCourses.find(course => course.courseId === id);
+setCourseData(course)
+  const chapter = course.chapters[selectedTopic.chapterIndex];
+    if (!chapter) return;
+setSelectedTopic({
+        topic: chapter.topics[selectedTopic.index+1],
+        index: selectedTopic.index+1,
         chapterIndex: selectedTopic.chapterIndex,
         topics: chapter.topics,
     });
-
-    // Set the updated state
-    dispatch(updateOnGoing({ updatedState }));
-     console.log(updatedState)
-     const data=updatedState.ongoingCourses;
-     for(let i=0;i<data.length;i++){
-       console.log(data[i].courseId)
-       if(data[i].courseId===id){
-         setCourseData(data[i]);
-         break;
-       }
-     }
-    // setCondition(!condition);
-   }
-   else if(selectedTopic.index===selectedTopic.topics.length-1 ){
-    console.log(updatedState)
-    const course = updatedState.ongoingCourses.find(course => course.courseId === id);
-    if (!course) return; // Course not found
-
-    // Get the chapter based on the chapter index
+  }else {
+    const updatedData=await axios.post('http://localhost:5000/learn/openquiz',{
+      selectedTopic,
+      userId:currentCourse._id,
+      courseId:id
+    })
+   
+    console.log(updatedData.data);
+        const course = updatedData.data.userAfterUpdate.ongoingCourses.find(course => course.courseId === id);
+  setCourseData(course)
     const chapter = course.chapters[selectedTopic.chapterIndex];
-    chapter.topics = chapter.topics.map((t, index) => ({
-      ...t,
-      // Keep topics unlocked if already unlocked or set `isCurrent` for the next topic
-      isCurrent: t.isCurrent || index <= chapter.topics.length-1,
-    }));
-    // chapter.topics[selectedTopic.index].isCurrent = true;
-    chapter.quiz.isCurrent=true;
-    console.log(updatedState)
-    if (!chapter) return;  
-    dispatch(updateOnGoing({ updatedState }));
-    console.log(updatedState)
-    const data=updatedState.ongoingCourses;
-    for(let i=0;i<data.length;i++){
-      console.log(data[i].courseId)
-      if(data[i].courseId===id){
-        setCourseData(data[i]);
-        break;
-      }
-    }
-
-    setSelectedQuiz({
+      if (!chapter) return;
+  setSelectedTopic(null);
+   setSelectedQuiz({
       questions:chapter.quiz.quizQuestions,
-      questionIndex:selectedTopic.questionIndex
+      chapterIndex:selectedTopic.chapterIndex
     });
-    setSelectedTopic(null);
   }
+
 }
 
-const openNextChapter=(chapterIndex)=>{
 
-  const updatedState = JSON.parse(JSON.stringify(state));
-  const course = updatedState.ongoingCourses.find(course => course.courseId === id);
-console.log(course);
-  if(chapterIndex<course.chapters.length-1){
-    console.log(chapterIndex );
-    console.log(course.chapters.length-1)
-    const chapter = course.chapters[chapterIndex];
-    chapter.topics = chapter.topics.map((t, index) => ({
-      ...t,
-      // Keep topics unlocked if already unlocked or set `isCurrent` for the next topic
-      isCurrent: t.isCurrent || index <= chapter.topics.length-1,
-    }));
-    course.chapters[chapterIndex+1].topics[0].isCurrent=true;
-    console.log(updatedState)
-    dispatch(updateOnGoing({ updatedState }));
-    const data=updatedState.ongoingCourses;
-    for(let i=0;i<data.length;i++){
-      console.log(data[i].courseId)
-      if(data[i].courseId===id){
-        setCourseData(data[i]);
-        break;
-      }
-    }
-  }else{
-    console.log("fw")
-    const chapter = course.chapters[chapterIndex];
-    chapter.topics = chapter.topics.map((t, index) => ({
-      ...t,
-      // Keep topics unlocked if already unlocked or set `isCurrent` for the next topic
-      isCurrent: t.isCurrent || index <= chapter.topics.length-1,
-    }));
+const openNextChapter=async(chapterIndex)=>{
+
+  if(chapterIndex<courseData.chapters.length-1){
+  
+    const updatedData=await axios.post('http://localhost:5000/learn/openNextChapter',{
+      chapterIndex:chapterIndex+1,
+      userId:currentCourse._id,
+      courseId:id
+    });
+    const course = updatedData.data.userAfterUpdate.ongoingCourses.find(course => course.courseId === id);
+    setCourseData(course);
+    const chapter = course.chapters[chapterIndex+1];
+    setSelectedTopic({
+      topic: chapter.topics[0],
+      index: 0,
+      chapterIndex: chapterIndex+1,
+      topics: chapter.topics,
+    })
+    setSelectedQuiz(null);
+  }
+  else{
+    const updatedData=await axios.post('http://localhost:5000/learn/openFinalExam',{
+       userId:currentCourse._id,
+       courseId:id
+    })
+    const course = updatedData.data.userAfterUpdate.ongoingCourses.find(course => course.courseId === id);
+    setCourseData(course);
+
   }
 }
   const clear=()=>{
 persistor.purge();
   }
+
+  const handleFinalExam=async()=>{
+    try{
+      const userId=currentCourse._id;
+console.log(courseData)
+if(courseData.finalExam.isCompleted){
+  navigate(`/finalExam/${userId}/${courseData.courseId}` );
+}else{
+      navigate(`/finalExam-Instruction/${userId}/${courseData.courseId}` );
+}
+  
+    }catch(err){
+      console.log(err);
+    }
+  }
   return (
     <>
-    <button onClick={()=>clear()}>clear</button>
+    {/* <button onClick={()=>clear()}>clear</button> */}
+    <Navbar/>
       {courseData && (
         <div className="min-h-screen bg-gray-50 flex flex-col">
           {/* Top Section - Course Title and Description */}
@@ -240,7 +200,7 @@ persistor.purge();
               {courseData.chapters.map((chapter, chapterIndex) => (
                 <div key={chapterIndex} className="mb-6">
                   <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-medium text-gray-800">{chapter.title} {chapter.isCurrent ? <FaLockOpen/>:<FaLock/>}</h3>
+                    <h3 className="text-lg font-medium text-gray-800">{chapter.title}</h3>
                     <button
                       onClick={() => toggleChapter(chapterIndex)}
                       className="text-gray-600 hover:text-gray-900"
@@ -299,6 +259,15 @@ persistor.purge();
                   )}
                 </div>
               ))}
+              <div>
+                {
+                  courseData.finalExam.isCurrent && (
+                    <>
+                    <h1 onClick={()=>handleFinalExam()}>Final Exam</h1>
+                    </>
+                  )
+                }
+              </div>
             </div>
 
             {/* Right Section (Selected Topic Video & Content) */}

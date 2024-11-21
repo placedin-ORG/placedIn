@@ -19,7 +19,7 @@ setCourses(data.data.courses);
  call();
 },[]);
 
-const startLearning=async(_id)=>{
+const startLearning=async(_id,title)=>{
   try{
     console.log(user.user.user)
  const response=await axios.post("http://localhost:5000/learn/startLearning",{
@@ -33,7 +33,9 @@ const startLearning=async(_id)=>{
       course: response.data.updatedUse
     })
     )
-    navigate(`/courseDetail/${_id}`)
+    console.log(_id)
+    navigate(`/intro/course/${_id}`)
+    // navigate(`/courseDetail/${_id}`)
   }else{
     alert("error")
   }
@@ -50,7 +52,7 @@ const startLearning=async(_id)=>{
             courses.map((course,index)=>{
               return <>
               <h1>{course.title}</h1>
-              <button onClick={()=>startLearning(course._id)}>Start learning</button>
+              <button onClick={()=>startLearning(course._id,course.title)}>Start learning</button>
               </>
             })
           }
