@@ -6,6 +6,9 @@ import CourseDetail from "./pages/CourseDetail";
 import Hompage from "./pages/Home/Hompage";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
+import FinalExam from "./pages/FinalExam";
+import ExamInfoPage from "./component/ExamInfoPage";
+import CourseIntro from "./pages/CourseIntro";
 function App() {
   return (
     <>
@@ -16,6 +19,12 @@ function App() {
           <Route path="/" element={<Hompage />} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/finalExam/:userId/:courseId" element={<FinalExam />} />
+          <Route
+            path="/finalExam-Instruction/:userId/:courseId"
+            element={<ExamInfoPage />}
+          />
+          <Route path="/intro/course/:id" element={<CourseIntro />} />
         </Routes>
       </BrowserRouter>
     </>

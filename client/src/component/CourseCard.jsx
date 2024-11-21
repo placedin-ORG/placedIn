@@ -1,62 +1,61 @@
-import React from "react";
-import API from "../utils/API";
-import { useDispatch, useSelector } from "react-redux";
-import Button from "./Button";
-import { setCurrentCourse } from "../redux/UserSlice";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect,useState } from 'react';
+import {useSelector,useDispatch} from 'react-redux';
+import axios from 'axios'
+import {setCurrentCourse} from '../redux/UserSlice';
+import {useNavigate} from "react-router-dom"
+const CourseCard = () => {
+  const navigate=useNavigate();
+  const user=useSelector((state)=>state);
+  const [courses,setCourses]=useState([]);
+  const dispatch=useDispatch();
+useEffect(()=>{
+  // console.log(user.user)
+ const call=async ()=>{
+const data=await axios.get("http://localhost:5000/create/getCourses");
+console.log(data)
+setCourses(data.data.courses);
 
-const CourseCard = ({
-  image = "/images/home/thumb.png",
-  title,
-  description,
-  price,
-  _id,
-}) => {
-  const user = useSelector((state) => state.user);
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
+ }
+ call();
+},[]);
 
-  const startLearning = async (_id) => {
-    try {
-      const response = await API.post("/learn/startLearning", {
-        _id,
-        userId: user.user._id,
-      });
-      if (response.data.status) {
-        dispatch(
-          setCurrentCourse({
-            course: response.data.updatedUse,
-          })
-        );
-        navigate(`/courseDetail/${_id}`);
-      } else {
-        alert("error");
-      }
-    } catch (err) {
-      console.log(err);
-    }
-  };
+const startLearning=async(_id,title)=>{
+  try{
+    console.log(user.user.user)
+ const response=await axios.post("http://localhost:5000/learn/startLearning",{
+    _id,
+    userId:user.user.user._id
+  });
+// console.log(response.data.user)
+  if(response.data.status){
+    dispatch(
+    setCurrentCourse({
+      course: response.data.updatedUse
+    })
+    )
+    console.log(_id)
+    navigate(`/intro/course/${_id}`)
+    // navigate(`/courseDetail/${_id}`)
+  }else{
+    alert("error")
+  }
+  }catch(err){
+    console.log(err)
+  }
+ 
+}
   return (
-    <div class="w-full md:max-w-[22rem] p-4 h-full rounded-3xl bg-white border border-gray-300 transition-shadow duration-300 ease-in-out shadow-sm hover:shadow-custom flex flex-col justify-between">
-      <div className="w-full flex justify-center items-center">
-        <img
-          src={image}
-          className="w-full h-full max-h-40 object-cover"
-          alt=""
-        />
-      </div>
-      <div class="text-gray-900">
-        <h3 class="text-xl font-bold py-5">{title}</h3>
-
-        <div className="flex justify-between items-center">
-          {price ? <p>₹{price}</p> : <p>Free</p>}
-          <Button
-            className={
-              "p-0 py-1 px-2.5 font-semibold text-center !bg-primary-light"
-            }
-            title={" Start learning"}
-            onClick={() => startLearning(_id)}
-          />
+    <>
+      {
+        courses.length===0?null:<div>
+          {
+            courses.map((course,index)=>{
+              return <>
+              <h1>{course.title}</h1>
+              <button onClick={()=>startLearning(course._id,course.title)}>Start learning</button>
+              </>
+            })
+          }
         </div>
       </div>
     </div>
