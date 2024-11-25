@@ -16,73 +16,80 @@ const Quiz = ({ selectedQuiz,chapterIndex,openNextChapter }) => {
             setCondition(true);
 
             openNextChapter(chapterIndex)
+        }else{
+          alert("select all options")
         }
     }
     return (
         <>
+<div className="space-y-6 pr-4 pb-5">
+  {selectedQuiz.map((question, questionIndex) => (
+    <div key={questionIndex} className="bg-white shadow-lg rounded-lg p-6">
+      {/* Question */}
+      <p className="text-lg font-semibold text-gray-800 ">
+        {`Q ${question.question}`}
+      </p>
 
-            {
-                !condition ?
-                    <div>
-                        {selectedQuiz.map((question, questionIndex) => (
-                            <div key={questionIndex} className="bg-white shadow-lg rounded-lg p-6 mb-4">
-                                <p className="text-lg text-gray-800 font-medium mb-4">{question.question}</p>
-                                <div className="space-y-4">
-                                    {question.options.map((option, optionIndex) => (
-                                        <div key={optionIndex} className="flex items-center space-x-3">
-                                            <input
-                                                type="radio"
-                                                name={`question-${questionIndex}`}
-                                                value={option}
-                                                checked={selectedOptions[questionIndex] === option}
-                                                onChange={() => handleOptionChange(questionIndex, option)}
-                                                className="form-radio h-5 w-5 text-blue-500 border-gray-300 focus:ring-2 focus:ring-blue-300"
-                                            />
-                                            <label className="text-sm text-gray-700">{option}</label>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                    : <div>
+      {/* Options */}
+      <div className="space-y-3">
+        {question.options.map((option, optionIndex) => (
+          <div key={optionIndex} className="flex items-center space-x-4">
+            {!condition ? (
+              <>
+                {/* Option Input */}
+                <input
+                  type="radio"
+                  name={`question-${questionIndex}`}
+                  value={option}
+                  checked={selectedOptions[questionIndex] === option}
+                  onChange={() => handleOptionChange(questionIndex, option)}
+                  className="form-radio h-5 w-5 text-blue-500 border-gray-300 focus:ring-2 focus:ring-blue-500 checked:bg-green-500"
+                />
+                {/* Option Label */}
+                <label className="text-sm text-gray-700">{option}</label>
+              </>
+            ) : null}
+          </div>
+        ))}
 
-                        {selectedQuiz.map((question, questionIndex) => (
-                            <div key={questionIndex} className="bg-white shadow-lg rounded-lg p-6 mb-4">
-                                <p className="text-lg text-gray-800 font-medium mb-4">{question.question}</p>
-                                <div className="space-y-4">
-                                    your Answer : {
-                                        selectedOptions[questionIndex].split(' ')[0] === question.correctAnswer ? <div>{selectedOptions[questionIndex]} correct </div> : <div>
-                                            {selectedOptions[questionIndex]}<br />
-                                            correct Answer: {
-                                                question.options.map((option) => {
-                                                    return <>
-                                                        {option.split(' ')[0] === question.correctAnswer ? <p>{option}</p> : null}
-                                                    </>
-                                                })
-                                            }
-                                        </div>
-                                    }
-                                    {/* {question.options.map((option, optionIndex) => (
-                        <div key={optionIndex} className="flex items-center space-x-3">
-                           
-                          <input
-                            type="radio"
-                            name={`question-${questionIndex}`}
-                            value={option}
-                            checked={selectedOptions[questionIndex] === option}
-                            className="form-radio h-5 w-5 text-blue-500 border-gray-300 focus:ring-2 focus:ring-blue-300"
-                          />
-                          <label className="text-sm text-gray-700">{option}</label>
-                        </div>
-                      ))} */}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-            }
+        {condition && (
+          <div className="text-sm mt-4">
+            {selectedOptions[questionIndex].split(' ')[0] === question.correctAnswer ? (
+              <p className="text-green-600 font-medium">
+                <span className="font-bold">Your Answer:</span>{" "}
+                {selectedOptions[questionIndex]} ✔ Correct
+              </p>
+            ) : (
+              <div>
+                <p className="text-red-600 font-medium">
+                  <span className="font-bold">Your Answer:</span>{" "}
+                  {selectedOptions[questionIndex]} ✘
+                </p>
+                <p className="text-green-700 font-medium mt-2">
+                  <span className="font-bold">Correct Answer:</span>{" "}
+                  {question.options.find(opt=>opt.split(' ')[0]===question.correctAnswer)}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  ))}
 
-            <button onClick={() => handleSubmit()}>Submit Quiz</button>
+  {/* Submit Button */}
+  {!condition && (
+    <div className="flex justify-end mt-6">
+      <button
+        onClick={() => handleSubmit()}
+        className="px-6 mb-5 py-2 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 transition-all"
+      >
+        Submit Quiz
+      </button>
+    </div>
+  )}
+</div>
+
         </>
     );
 }

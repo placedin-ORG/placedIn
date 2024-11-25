@@ -234,7 +234,6 @@ const result = finalExam.questions.reduce(
     const userAnswerObj = Object.entries(answers).find(([key, value]) => key === index.toString());
     const userAnswer = userAnswerObj ? userAnswerObj[1] : null; // Get the user's answer (value) or null
 
-    console.log(userAnswer + '256');
     acc.totalQuestions+=1
 
     // Update counters
@@ -273,14 +272,33 @@ const result = finalExam.questions.reduce(
     analyseAnswers: []
   }
 );
-
-console.log(result )
 const { totalQuestions,correct, attempted, wrong, resultAnswers,analyseAnswers } = result;
 
 
 // Calculate adjusted accuracy
 const adjustedAccuracy = (correct / totalQuestions) * 100 ;
-const accuracy=adjustedAccuracy.toFixed(2)
+const accuracy=adjustedAccuracy.toFixed(2) ;
+const accuracies = await User.aggregate([
+  { $unwind: "$ongoingCourses" },
+  { $match: { "ongoingCourses.courseId": courseId } },
+  {
+    $project: {
+      _id: 0,
+      accuracy: "$ongoingCourses.finalExam.result.accuracy"
+    }
+  },
+  { $match: { accuracy: { $ne: null } } } // Exclude null accuracies
+]);
+
+// Sort accuracies to calculate beat percentages
+const sortedAccuracies = accuracies.map(a => a.accuracy).sort((a, b) => a - b);
+
+const dataPoints = sortedAccuracies.map((accuracy, index) => {
+  const lowerAccuracies = index; // Number of students with lower accuracy
+  const totalStudents = sortedAccuracies.length;
+  const beatPercentage = (lowerAccuracies / totalStudents) * 100;
+  return { accuracy, beatPercentage };
+});
 const userAfterUpdate = await User.findOne(
   { _id: userId, 'ongoingCourses.courseId': courseId }, 
   { 'ongoingCourses.$': 1 } // Project only the matching element from the array
@@ -289,7 +307,7 @@ const userAfterUpdate = await User.findOne(
 const updatedcourse = userAfterUpdate?.ongoingCourses?.[0]; // Access the specific course
   const updatedData={
     updatedcourse,
-  correct, attempted, wrong, resultAnswers,analyseAnswers,accuracy,totalQuestions
+  correct, attempted, wrong, resultAnswers,analyseAnswers,accuracy,totalQuestions,dataPoints
 }
 return res.json({status:true,updatedData,msg:'found'});
 }else{
@@ -377,13 +395,35 @@ router.post('/examresult',async(req,res)=>{
 // Calculate adjusted accuracy
 const adjustedAccuracy = (correct / totalQuestions) * 100 ;
 const accuracy=adjustedAccuracy.toFixed(2)
+const accuracies = await User.aggregate([
+  { $unwind: "$ongoingCourses" },
+  { $match: { "ongoingCourses.courseId": courseId } },
+  {
+    $project: {
+      _id: 0,
+      accuracy: "$ongoingCourses.finalExam.result.accuracy"
+    }
+  },
+  { $match: { accuracy: { $ne: null } } } // Exclude null accuracies
+]);
+
+// Sort accuracies to calculate beat percentages
+const sortedAccuracies = accuracies.map(a => a.accuracy).sort((a, b) => a - b);
+
+const dataPoints = sortedAccuracies.map((accuracy, index) => {
+  const lowerAccuracies = index; // Number of students with lower accuracy
+  const totalStudents = sortedAccuracies.length;
+  const beatPercentage = (lowerAccuracies / totalStudents) * 100;
+  return { accuracy, beatPercentage };
+});
     // Update the result field with the user's answers
     await User.updateOne(
       { _id: userId, 'ongoingCourses.courseId': courseId },
       {
         $set: {
           'ongoingCourses.$.finalExam.result.answers': answers,
-          'ongoingCourses.$.finalExam.isCompleted': true ,// Mark the exam as completed
+          'ongoingCourses.$.finalExam.isCompleted': true ,
+          'ongoingCourses.$.finalExam.result.accuracy':accuracy// Mark the exam as completed
         }
       }
     );
@@ -396,7 +436,7 @@ const accuracy=adjustedAccuracy.toFixed(2)
     const updatedcourse = userAfterUpdate?.ongoingCourses?.[0]; // Access the specific course
       const updatedData={
         updatedcourse,
-      correct, attempted, wrong, resultAnswers,analyseAnswers,accuracy,totalQuestions
+      correct, attempted, wrong, resultAnswers,analyseAnswers,accuracy,totalQuestions,dataPoints
     }
     return res.json({status:true,updatedData});
   }catch(err){

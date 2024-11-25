@@ -1,19 +1,51 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FiPlusCircle } from 'react-icons/fi';
 import { BiSave } from 'react-icons/bi';
+import { AiOutlinePlusCircle, AiOutlineDelete } from 'react-icons/ai';
 import axios from "axios";
+import {useLocation} from 'react-router-dom' 
 const CreateCoursePage = () => {
+  const location=useLocation();
   const [courseTitle, setCourseTitle] = useState('');
   const [description, setDescription] = useState('');
   const [chapters, setChapters] = useState([{ title: '', topics: [{ name: '', videoUrl: '', content: '' }], quiz: [] }]);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isTopicOpen, setIsTopicOpen] = useState(true);
-  const [isQuizOpen, setIsQuizOpen] = useState(true);
   const [paid ,setPaid]=useState(false);
   const [price,setPrice]=useState(0);
+  const [thumbnail, setThumbnail] = useState(null);
+
+  const [courseCategory, setCourseCategory] = useState("");
+  const [id,setId]=useState(null);
   const handleAddChapter = () => {
     setChapters([...chapters, { title: '', topics: [{ name: '', videoUrl: '', content: '' }], quiz: [] }]);
   };
+
+  useEffect(()=>{
+  try{
+  if(location.state!==null){
+     const {
+          title: title,
+          description: desc,
+          chapters: chapterList,
+          paid: isPaid,
+          price: coursePrice,
+          courseCategory: category,
+          _id:id
+        } = location.state;
+
+        // Update state with values from location.state
+        if (title) setCourseTitle(title);
+        if (desc) setDescription(desc);
+        if (chapterList) setChapters(chapterList);
+        if (typeof isPaid === "boolean") setPaid(isPaid);
+        if (coursePrice) setPrice(coursePrice);
+        if (category) setCourseCategory(category);
+        if(id) setId(id);
+  }
+  }catch(err){
+  console.log(err);
+  }
+  },[])
 
   const handleChapterChange = (index, field, value) => {
     const updatedChapters = [...chapters];
@@ -102,29 +134,42 @@ const CreateCoursePage = () => {
   };
 
   const handleSaveCourse = async() => {
-    // Create the course data object
-    const courseData = {
-      courseTitle,
-      description,
-      chapters
-    };
+    
    const {data}=await axios.post('http://localhost:5000/create/createCourse',{
     courseTitle,
     description,
     chapters,
-    paid,
     price,
-    questions
+    questions,
+    id,
+    setLive:true,
+    courseCategory,
+    courseThumbnail:thumbnail
    })
    if(data.status){
     alert("added")
+   }else{
+    alert("problem while adding")
    }
-    // Save the course data to localStorage
-    localStorage.setItem('courseData', JSON.stringify(courseData));
-
-    // Optionally alert the user that the course has been saved
-    alert('Course has been saved to localStorage!');
   };
+  const handlelaterCourse=async()=>{
+    const {data}=await axios.post('http://localhost:5000/create/laterCourse',{
+      courseTitle,
+      description,
+      chapters,
+      price,
+      questions,
+      id,
+      courseCategory,
+      setLive:false,
+      courseThumbnail:thumbnail
+     })
+     if(data.status){
+      alert("added")
+     }else{
+      alert("problem while adding")
+     }
+  }
 
   const getEmbedUrl = (url) => {
     if (url.includes('youtube.com') || url.includes('youtu.be')) {
@@ -174,125 +219,212 @@ const [toggleExam,setToggleExam]=useState(false);
  };
 
  const addQuestion = () => {
-   setQuestions([...questions, currentQuestion]);
-   setCurrentQuestion({
-     questionText: '',
-     options: ['', '', '', ''],
-     correctAnswer: '',
-   });
- };
+  if (
+    currentQuestion.questionText &&
+    currentQuestion.correctAnswer &&
+    currentQuestion.options.every((opt) => opt)
+  ) {
+    setQuestions([...questions, currentQuestion]);
+    setCurrentQuestion({ questionText: '', options: ['', '', '', ''], correctAnswer: '' });
+  } else {
+    alert('Please fill out all fields before adding a question.');
+  }
+};
+
+const deleteQuestion = (index) => {
+  const updatedQuestions = questions.filter((_, i) => i !== index);
+  setQuestions(updatedQuestions);
+};
   return (
-    <div className="container mx-auto p-8 max-w-4xl bg-white shadow-md rounded-md">
-      <h1 className="text-4xl font-bold mb-6 text-gray-800">Create a New Course</h1>
-
-      {/* Course Title Input */}
-      <div className="mb-6">
-        <label className="block text-gray-700 font-semibold mb-2">Course Title</label>
-        <input
-          type="text"
-          value={courseTitle}
-          onChange={(e) => setCourseTitle(e.target.value)}
-          placeholder="Enter course title"
+    <div className="container mx-auto p-8 max-w-4xl bg-white shadow-lg rounded-lg mb-5 mt-5">
+    <h1 className="text-3xl font-bold mb-8 text-gray-800 border-b pb-4">Create a New Course</h1>
+    <div className="mb-6">
+  <label className="block text-gray-700 font-medium mb-2">
+    Course Thumbnail
+  </label>
+  <div className="flex items-center space-x-4">
+    <input
+      type="file"
+      accept="image/*"
+      onChange={(e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setThumbnail(reader.result); // Update the state with base64 string
+          };
+          reader.readAsDataURL(file);
+        }
+      }}
+      className="w-full px-4 py-2 border border-gray-300 rounded-md cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-blue-500 file:text-white hover:file:bg-blue-600 focus:outline-none"
+    />
+  </div>
+  {thumbnail && (
+    <div className="mt-4">
+      <img
+        src={thumbnail}
+        alt="Course Thumbnail"
+        className="w-40 h-40 object-cover rounded-md shadow-md"
+      />
+    </div>
+  )}
+</div>
+  {/* Course Category */}
+  <div className="mb-6">
+        <label className="block text-gray-700 font-medium mb-2">
+          Course Category
+        </label>
+        <select
+          value={courseCategory}
+          onChange={(e) => setCourseCategory(e.target.value)}
           className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+        >
+          <option value="" disabled>
+            Select a category
+          </option>
+          <option value="doctorate">Doctorate</option>
+          <option value="aiml">AI & ML</option>
+          <option value="mba">MBA</option>
+          <option value="data-science">Data Science</option>
+          <option value="marketing-software">Marketing</option>
+          <option value="software">Software</option>
+          <option value="management">Management</option>
+          <option value="law">Law</option>
+        </select>
       </div>
-
-      {/* Description Input */}
-      <div className="mb-6">
-        <label className="block text-gray-700 font-semibold mb-2">Course Description</label>
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Enter course description"
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        ></textarea>
-      </div>
-
-      {/* Chapters */}
-      {chapters.map((chapter, chapterIndex) => (
-        <div key={chapterIndex} className="mb-6 border rounded-md p-4 bg-gray-50">
-          <label className="block text-gray-700 font-semibold mb-2">Chapter {chapterIndex + 1} Title</label>
+    {/* Course Title Input */}
+    <div className="mb-6">
+      <label className="block text-gray-700 font-medium mb-2">Course Title</label>
+      <input
+        type="text"
+        value={courseTitle}
+        onChange={(e) => setCourseTitle(e.target.value)}
+        placeholder="Enter course title"
+        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+    </div>
+  
+    {/* Description Input */}
+    <div className="mb-6">
+      <label className="block text-gray-700 font-medium mb-2">Course Description</label>
+      <textarea
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        placeholder="Enter course description"
+        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+      ></textarea>
+    </div>
+  
+    {/* Chapters Section */}
+    {chapters.map((chapter, chapterIndex) => (
+      <div key={chapterIndex} className="mb-8 bg-gray-50 p-6 rounded-lg shadow-inner">
+        <h2 className="text-xl font-semibold mb-4 text-gray-700">
+          Chapter {chapterIndex + 1}: {chapter.title || "Untitled"}
+        </h2>
+  
+        {/* Chapter Title Input */}
+        <div className="mb-4">
+          <label className="block text-gray-600 font-medium mb-1">Chapter Title</label>
           <input
             type="text"
             value={chapter.title}
-            onChange={(e) => handleChapterChange(chapterIndex, 'title', e.target.value)}
-            placeholder={`Chapter ${chapterIndex + 1} title`}
-            className="w-full px-4 py-2 mb-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={(e) => handleChapterChange(chapterIndex, "title", e.target.value)}
+            placeholder={`Enter Chapter ${chapterIndex + 1} Title`}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-
-          {/* Topics */}
-          {chapter.topics.map((topic, topicIndex) => (
-            <div key={topicIndex} className="mb-4">
-              <label className="block text-gray-600 mb-1">Topic {topicIndex + 1} Name</label>
-              <input
-                type="text"
-                value={topic.name}
-                onChange={(e) => handleTopicChange(chapterIndex, topicIndex, 'name', e.target.value)}
-                placeholder={`Topic ${topicIndex + 1} name`}
-                className="w-full px-3 py-2 mb-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <label className="block text-gray-600 mb-1">Video URL</label>
-              <input
-                type="text"
-                value={topic.videoUrl}
-                onChange={(e) => handleTopicChange(chapterIndex, topicIndex, 'videoUrl', e.target.value)}
-                placeholder="Video URL"
-                className="w-full px-3 py-2 mb-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              {
-                topic.videoUrl!==""?  <div className="mb-6">
-                    <iframe
-                      width="100%"
-                      height="400"
-                      src={getEmbedUrl(topic.videoUrl)}
-                      title={topic.name}
-                      className="rounded-lg shadow-lg"
-                    ></iframe>
-                  </div>:null
-              }
-             
-              <label className="block text-gray-600 mb-1">Promt for generating question</label>
+        </div>
+  
+        {/* Topics Section */}
+        {chapter.topics.map((topic, topicIndex) => (
+          <div key={topicIndex} className="mb-4 border-b pb-4 last:border-none">
+            <h3 className="text-lg font-medium text-gray-600 mb-2">Topic {topicIndex + 1}</h3>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label className="block text-gray-500 mb-1">Topic Name</label>
+                <input
+                  type="text"
+                  value={topic.name}
+                  onChange={(e) => handleTopicChange(chapterIndex, topicIndex, "name", e.target.value)}
+                  placeholder="Enter topic name"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-gray-500 mb-1">Video URL</label>
+                <input
+                  type="text"
+                  value={topic.videoUrl}
+                  onChange={(e) => handleTopicChange(chapterIndex, topicIndex, "videoUrl", e.target.value)}
+                  placeholder="Enter video URL"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+  
+            {/* Video Preview */}
+            {topic.videoUrl && (
+              <div className="mt-4">
+                <iframe
+                  width="100%"
+                  height="300"
+                  src={getEmbedUrl(topic.videoUrl)}
+                  title={topic.name}
+                  className="rounded-lg shadow-md"
+                ></iframe>
+              </div>
+            )}
+  
+            <div className="mt-4">
+              <label className="block text-gray-500 mb-1">Content / Prompt</label>
               <textarea
                 value={topic.content}
-                onChange={(e) => handleTopicChange(chapterIndex, topicIndex, 'content', e.target.value)}
-                placeholder="Enter topic content"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={(e) => handleTopicChange(chapterIndex, topicIndex, "content", e.target.value)}
+                placeholder="Enter topic content or prompt"
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               ></textarea>
             </div>
-          ))}
+          </div>
+        ))}
+        <button
+          onClick={() => handleAddTopic(chapterIndex)}
+          className="flex items-center px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+        >
+          <FiPlusCircle className="mr-2" /> Add Topic
+        </button>
+  
+        {/* Quiz Section */}
+        <div className="mt-6">
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">Quiz</h3>
           <button
-            onClick={() => handleAddTopic(chapterIndex)}
-            className="flex items-center px-4 py-2 bg-green-500 text-white rounded-md shadow hover:bg-green-600"
+            onClick={() => generateQuizFromContent(chapterIndex)}
+            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"
+            disabled={isGenerating}
           >
-            <FiPlusCircle className="mr-2" /> Add Topic
+            {isGenerating ? "Generating..." : "Generate Quiz from Content"}
           </button>
-
-          {/* Quiz Section */}
-          <div className="mt-4">
-            <button
-              onClick={() => generateQuizFromContent(chapterIndex)}
-              className={`px-4 py-2 bg-blue-500 text-white rounded-md shadow hover:bg-blue-600 ${
-                isGenerating ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
-              disabled={isGenerating}
-            >
-              {isGenerating ? 'Generating...' : 'Generate Quiz from Content'}
-            </button>
-            {chapter.quiz.map((question, questionIndex) => (
-  <div key={questionIndex} className="mt-4 border-t pt-4">
-    <label className="block text-gray-600 mb-1">Quiz Question {questionIndex + 1}</label>
+          {/* Quiz Questions */}
+          {chapter.quiz.map((question, questionIndex) => (
+  <div key={questionIndex} className="mt-6 border-t pt-6">
+    {/* Quiz Question Label and Input */}
+    <label className="block text-gray-700 font-medium mb-2">
+      Quiz Question {questionIndex + 1}
+    </label>
     <input
       type="text"
       value={question.question}
-      onChange={(e) => handleQuizQuestionChange(chapterIndex, questionIndex, 'question', e.target.value)}
+      onChange={(e) =>
+        handleQuizQuestionChange(chapterIndex, questionIndex, 'question', e.target.value)
+      }
       placeholder={`Enter question ${questionIndex + 1}`}
-      className="w-full px-3 py-2 mb-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+      className="w-full px-4 py-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
     />
 
-    {/* Display input fields for each option */}
+    {/* Options for the Question */}
     {question.options.map((option, optionIndex) => (
-      <div key={optionIndex} className="mt-2">
-        <label className="block text-gray-500 mb-1">Option {optionIndex + 1}</label>
+      <div key={optionIndex} className="mt-4">
+        <label className="block text-gray-600 font-medium mb-1">
+          Option {optionIndex + 1}
+        </label>
         <input
           type="text"
           value={option}
@@ -300,111 +432,124 @@ const [toggleExam,setToggleExam]=useState(false);
             handleQuizQuestionChange(chapterIndex, questionIndex, `options.${optionIndex}`, e.target.value)
           }
           placeholder={`Enter option ${optionIndex + 1}`}
-          className="w-full px-3 py-2 mb-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
     ))}
-
-    {/* Optionally, a field for the correct answer */}
-    <label className="block text-gray-500 mt-2">Correct Answer</label>
-    <input
-      type="text"
-      value={question.correctAnswer}
-      onChange={(e) => handleQuizQuestionChange(chapterIndex, questionIndex, 'correctAnswer', e.target.value)}
-      placeholder="Enter the correct answer"
-      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-    />
   </div>
 ))}
 
-            <button
-              onClick={() => handleAddQuizQuestion(chapterIndex)}
-              className="mt-2 flex items-center px-4 py-2 bg-yellow-500 text-white rounded-md shadow hover:bg-yellow-600"
-            >
-              <FiPlusCircle className="mr-2" /> Add Quiz Question
-            </button>
-          </div>
         </div>
-      ))}
-
-      <button
-        onClick={handleAddChapter}
-        className="mb-6 flex items-center px-4 py-2 bg-indigo-500 text-white rounded-md shadow hover:bg-indigo-600"
-      >
-        <FiPlusCircle className="mr-2" /> Add Chapter
-      </button>
-
-      {
-        paid ?
-         <div>
-          <input type='number' min={1} value={price} onChange={(e)=>setPrice(e.target.value)}/>
-          </div>: null
-      }
-      <button className='border' onClick={()=>handlePaid()}>{
-        paid?"remove paid":"make paid"
-        }</button>
-
-      <button
-        onClick={handleSaveCourse}
-        className="w-full px-4 py-2 bg-purple-500 text-white rounded-md shadow hover:bg-purple-600"
-      >
-        <BiSave className="inline-block mr-2" /> Save Course
-      </button>
-
-      <button className='border  border-red-700' onClick={()=>handleToggleExam()}>
-        Create Final Exam 
-      </button>
-      {
-      toggleExam ?<div>
-           <div>
-        <input
-          type="text"
-          placeholder="Enter question"
-          value={currentQuestion.questionText}
-          onChange={handleQuestionChange}
-        />
-        {currentQuestion.options.map((option, index) => (
-          <div key={index}>
-            <input
-              type="text"
-              placeholder={`Option ${index + 1}`}
-              value={option}
-              onChange={(e) => handleOptionChange(index, e.target.value)}
-            />
-          </div>
-        ))}
-        <select
-          value={currentQuestion.correctAnswer}
-          onChange={handleCorrectAnswerChange}
-        >
-          <option value="">Select correct answer</option>
-          {currentQuestion.options.map((option, index) => (
-            <option key={index} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
-        <button onClick={addQuestion}>Add Question</button>
       </div>
+    ))}
+  
+    {/* Add Chapter Button */}
+    <button
+      onClick={handleAddChapter}
+      className="flex items-center px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600"
+    >
+      <FiPlusCircle className="mr-2" /> Add Chapter
+    </button>
+  <label> Select amount:</label>
+    <input type='number' value={price} min={0} onChange={(e)=>setPrice(e.target.value)}  className='p-2 bg-white rounded-md text-orange mt-5 mb-4 border-2 ml-2' placeholder='Change price for paid '/>
+    <br/>
+    <button onClick={()=>setToggleExam(!toggleExam)} className='p-2 bg-orange-500 rounded-md text-white mt-5 mb-4'>create Exam</button>
+{
+   toggleExam && (
+      <div className="p-6 bg-gray-50 min-h-screen">
+        <h2 className="text-2xl font-bold text-gray-700 mb-4">Exam Creation</h2>
 
-      <h3>Questions</h3>
-      <ul>
-        {questions.map((q, index) => (
-          <li key={index}>
-            <p>Q: {q.questionText}</p>
-            <ul>
-              {q.options.map((opt, optIndex) => (
-                <li key={optIndex}>
-                  {opt} {opt === q.correctAnswer && '(Correct Answer)'}
+        {/* Question Input Section */}
+        <div className="bg-white p-4 rounded-lg shadow-md mb-6">
+          <h3 className="text-lg font-semibold text-gray-600 mb-4">Add New Question</h3>
+          <input
+            type="text"
+            placeholder="Enter question"
+            value={currentQuestion.questionText}
+            onChange={handleQuestionChange}
+            className="w-full p-2 mb-4 border rounded-lg focus:outline-none focus:ring focus:border-blue-300"
+          />
+          <div className="space-y-2">
+            {currentQuestion.options.map((option, index) => (
+              <div key={index} className="flex items-center">
+                <input
+                  type="text"
+                  placeholder={`Option ${index + 1}`}
+                  value={option}
+                  onChange={(e) => handleOptionChange(index, e.target.value)}
+                  className="flex-grow p-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300"
+                />
+              </div>
+            ))}
+          </div>
+          <select
+            value={currentQuestion.correctAnswer}
+            onChange={handleCorrectAnswerChange}
+            className="w-full p-2 mt-4 border rounded-lg focus:outline-none focus:ring focus:border-blue-300"
+          >
+            <option value="">Select correct answer</option>
+            {currentQuestion.options.map((option, index) => (
+              <option key={index} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={addQuestion}
+            className="flex items-center mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          >
+            <AiOutlinePlusCircle className="mr-2" /> Add Question
+          </button>
+        </div>
+
+        {/* Questions List */}
+        <div className="bg-white p-4 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold text-gray-600 mb-4">Questions List</h3>
+          {questions.length > 0 ? (
+            <ul className="space-y-4">
+              {questions.map((q, index) => (
+                <li key={index} className="border-b pb-4">
+                  <p className="text-gray-700 font-medium">Q{index + 1}: {q.questionText}</p>
+                  <ul className="mt-2 space-y-1">
+                    {q.options.map((opt, optIndex) => (
+                      <li
+                        key={optIndex}
+                        className={`p-2 rounded-lg ${
+                          opt === q.correctAnswer
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-gray-100 text-gray-600'
+                        }`}
+                      >
+                        {opt} {opt === q.correctAnswer && '(Correct)'}
+                      </li>
+                    ))}
+                  </ul>
+                  <button
+                    onClick={() => deleteQuestion(index)}
+                    className="flex items-center mt-2 text-red-500 hover:underline"
+                  >
+                    <AiOutlineDelete className="mr-2" /> Delete Question
+                  </button>
                 </li>
               ))}
             </ul>
-          </li>
-        ))}
-      </ul>
-      </div>:null
-      }
-    </div>
+          ) : (
+            <p className="text-gray-500">No questions added yet.</p>
+          )}
+        </div>
+      </div>
+    )
+}
+    {/* Save Course Button */}
+<button
+      onClick={handleSaveCourse}
+      className="w-full mt-6 px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 flex items-center justify-center"
+    >
+      <BiSave className="mr-2" /> Save Course and live
+    </button>
+    <button className='w-full mt-6 px-4 py-2 bg-purple-700 text-white rounded-md hover:bg-purple-600 flex items-center justify-center' onClick={()=>handlelaterCourse()}> Save Course Only </button>
+  </div>
+  
   );
 };
 

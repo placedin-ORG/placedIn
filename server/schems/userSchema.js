@@ -99,7 +99,10 @@ const userSchema = new mongoose.Schema({
                   answers: [{
                     type: Map,
                     of: String,
-                  }]
+                  }],
+                  accuracy:{
+                    type:Number
+                  }
                  }
               }
             }

@@ -59,9 +59,12 @@ call();
     // Clear quiz when a topic is selected
   };
 
-  const handleQuizClick = (quiz) => {
+  const handleQuizClick = (quiz,index) => {
     if(quiz.isCurrent){
-       setSelectedQuiz(quiz);
+       setSelectedQuiz({
+        questions:quiz.quizQuestions,
+      chapterIndex:index
+       });
        setSelectedTopic(null); 
     }
    
@@ -126,11 +129,12 @@ setSelectedTopic({
   setCourseData(course)
     const chapter = course.chapters[selectedTopic.chapterIndex];
       if (!chapter) return;
-  setSelectedTopic(null);
+  
    setSelectedQuiz({
       questions:chapter.quiz.quizQuestions,
       chapterIndex:selectedTopic.chapterIndex
     });
+    setSelectedTopic(null);
   }
 
 }
@@ -148,13 +152,13 @@ const openNextChapter=async(chapterIndex)=>{
     const course = updatedData.data.userAfterUpdate.ongoingCourses.find(course => course.courseId === id);
     setCourseData(course);
     const chapter = course.chapters[chapterIndex+1];
-    setSelectedTopic({
-      topic: chapter.topics[0],
-      index: 0,
-      chapterIndex: chapterIndex+1,
-      topics: chapter.topics,
-    })
-    setSelectedQuiz(null);
+    // setSelectedTopic({
+    //   topic: chapter.topics[0],
+    //   index: 0,
+    //   chapterIndex: chapterIndex+1,
+    //   topics: chapter.topics,
+    // })
+    // setSelectedQuiz(null);
   }
   else{
     const updatedData=await axios.post('http://localhost:5000/learn/openFinalExam',{
@@ -166,9 +170,9 @@ const openNextChapter=async(chapterIndex)=>{
 
   }
 }
-  const clear=()=>{
-persistor.purge();
-  }
+//   const clear=()=>{
+// persistor.purge();
+//   }
 
   const handleFinalExam=async()=>{
     try{
@@ -184,141 +188,201 @@ if(courseData.finalExam.isCompleted){
       console.log(err);
     }
   }
+let totalTopics=0;
+let completedTopics=0;
+let progressPercentage=0;
+if(courseData !==null){
+  totalTopics = courseData.chapters.reduce((total, chapter) => {
+    return total + chapter.topics.length;
+  }, 0);
+
+   completedTopics = courseData.chapters.reduce((total, chapter) => {
+    return (
+      total +
+      chapter.topics.filter((topic) => topic.isCurrent).length
+    );
+  }, 0);
+
+  // Calculate progress percentage
+   progressPercentage = totalTopics
+    ? Math.round((completedTopics / (totalTopics)) * 100)
+    : 0;
+}
+   
   return (
     <>
     {/* <button onClick={()=>clear()}>clear</button> */}
     <Navbar/>
+
       {courseData && (
         <div className="min-h-screen bg-gray-50 flex flex-col">
           {/* Top Section - Course Title and Description */}
-     
+     <div className=' flex justify-center pt-3'>
+      <div>
+ <h1 className='text-4xl font-bold text-red-500'>{courseData.courseName}</h1>     
+ <div className="w-full bg-gray-200 rounded-full mt-3 h-4">
+  <div
+    className="bg-blue-500 h-4 rounded-full transition-all duration-300"
+    style={{ width: `${progressPercentage}%` }}
+  ></div>
+</div>
+<p className="text-sm text-gray-700 mt-2 flex items-center">
+  {completedTopics}/{totalTopics} Topics Completed ({progressPercentage}%)
+  {progressPercentage === 100 && (
+    <span className="ml-2 text-lg" role="img" aria-label="celebration">
+      🎉
+    </span>
+  )}
+</p>
+
+</div>
+     </div>
 
           <div className="flex relative">
             {/* Left Section (Sticky) */}
-            <div className="w-1/4 bg-white p-6 shadow-lg rounded-lg sticky top-20 h-full overflow-y-auto scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-gray-300">
-              <h2 className="text-xl font-semibold mb-4">Course Content</h2>
-              {courseData.chapters.map((chapter, chapterIndex) => (
-                <div key={chapterIndex} className="mb-6">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-medium text-gray-800">{chapter.title}</h3>
-                    <button
-                      onClick={() => toggleChapter(chapterIndex)}
-                      className="text-gray-600 hover:text-gray-900"
-                    >
-                      {expandedChapter === chapterIndex ? <FaAngleUp /> : <FaAngleDown />}
-                    </button>
-                  </div>
+            <div className="w-1/4  p-6 -md rounded-lg sticky top-20 h-full overflow-y-auto scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-gray-300">
+  <h2 className="text-xl font-semibold mb-6 border-b pb-2 text-red-900">Course Content</h2>
+  {courseData.chapters.map((chapter, chapterIndex) => (
+    <div key={chapterIndex} className="mb-6 py-3 border-2 rounded-lg border-green-500">
+      {/* Chapter Header */}
+      <div className="flex justify-between items-center mb-2  "  onClick={() => toggleChapter(chapterIndex)}>
+        <div className='flex flex-col px-3'>
+          <p className='text-slate-600 '>Module {chapterIndex+1}</p>
+        <h3 className="text-3xl font-semibold text-gray-800">{chapter.title}</h3>
+        </div>
+        
+        <button
+         
+          className="text-gray-600 hover:text-gray-800 focus:outline-none"
+        >
+          {expandedChapter === chapterIndex ? <FaAngleUp /> : <FaAngleDown />}
+        </button>
+      </div>
 
-                  {expandedChapter === chapterIndex && (
-                    <div className="pl-4 mt-2">
-                      {chapter.topics.map((topic, topicIndex) => (
-                        <div
-                          key={topicIndex}
-                          className={`cursor-pointer mb-2 text-sm text-gray-700 hover:text-blue-600 ${selectedTopic &&selectedTopic.topic.name===topic.name ? 'bg-blue-500 text-white':'' }`}
-                          onClick={() => handleTopicClick(topic,topicIndex,chapter.topics,chapterIndex,)}
-                        >
-                          <div className="flex justify-between items-center">
-                            <span>{topic.name} {topic.isCurrent ? <FaLockOpen/>:<FaLock/>}</span>
-                            <button
-                              onClick={() => toggleTopicContent(topicIndex)}
-                              className="text-gray-600 hover:text-gray-900"
-                            >
-                              {expandedTopic === topicIndex ? <FaAngleUp /> : <FaAngleDown />}
-                            </button>
-                          </div>
-
-                          {expandedTopic === topicIndex && (
-                            <p className="text-sm text-gray-600 mt-2">
-                              {topic.content.length > 150
-                                ? `${topic.content.substring(0, 150)}...`
-                                : topic.content}
-                              {topic.content.length > 150 && (
-                                <button
-                                  onClick={() => toggleTopicContent(topicIndex)}
-                                  className="text-blue-600 ml-2"
-                                >
-                                  {expandedTopic === topicIndex ? 'Read Less' : 'Read More'}
-                                </button>
-                              )}
-                            </p>
-                          )}
-                        </div>
-                      ))}
-                      <div className="mt-4">
-                        <button
-                          onClick={() => handleQuizClick(chapter.quiz.quizQuestions)}
-                          className="text-blue-600"
-                        >
-                          View Quiz 
-                          {
-                            chapter.quiz.isCurrent ? null : <FaLock/>
-                          }
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-              <div>
-                {
-                  courseData.finalExam.isCurrent && (
-                    <>
-                    <h1 onClick={()=>handleFinalExam()}>Final Exam</h1>
-                    </>
-                  )
-                }
+      {/* Chapter Topics */}
+      {expandedChapter === chapterIndex && (
+        <div className="pl-4 pr-4 mt-2">
+          {chapter.topics.map((topic, topicIndex) => (
+            <div
+              key={topicIndex}
+              className={`cursor-pointer mb-3 p-2 rounded-md transition-all ${
+                selectedTopic && selectedTopic.topic.name === topic.name
+                  ? 'bg-green-400 text-white'
+                  : 'text-gray-700 hover:bg-orange-200'
+              }`}
+              onClick={() => handleTopicClick(topic, topicIndex, chapter.topics, chapterIndex)}
+            >
+              <div className="flex justify-between items-center">
+                <span className="text-sm">
+                  {topic.name} {topic.isCurrent ? <FaLockOpen /> : <FaLock />}
+                </span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleTopicContent(topicIndex);
+                  }}
+                  className="text-gray-600 hover:text-gray-800 focus:outline-none"
+                >
+                  {expandedTopic === topicIndex ? <FaAngleUp /> : <FaAngleDown />}
+                </button>
               </div>
+              {expandedTopic === topicIndex && (
+                <p className="text-sm text-gray-600 mt-2 leading-relaxed">
+                  {topic.content.length > 150
+                    ? `${topic.content.substring(0, 150)}...`
+                    : topic.content}
+                  {topic.content.length > 150 && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleTopicContent(topicIndex);
+                      }}
+                      className="text-blue-600 ml-2 focus:outline-none"
+                    >
+                      {expandedTopic === topicIndex ? 'Read Less' : 'Read More'}
+                    </button>
+                  )}
+                </p>
+              )}
             </div>
+          ))}
+
+          {/* Quiz Button */}
+          <div className="mt-4">
+            <button
+              onClick={() => handleQuizClick(chapter.quiz,chapter.topics.length-1)}
+              className={`text-sm font-medium px-4 py-2 rounded-md ${
+                chapter.quiz.isCurrent
+                  ? 'bg-blue-500 text-white hover:bg-blue-600'
+                  : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+              }`}
+              disabled={!chapter.quiz.isCurrent}
+            >
+              {chapter.quiz.isCurrent ? 'View Quiz' : 'Locked'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  ))}
+
+  {/* Final Exam Section */}
+  {courseData.finalExam.isCurrent && (
+    <div className="mt-6 border-t pt-4">
+      <h2 className="text-lg font-semibold text-gray-900 mb-2">Final Exam</h2>
+      <button
+        onClick={() => handleFinalExam()}
+        className="text-sm font-medium px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-all"
+      >
+        Start Final Exam
+      </button>
+    </div>
+  )}
+</div>
+
 
             {/* Right Section (Selected Topic Video & Content) */}
             <div className="w-3/4 pl-6 mt-20">
-              {selectedTopic ? (
-                <div>
-                  <h3 className="text-xl font-semibold mb-4">{selectedTopic.topic.name}</h3>
-                  <div className="mb-6">
-                    <Video videoUrl={getEmbedUrl(selectedTopic.topic.videoUrl) } setIsVideoWatched={setIsVideoWatched}/>
-                    {/* <iframe
-                      ref={iframeRef}
-                      width="100%"
-                      height="400"
-                      src={getEmbedUrl(selectedTopic.topic.videoUrl)}
-                      title={selectedTopic.topic.name}
-                      className="rounded-lg shadow-lg"
-                    ></iframe> */}
-                    
-                  </div>
-                  <div> <button onClick={()=>nextTopic()}>Next Topic </button></div>
-                </div>
-              ) : selectedQuiz ? (
-                <div className="mt-6">
-                <h3 className="text-2xl font-semibold text-gray-800 mb-4">Quiz</h3>
-                <Quiz selectedQuiz={selectedQuiz.questions} chapterIndex={selectedQuiz.chapterIndex} openNextChapter={openNextChapter}/>
-                {/* {selectedQuiz.map((question, questionIndex) => (
-                  <div key={questionIndex} className="bg-white shadow-lg rounded-lg p-6 mb-4">
-                    <p className="text-lg text-gray-800 font-medium mb-4">{question.question}</p>
-                    <div className="space-y-4">
-                      {question.options.map((option, optionIndex) => (
-                        <div key={optionIndex} className="flex items-center space-x-3">
-                          <input
-                            type="radio"
-                            name={`question-${questionIndex}`}
-                            value={option}
-                            checked={selectedOptions[questionIndex] === option}
-                            onChange={() => handleOptionChange(questionIndex, option)}
-                            className="form-radio h-5 w-5 text-blue-500 border-gray-300 focus:ring-2 focus:ring-blue-300"
-                          />
-                          <label className="text-sm text-gray-700">{option}</label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))} */}
-              </div>
-              
-              ) : (
-                <p className="text-gray-600">Select a topic to view its content and video or view the quiz.</p>
-              )}
-            </div>
+  {selectedTopic ? (
+    <div>
+      {/* Topic Header */}
+      <h3 className="text-2xl font-semibold text-gray-800 mb-4">{selectedTopic.topic.name}</h3>
+      
+      {/* Video Section */}
+      <div className="mb-6">
+        <Video 
+          videoUrl={getEmbedUrl(selectedTopic.topic.videoUrl)} 
+          setIsVideoWatched={setIsVideoWatched} 
+        /> <button
+          onClick={() => nextTopic()}
+          className="mt-4  px-6 py-2 bg-orange-500 text-white font-medium rounded-md hover:bg-red-600 transition-all"
+        >
+          Next Topic
+        </button>
+      </div>
+
+      {/* Next Topic Button */}
+      <div className="mt-4 flex justify-end">
+       
+      </div>
+    </div>
+  ) : selectedQuiz ? (
+    <div className="mt-6">
+      {/* Quiz Section */}
+      <h3 className="text-2xl font-semibold text-gray-800 mb-6">Quiz</h3>
+      <Quiz 
+        selectedQuiz={selectedQuiz.questions} 
+        chapterIndex={selectedQuiz.chapterIndex} 
+        openNextChapter={openNextChapter} 
+      />
+    </div>
+  ) : (
+    <p className="text-gray-600 text-lg text-center mt-10">
+      Select a topic to view its content and video, or take the quiz.
+    </p>
+  )}
+</div>
+
           </div>
         </div>
       )}

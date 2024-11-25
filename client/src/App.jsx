@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './App.css'
 import ContentCreator from './pages/ContentCreator'
@@ -9,6 +8,7 @@ import Login from "./pages/Login"
 import FinalExam from './pages/FinalExam'
 import ExamInfoPage from './component/ExamInfoPage'
 import CourseIntro from './pages/CourseIntro'
+import TeacherPanel from './pages/TeacherPanel'
 function App() {
   
 
@@ -24,6 +24,7 @@ function App() {
       <Route path='/finalExam/:userId/:courseId' element={<FinalExam/>}/>
       <Route path='/finalExam-Instruction/:userId/:courseId' element={<ExamInfoPage/>}/>
       <Route path='/intro/course/:id' element={<CourseIntro/>}/>
+      <Route path="/teacher-panel" element={<TeacherPanel/>}/>
     </Routes>
     </BrowserRouter>
   

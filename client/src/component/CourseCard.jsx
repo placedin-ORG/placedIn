@@ -51,8 +51,11 @@ const startLearning=async(_id,title)=>{
           {
             courses.map((course,index)=>{
               return <>
-              <h1>{course.title}</h1>
-              <button onClick={()=>startLearning(course._id,course.title)}>Start learning</button>
+              {
+                course.setLive ? <div><h1>{course.title}</h1>
+              <button onClick={()=>startLearning(course._id,course.title)}>Start learning</button></div>:null
+              }
+              
               </>
             })
           }

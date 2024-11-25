@@ -1,0 +1,50 @@
+{
+      toggleExam ?<div>
+           <div>
+        <input
+          type="text"
+          placeholder="Enter question"
+          value={currentQuestion.questionText}
+          onChange={handleQuestionChange}
+        />
+        {currentQuestion.options.map((option, index) => (
+          <div key={index}>
+            <input
+              type="text"
+              placeholder={`Option ${index + 1}`}
+              value={option}
+              onChange={(e) => handleOptionChange(index, e.target.value)}
+            />
+          </div>
+        ))}
+        <select
+          value={currentQuestion.correctAnswer}
+          onChange={handleCorrectAnswerChange}
+        >
+          <option value="">Select correct answer</option>
+          {currentQuestion.options.map((option, index) => (
+            <option key={index} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+        <button onClick={addQuestion}>Add Question</button>
+      </div>
+
+      <h3>Questions</h3>
+      <ul>
+        {questions.map((q, index) => (
+          <li key={index}>
+            <p>Q: {q.questionText}</p>
+            <ul>
+              {q.options.map((opt, optIndex) => (
+                <li key={optIndex}>
+                  {opt} {opt === q.correctAnswer && '(Correct Answer)'}
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </ul>
+      </div>:null
+      }
