@@ -60,9 +60,9 @@ const startLearning=async(_id,title)=>{
             })
           }
         </div>
-      }
-    </>
+      </div>
+    </div>
   );
-}
+};
 
-export default CourseCard
+export default CourseCard;
