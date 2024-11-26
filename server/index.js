@@ -30,7 +30,7 @@ app.use("/learn", StartCourseRoute);
 
 const connectDb = async () => {
   try {
-    await mongoose.connect(`${process.env.MONGO_URI}/placedInDB`);
+    await mongoose.connect(`${process.env.MONGO_URI}`);
     console.log("mongoose connection successfull");
   } catch (error) {
     console.log(error);

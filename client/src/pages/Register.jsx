@@ -34,7 +34,7 @@ const Register = () => {
 //     console.log(formData[key]);
 //    }
 
-   const response=await axios.post('http://localhost:5000/auth/register',{
+   const response=await axios.post('http://localhost:5000/create/register',{
      name:formData.name,
      email:formData.email,
      password:formData.password

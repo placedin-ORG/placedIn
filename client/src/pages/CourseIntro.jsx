@@ -4,6 +4,7 @@ import {useParams} from 'react-router-dom';
 import {useNavigate} from 'react-router-dom'
 import {FaClock,FaList,FaPhone, FaReceipt, FaShare, FaShieldAlt} from 'react-icons/fa'
 import axios from 'axios'
+import Footer from '../component/Layout/Footer';
 const CourseIntro = () => {
     const navigate=useNavigate();
     const {id}=useParams();
@@ -13,17 +14,33 @@ const CourseIntro = () => {
               const data=await axios.post('http://localhost:5000/learn/fetchCourse',{
                 id
               });
-              console.log(data.data.course)
               if(data.data.status){
                 setCourse(data.data.course);
               }
         }
         call()
-    })
+    },[])
 
     const startLearning=()=>{
         navigate(`/courseDetail/${id}`)
     }
+
+    const [showMore, setShowMore] = useState(false);
+    const maxDescriptionLength = 100; // Adjust as needed
+    let truncatedDescription="";
+    let optimizedImage=""
+  if(course!==null){
+      truncatedDescription =
+      course.description.length > maxDescriptionLength && !showMore
+        ? `${course.description.substring(0, maxDescriptionLength)}...`
+        : course.description;
+
+         optimizedImage =
+    course.courseThumbnail &&
+    `${course.courseThumbnail}?w_800,h_600,c_fill,q_auto,f_auto`;
+  }
+   
+  
   return (
     <>
       <Navbar/>
@@ -31,33 +48,58 @@ const CourseIntro = () => {
 
     {
         course && <div>
-           <div className="w-full flex flex-col lg:flex-row">
-  {/* Text Section */}
-  <div className="lg:w-5/6 w-full flex items-center justify-center py-5">
-    <div className="px-5 lg:px-36 flex flex-col gap-3">
-      <p className="px-5 py-1 bg-green-100 text-green-500 rounded-2xl w-fit font-semibold">Free Course</p>
-      <h1 className="text-red-600 font-semibold text-3xl lg:text-5xl">{course.title}</h1>
-      <p className="text-base lg:text-lg font-semibold text-slate-600">{course.description}</p>
-      <span className="text-red-500 text-sm lg:text-lg flex items-center gap-1 mt-3">
-        <FaClock /> : <span className="text-slate-600 font-semibold"> 9 hours of learning</span>
-      </span>
-      <button className="text-base lg:text-xl text-white bg-red-500 w-fit px-8 lg:px-16 rounded-xl py-1.5 font-semibold" onClick={()=>startLearning()}>
-        Continue Learning
-      </button>
-      <p className="font-semibold text-slate-600 flex gap-1 items-center text-sm lg:text-base">
-        <FaPhone /> For enquiry call: 91XXXXXXXXXX
-      </p>
-    </div>
-  </div>
+       <div className="w-full flex flex-col lg:flex-row">
+      {/* Text Section */}
+      <div className="lg:w-5/6 w-full flex items-center justify-center py-5">
+        <div className="px-5 lg:px-36 flex flex-col gap-3">
+          <p className="px-5 py-1 bg-green-100 text-green-500 rounded-2xl w-fit font-semibold">
+            Free Course
+          </p>
+          <h1 className="text-red-600 font-semibold text-3xl lg:text-5xl">
+            {course.title}
+          </h1>
+          <p className="text-base lg:text-lg font-semibold text-slate-600">
+            {truncatedDescription}
+            {course.description.length > maxDescriptionLength && (
+              <button
+                onClick={() => setShowMore(!showMore)}
+                className="text-red-500 font-bold ml-2"
+              >
+                {showMore ? "See Less" : "See More"}
+              </button>
+            )}
+          </p>
+          <span className="text-red-500 text-sm lg:text-lg flex items-center gap-1 mt-3">
+            <FaClock /> :{" "}
+            <span className="text-slate-600 font-semibold">
+              9 hours of learning
+            </span>
+          </span>
+          <button
+            className="text-base lg:text-xl text-white bg-red-500 w-fit px-8 lg:px-16 rounded-xl py-1.5 font-semibold"
+            onClick={() => startLearning()}
+          >
+            Continue Learning
+          </button>
+          <p className="font-semibold text-slate-600 flex gap-1 items-center text-sm lg:text-base">
+            <FaPhone /> For enquiry call: 91XXXXXXXXXX
+          </p>
+        </div>
+      </div>
 
-  {/* Image Section */}
-  <div className="hidden lg:block lg:w-1/2 pr-5">
-    <img
-      src="https://www.upgrad.com/_ww3-next/image/?url=https%3A%2F%2Fd2o2utebsixu4k.cloudfront.net%2FIntroduction%20to%20Data%20Analysis%20using%20Excel%20(9hrs)-29dc9b2f1a7d4e01825777dc927af67a.webp&w=1920&q=75"
-      className="w-full h-full rounded-r-3xl"
-    />
-  </div>
-</div>
+      {/* Image Section */}
+      <div className="hidden lg:block lg:w-1/2 pr-5">
+        <div className="h-96 w-full overflow-hidden rounded-r-3xl">
+          <img
+            src={
+              optimizedImage ||
+              "https://via.placeholder.com/800x600?text=No+Image+Available"
+            }
+            className="w-full h-full object-cover"
+          />
+        </div>
+      </div>
+    </div>
 
         <div className='px-14 mt-4 '>
             <p className='font-semibold'>Key Highlights</p>
@@ -154,6 +196,7 @@ const CourseIntro = () => {
         </div>
     }
 </div>
+<Footer/> 
     </>
   );
 }
