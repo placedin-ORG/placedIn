@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import FinalExam from "./pages/FinalExam";
 import ExamInfoPage from "./component/ExamInfoPage";
 import CourseIntro from "./pages/CourseIntro";
+import TeacherPanel from "./pages/TeacherPanel"
 function App() {
   return (
     <>

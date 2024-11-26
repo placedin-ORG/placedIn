@@ -18,7 +18,7 @@ const Login = () => {
     e.preventDefault();
     setModel(true);
     try{
-      const response=await axios.post("http://localhost:5000/auth/login",{
+      const response=await axios.post("http://localhost:5000/create/login",{
         email,password
       })
      setModel(false)
@@ -31,7 +31,7 @@ const Login = () => {
       )
       navigate('/')
      }else{
-      toast.error(response.message);
+      toast.error(response.data.msg);
      }
     }catch(err){
       toast.error(err);

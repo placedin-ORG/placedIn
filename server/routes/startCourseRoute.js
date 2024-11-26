@@ -1,5 +1,5 @@
-const User = require("../models/userModel");
-const Course = require("../models/courseModel");
+const User = require("../schems/userSchema");
+const Course = require("../schems/courseSchema");
 
 const router = require("express").Router();
 router.post("/fetchCourse", async (req, res) => {

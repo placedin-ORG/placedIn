@@ -2,8 +2,10 @@ import React, { useEffect,useState } from 'react';
 import {useSelector,useDispatch} from 'react-redux';
 import axios from 'axios'
 import {setCurrentCourse} from '../redux/UserSlice';
-import {useNavigate} from "react-router-dom"
+import {useNavigate} from "react-router-dom";
+import { FaPlayCircle } from "react-icons/fa";
 const CourseCard = () => {
+ 
   const navigate=useNavigate();
   const user=useSelector((state)=>state);
   const [courses,setCourses]=useState([]);
@@ -12,13 +14,12 @@ useEffect(()=>{
   // console.log(user.user)
  const call=async ()=>{
 const data=await axios.get("http://localhost:5000/create/getCourses");
-console.log(data)
 setCourses(data.data.courses);
 
  }
  call();
 },[]);
-
+if (courses.length === 0) return null;
 const startLearning=async(_id,title)=>{
   try{
     console.log(user.user.user)
@@ -46,22 +47,36 @@ const startLearning=async(_id,title)=>{
 }
   return (
     <>
-      {
-        courses.length===0?null:<div>
-          {
-            courses.map((course,index)=>{
-              return <>
-              {
-                course.setLive ? <div><h1>{course.title}</h1>
-              <button onClick={()=>startLearning(course._id,course.title)}>Start learning</button></div>:null
-              }
-              
-              </>
-            })
-          }
-        </div>
-      </div>
-    </div>
+      {courses.map(
+        (course, index) =>
+          course.setLive && (
+            <div
+              key={index}
+              className="bg-white shadow-lg rounded-lg overflow-hidden hover:shadow-xl transform transition-transform duration-300 hover:scale-105"
+            >
+              <div className="relative h-60 w-full">
+                <img
+                  src={course.courseThumbnail}
+                  alt={`${course.title} thumbnail`}
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              </div>
+              <div className="p-4">
+                <h1 className="text-lg font-bold text-gray-800 mb-2">
+                  {course.title}
+                </h1>
+                <button
+                  onClick={() => startLearning(course._id, course.title)}
+                  className="flex items-center justify-center w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-300"
+                >
+                  <FaPlayCircle className="mr-2" />
+                  Start Learning
+                </button>
+              </div>
+            </div>
+          )
+      )}
+    </>
   );
 };
 
