@@ -1,7 +1,8 @@
 const router = require("express").Router();
-const Course = require("../schems/courseSchema");
-const User=require("../schems/userSchema");
-const bcrypt=require("bcryptjs")
+const Course = require("../models/courseModel");
+const User = require("../models/userModel");
+const bcrypt = require("bcryptjs");
+
 router.post("/createCourse", async (req, res) => {
   try {
     const { courseTitle, description, chapters, paid, price, questions } =
@@ -34,14 +35,17 @@ router.post("/register", async (req, res) => {
     const existingUser = await User.findOne({ email: req.body.email });
 
     if (existingUser) {
-      return res.json({status:false,msg:"Email already exist"})
+      return res.json({ status: false, msg: "Email already exist" });
     }
-     await User.create({
-      name:req.body.name,
-      email:req.body.email,
-      password:req.body.password
-     })
-res.json({status:true,msg:"please check your email to activate yur account"})
+    await User.create({
+      name: req.body.name,
+      email: req.body.email,
+      password: req.body.password,
+    });
+    res.json({
+      status: true,
+      msg: "please check your email to activate yur account",
+    });
     // res.status(201).json({
     //   success: true,
     //   message: "Please check your email to activate your account",
@@ -52,7 +56,7 @@ res.json({status:true,msg:"please check your email to activate yur account"})
   }
 });
 
-router.post("/login",async(req,res)=>{
+router.post("/login", async (req, res) => {
   try {
     /* Take the infomation from the form */
     const { email, password } = req.body;
@@ -64,22 +68,22 @@ router.post("/login",async(req,res)=>{
     }
 
     /* Compare the password with the hashed password */
-    
-    if (user.password!==password) {
+
+    if (user.password !== password) {
       return res.json({ status: false, msg: "wrong password" });
     }
 
     // Generate The token
-  
+
     res.json({
       status: true,
       msg: "User logged in Successfully",
-      user
+      user,
     });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: error.message });
   }
-})
+});
 
 module.exports = router;
