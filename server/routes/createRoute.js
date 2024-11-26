@@ -22,6 +22,7 @@ router.post("/createCourse", async (req, res) => {
     console.log(err);
   }
 });
+
 router.get("/getCourses", async (req, res) => {
   try {
     const courses = await Course.find();
