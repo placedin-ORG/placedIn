@@ -1,11 +1,12 @@
 const mongoose = require("mongoose");
+
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  coins: { type: Number, default: 0 },
   resetPasswordToken: { type: String },
   resetPasswordExpire: { type: Date },
+  password: { type: String, required: true },
+  coins: { type: Number, default: 0 },
   // achievements: [
   //   {
   //     courseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
@@ -79,14 +80,35 @@ const userSchema = new mongoose.Schema({
           },
         },
       ],
-      questions: [
-        {
-          questionText: { type: String, required: true },
-          options: [{ type: String, required: true }],
-          correctAnswer: { type: String, required: true },
-          image: { type: String }, // Optional for image-based questions
+      finalExam: {
+        questions: [
+          {
+            questionText: { type: String, required: true },
+            options: [{ type: String, required: true }],
+            correctAnswer: { type: String, required: true },
+            image: { type: String }, // Optional for image-based questions
+          },
+        ],
+        isCurrent: {
+          type: Boolean,
+          default: false,
         },
-      ],
+        isCompleted: {
+          type: Boolean,
+          default: false,
+        },
+        result: {
+          answers: [
+            {
+              type: Map,
+              of: String,
+            },
+          ],
+          accuracy: {
+            type: Number,
+          },
+        },
+      },
     },
   ],
 

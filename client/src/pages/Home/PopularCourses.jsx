@@ -30,15 +30,7 @@ const PopularCourses = () => {
         {courses?.length === 0 ? null : (
           <div className="mt-16 grid grid-cols-1 place-items-center sm:grid-cols-2 lg:grid-cols-3 gap-10">
             {courses?.map((course, index) => {
-              return (
-                <CourseCard
-                  _id={course._id}
-                  description={""}
-                  price={course.price}
-                  title={course.title}
-                  image={course.image}
-                />
-              );
+              return <CourseCard course={course} />;
             })}
           </div>
         )}

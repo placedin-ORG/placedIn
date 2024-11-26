@@ -11,6 +11,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../component/Navbar";
 import FinalExam from "./FinalExam";
+import API from "../utils/API";
 const CourseDetail = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -27,13 +28,10 @@ const CourseDetail = () => {
 
   useEffect(() => {
     const call = async () => {
-      const fetchedData = await axios.post(
-        "http://localhost:5000/learn/fetchuser",
-        {
-          userId: currentCourse._id,
-          courseId: id,
-        }
-      );
+      const fetchedData = await API.post("/learn/fetchuser", {
+        userId: currentCourse._id,
+        courseId: id,
+      });
       const data = fetchedData.data.data.ongoingCourses;
       for (let i = 0; i < data.length; i++) {
         console.log(data[i].courseId);
@@ -60,12 +58,12 @@ const CourseDetail = () => {
     // Clear quiz when a topic is selected
   };
 
-  const handleQuizClick = (quiz,index) => {
+  const handleQuizClick = (quiz, index) => {
     if (quiz.isCurrent) {
       setSelectedQuiz({
-        questions:quiz.quizQuestions,
-      chapterIndex:index
-       });
+        questions: quiz.quizQuestions,
+        chapterIndex: index,
+      });
       setSelectedTopic(null);
     }
 
@@ -99,14 +97,11 @@ const CourseDetail = () => {
 
   const nextTopic = async () => {
     if (selectedTopic.index < selectedTopic.topics.length - 1) {
-      const updatedData = await axios.post(
-        "http://localhost:5000/learn/updateUser",
-        {
-          selectedTopic,
-          userId: currentCourse._id,
-          courseId: id,
-        }
-      );
+      const updatedData = await API.post("/learn/updateUser", {
+        selectedTopic,
+        userId: currentCourse._id,
+        courseId: id,
+      });
 
       console.log(updatedData.data);
       const course = updatedData.data.userAfterUpdate.ongoingCourses.find(
@@ -122,14 +117,11 @@ const CourseDetail = () => {
         topics: chapter.topics,
       });
     } else {
-      const updatedData = await axios.post(
-        "http://localhost:5000/learn/openquiz",
-        {
-          selectedTopic,
-          userId: currentCourse._id,
-          courseId: id,
-        }
-      );
+      const updatedData = await API.post("/learn/openquiz", {
+        selectedTopic,
+        userId: currentCourse._id,
+        courseId: id,
+      });
 
       console.log(updatedData.data);
       const course = updatedData.data.userAfterUpdate.ongoingCourses.find(
@@ -148,14 +140,11 @@ const CourseDetail = () => {
 
   const openNextChapter = async (chapterIndex) => {
     if (chapterIndex < courseData.chapters.length - 1) {
-      const updatedData = await axios.post(
-        "http://localhost:5000/learn/openNextChapter",
-        {
-          chapterIndex: chapterIndex + 1,
-          userId: currentCourse._id,
-          courseId: id,
-        }
-      );
+      const updatedData = await API.post("/learn/openNextChapter", {
+        chapterIndex: chapterIndex + 1,
+        userId: currentCourse._id,
+        courseId: id,
+      });
       const course = updatedData.data.userAfterUpdate.ongoingCourses.find(
         (course) => course.courseId === id
       );
@@ -169,13 +158,10 @@ const CourseDetail = () => {
       });
       setSelectedQuiz(null);
     } else {
-      const updatedData = await axios.post(
-        "http://localhost:5000/learn/openFinalExam",
-        {
-          userId: currentCourse._id,
-          courseId: id,
-        }
-      );
+      const updatedData = await API.post("/learn/openFinalExam", {
+        userId: currentCourse._id,
+        courseId: id,
+      });
       const course = updatedData.data.userAfterUpdate.ongoingCourses.find(
         (course) => course.courseId === id
       );
@@ -199,27 +185,24 @@ const CourseDetail = () => {
       console.log(err);
     }
   };
-let totalTopics=0;
-let completedTopics=0;
-let progressPercentage=0;
-if(courseData !==null){
-  totalTopics = courseData.chapters.reduce((total, chapter) => {
-    return total + chapter.topics.length;
-  }, 0);
+  let totalTopics = 0;
+  let completedTopics = 0;
+  let progressPercentage = 0;
+  if (courseData !== null) {
+    totalTopics = courseData.chapters.reduce((total, chapter) => {
+      return total + chapter.topics.length;
+    }, 0);
 
-   completedTopics = courseData.chapters.reduce((total, chapter) => {
-    return (
-      total +
-      chapter.topics.filter((topic) => topic.isCurrent).length
-    );
-  }, 0);
+    completedTopics = courseData.chapters.reduce((total, chapter) => {
+      return total + chapter.topics.filter((topic) => topic.isCurrent).length;
+    }, 0);
 
-  // Calculate progress percentage
-   progressPercentage = totalTopics
-    ? Math.round((completedTopics / (totalTopics)) * 100)
-    : 0;
-}
-   
+    // Calculate progress percentage
+    progressPercentage = totalTopics
+      ? Math.round((completedTopics / totalTopics) * 100)
+      : 0;
+  }
+
   return (
     <>
       {/* <button onClick={()=>clear()}>clear</button> */}
