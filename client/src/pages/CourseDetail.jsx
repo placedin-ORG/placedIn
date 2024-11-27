@@ -33,13 +33,32 @@ const CourseDetail = () => {
         courseId: id,
       });
       const data = fetchedData.data.data.ongoingCourses;
+      let latest=null;
+      
       for (let i = 0; i < data.length; i++) {
         console.log(data[i].courseId);
         if (data[i].courseId === id) {
+          latest=data[i];
           setCourseData(data[i]);
           break;
         }
       }
+      let result = null;
+      latest.chapters.forEach((chapter, chapterIndex) => {
+        chapter.topics.forEach((topic, topicIndex) => {
+          if (topic.isCurrent) {
+            result = {
+              topic,
+              index:topicIndex,
+              topics: chapter.topics,
+              chapterIndex,
+            };
+            setExpandedChapter(chapterIndex)
+          }
+        });
+        // Breaks the chapter loop if the topic is found
+      });
+      setSelectedTopic(result);
     };
     call();
   }, []);
@@ -150,13 +169,13 @@ const CourseDetail = () => {
       );
       setCourseData(course);
       const chapter = course.chapters[chapterIndex + 1];
-      setSelectedTopic({
-        topic: chapter.topics[0],
-        index: 0,
-        chapterIndex: chapterIndex + 1,
-        topics: chapter.topics,
-      });
-      setSelectedQuiz(null);
+      // setSelectedTopic({
+      //   topic: chapter.topics[0],
+      //   index: 0,
+      //   chapterIndex: chapterIndex + 1,
+      //   topics: chapter.topics,
+      // });
+      // setSelectedQuiz(null);
     } else {
       const updatedData = await API.post("/learn/openFinalExam", {
         userId: currentCourse._id,
@@ -179,171 +198,227 @@ const CourseDetail = () => {
       if (courseData.finalExam.isCompleted) {
         navigate(`/finalExam/${userId}/${courseData.courseId}`);
       } else {
-        navigate(`/finalExam-Instruction/${userId}/${courseData.courseId}`);
+        navigate(`/finalExam-Instruction/${userId}/${courseData.courseId}`, { state: { id } });
       }
     } catch (err) {
       console.log(err);
     }
-  };
-  let totalTopics = 0;
-  let completedTopics = 0;
-  let progressPercentage = 0;
+  }; 
+  
+  let progressPercentage=0;
   if (courseData !== null) {
-    totalTopics = courseData.chapters.reduce((total, chapter) => {
-      return total + chapter.topics.length;
+    const totalItems = courseData.chapters.reduce((sum, chapter) => {
+      const topicsCount = chapter.topics.length;
+      const quizCount = chapter.quiz ? 1 : 0;
+      return sum + topicsCount + quizCount;
     }, 0);
-
-    completedTopics = courseData.chapters.reduce((total, chapter) => {
-      return total + chapter.topics.filter((topic) => topic.isCurrent).length;
+  
+    const completedItems = courseData.chapters.reduce((sum, chapter) => {
+      const completedTopics = chapter.topics.filter((topic) => topic.isCurrent).length;
+      const completedQuiz = chapter.quiz && chapter.quiz.isCurrent ? 1 : 0;
+      return sum + completedTopics + completedQuiz;
     }, 0);
-
-    // Calculate progress percentage
-    progressPercentage = totalTopics
-      ? Math.round((completedTopics / totalTopics) * 100)
-      : 0;
+  
+     progressPercentage = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
   }
-
+  const getEmoji = (progress) => {
+    if (progress === 0) return "😢"; // Sad face at 0%
+    if (progress <= 25) return "😟"; // Slightly worried
+    if (progress <= 50) return "😐"; // Neutral
+    if (progress <= 75) return "🙂"; // Smiling
+    return "😁"; // Happy face at 100%
+  };
   return (
     <>
       {/* <button onClick={()=>clear()}>clear</button> */}
       <Navbar />
-
-      {courseData && (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
-          {/* Top Section - Course Title and Description */}
-
-          <div className="flex relative">
-            {/* Left Section (Sticky) */}
-            <div className="w-1/4 bg-white p-6 shadow-md rounded-lg sticky top-20 h-full overflow-y-auto scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-gray-300">
-  <h2 className="text-xl font-semibold mb-6 border-b pb-2 text-gray-900">Course Content</h2>
-  {courseData.chapters.map((chapter, chapterIndex) => (
-    <div key={chapterIndex} className="mb-6">
-      {/* Chapter Header */}
-      <div className="flex justify-between items-center mb-2 cursor-pointer"  onClick={() => toggleChapter(chapterIndex)}>
-        <h3 className="text-lg font-medium text-gray-800">{chapter.title}</h3>
-        <button
-          onClick={() => toggleChapter(chapterIndex)}
-          className="text-gray-600 hover:text-gray-800 focus:outline-none"
-        >
-          {expandedChapter === chapterIndex ? <FaAngleUp /> : <FaAngleDown />}
-        </button>
-      </div>
-
-      {/* Chapter Topics */}
-      {expandedChapter === chapterIndex && (
-        <div className="pl-4 mt-2">
-          {chapter.topics.map((topic, topicIndex) => (
+     {
+      courseData && (
+        <div className="p-6 bg-gray-50 min-h-9 flex flex-col items-center space-y-6">
+        <h1 className="text-3xl font-extrabold text-gray-900 tracking-wide mb-4">
+          Course Progress
+        </h1>
+  
+        {/* Progress Bar */}
+        <div className="w-full max-w-4xl">
+          <div className="relative w-full h-6 bg-gray-200 rounded-full overflow-hidden shadow-md">
+            {/* Filled Progress */}
             <div
-              key={topicIndex}
-              className={`cursor-pointer mb-3 p-2 rounded-md transition-all ${
-                selectedTopic && selectedTopic.topic.name === topic.name
-                  ? 'bg-blue-500 text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-              onClick={() => handleTopicClick(topic, topicIndex, chapter.topics, chapterIndex)}
-            >
-              <div className="flex justify-between items-center">
-                <span className="text-sm">
-                  {topic.name} {topic.isCurrent ? <FaLockOpen /> : <FaLock />}
-                </span>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleTopicContent(topicIndex);
-                  }}
-                  className="text-gray-600 hover:text-gray-800 focus:outline-none"
-                >
-                  {expandedTopic === topicIndex ? <FaAngleUp /> : <FaAngleDown />}
-                </button>
-              </div>
-              {expandedTopic === topicIndex && (
-                <p className="text-sm text-gray-600 mt-2 leading-relaxed">
-                  {topic.content.length > 150
-                    ? `${topic.content.substring(0, 150)}...`
-                    : topic.content}
-                  {topic.content.length > 150 && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleTopicContent(topicIndex);
-                      }}
-                      className="text-blue-600 ml-2 focus:outline-none"
-                    >
-                      {expandedTopic === topicIndex ? 'Read Less' : 'Read More'}
-                    </button>
-                  )}
-                </p>
-              )}
-            </div>
-          ))}
-
-          {/* Quiz Button */}
-          <div className="mt-4">
-            <button
-              onClick={() => handleQuizClick(chapter.quiz.quizQuestions)}
-              className={`text-sm font-medium px-4 py-2 rounded-md ${
-                chapter.quiz.isCurrent
-                  ? 'bg-blue-500 text-white hover:bg-blue-600'
-                  : 'bg-gray-300 text-gray-600 cursor-not-allowed'
-              }`}
-              disabled={!chapter.quiz.isCurrent}
-            >
-              {chapter.quiz.isCurrent ? 'View Quiz' : 'Locked'}
-            </button>
+              className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-500"
+              style={{ width: `${progressPercentage}%` }}
+            ></div>
+          </div>
+          {/* Percentage Label */}
+          <div className="flex justify-between mt-2 text-sm font-semibold text-gray-700">
+            <span>0%</span>
+            <span>{Math.round(progressPercentage)}%</span>
           </div>
         </div>
-      )}
-    </div>
-  ))}
-
-  {/* Final Exam Section */}
-  {courseData.finalExam.isCurrent && (
-    <div className="mt-6 border-t pt-4">
-      <h2 className="text-lg font-semibold text-gray-900 mb-2">Final Exam</h2>
-      <button
-        onClick={() => handleFinalExam()}
-        className="text-sm font-medium px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-all"
-      >
-        Start Final Exam
-      </button>
-    </div>
-  )}
-</div>
-
-
-            {/* Right Section (Selected Topic Video & Content) */}
-            <div className="w-3/4 pl-6 mt-20">
+  
+        {/* Emoji Display */}
+        <div className="flex items-center space-x-4">
+          <span
+            className={`text-4xl ${
+              progressPercentage >= 50 ? "animate-bounce" : ""
+            }`}
+          >
+            {getEmoji(progressPercentage)}
+          </span>
+          <p className="text-lg font-semibold text-gray-700">
+            {progressPercentage === 100
+              ? "Congratulations! 🎉"
+              : "Keep going! You're doing great!"}
+          </p>
+        </div>
+      </div>
+      )
+     }
+      {courseData && (
+       <div className="min-h-screen bg-gray-50 flex flex-col">
+      
+       {/* Top Section - Course Title and Description */}
+       <div className="flex flex-col lg:flex-row relative container mx-auto p-4 lg:p-8">
+         {/* Left Section (Sticky Sidebar for Course Content) */}
+         <aside className="w-full lg:w-1/4 bg-white p-6 shadow-md rounded-lg lg:sticky top-6 h-fit lg:h-screen overflow-y-auto scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-gray-300">
+           <h2 className="text-xl font-semibold mb-6 border-b pb-2 text-gray-900">
+             Course Content
+           </h2>
+           {courseData.chapters.map((chapter, chapterIndex) => (
+             <div key={chapterIndex} className="mb-6">
+               {/* Chapter Header */}
+               <div
+                 className="flex justify-between items-center mb-2 cursor-pointer group"
+                 onClick={() => toggleChapter(chapterIndex)}
+               >
+                 <h3 className="text-lg font-medium text-gray-800 group-hover:text-blue-600">
+                   {chapter.title}
+                 </h3>
+                 <button className="text-gray-600 hover:text-blue-600 focus:outline-none">
+                   {expandedChapter === chapterIndex ? <FaAngleUp /> : <FaAngleDown />}
+                 </button>
+               </div>
+     
+               {/* Chapter Topics */}
+               {expandedChapter === chapterIndex && (
+                 <div className="pl-4 mt-2">
+                   {chapter.topics.map((topic, topicIndex) => (
+                     <div
+                       key={topicIndex}
+                       className={`cursor-pointer mb-3 p-2 rounded-md transition-all ${
+                         selectedTopic &&
+                         selectedTopic.topic.name === topic.name
+                           ? 'bg-blue-500 text-white'
+                           : 'text-gray-700 hover:bg-gray-100'
+                       }`}
+                       onClick={() =>
+                         handleTopicClick(topic, topicIndex, chapter.topics, chapterIndex)
+                       }
+                     >
+                       <div className="flex justify-between items-center">
+                         <span className="text-sm flex items-center gap-2">
+                           {topic.name}
+                           {topic.isCurrent ? <FaLockOpen /> : <FaLock />}
+                         </span>
+                         <button
+                           onClick={(e) => {
+                             e.stopPropagation();
+                             toggleTopicContent(topicIndex);
+                           }}
+                           className="text-gray-600 hover:text-blue-600 focus:outline-none"
+                         >
+                           {expandedTopic === topicIndex ? <FaAngleUp /> : <FaAngleDown />}
+                         </button>
+                       </div>
+                       {expandedTopic === topicIndex && (
+                         <p className="text-sm text-gray-600 mt-2 leading-relaxed">
+                           {topic.content.length > 150
+                             ? `${topic.content.substring(0, 150)}...`
+                             : topic.content}
+                           {topic.content.length > 150 && (
+                             <button
+                               onClick={(e) => {
+                                 e.stopPropagation();
+                                 toggleTopicContent(topicIndex);
+                               }}
+                               className="text-blue-600 ml-2 focus:outline-none"
+                             >
+                               {expandedTopic === topicIndex ? 'Read Less' : 'Read More'}
+                             </button>
+                           )}
+                         </p>
+                       )}
+                     </div>
+                   ))}
+     
+                   {/* Quiz Button */}
+                   <div className="mt-4">
+                     <button
+                       onClick={() => handleQuizClick(chapter.quiz, chapterIndex)}
+                       className={`text-sm font-medium px-4 py-2 rounded-md ${
+                         chapter.quiz.isCurrent
+                           ? 'bg-blue-500 text-white hover:bg-blue-600'
+                           : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                       }`}
+                       disabled={!chapter.quiz.isCurrent}
+                     >
+                       {chapter.quiz.isCurrent ? 'View Quiz' : 'Locked'}
+                     </button>
+                   </div>
+                 </div>
+               )}
+             </div>
+           ))}
+     
+           {/* Final Exam Section */}
+           {courseData.finalExam.isCurrent && (
+             <div className="mt-6 border-t pt-4">
+               <h2 className="text-lg font-semibold text-gray-900 mb-2">Final Exam</h2>
+               <button
+                 onClick={() => handleFinalExam()}
+                 className="text-sm font-medium px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-all"
+               >
+                 Start Final Exam
+               </button>
+             </div>
+           )}
+         </aside>
+      {/* Right Section (Selected Topic Video & Content) */}
+<div className="w-full lg:w-3/4 lg:pl-6 mt-10 lg:mt-0">
   {selectedTopic ? (
     <div>
       {/* Topic Header */}
-      <h3 className="text-2xl font-semibold text-gray-800 mb-4">{selectedTopic.topic.name}</h3>
-      
+      <h3 className="text-2xl font-bold text-gray-900 mb-6">{selectedTopic.topic.name}</h3>
+
       {/* Video Section */}
-      <div className="mb-6">
-        <Video 
-          videoUrl={getEmbedUrl(selectedTopic.topic.videoUrl)} 
-          setIsVideoWatched={setIsVideoWatched} 
-        />
+      <div className="mb-8">
+        <div className="aspect-video bg-gray-200 rounded-lg overflow-hidden shadow-md">
+          <iframe
+            className="w-full h-full"
+            src={getEmbedUrl(selectedTopic.topic.videoUrl)}
+            title={selectedTopic.topic.name}
+            allowFullScreen
+          />
+        </div>
       </div>
 
       {/* Next Topic Button */}
-      <div className="mt-4 flex justify-start">
+      <div className="flex justify-start">
         <button
           onClick={() => nextTopic()}
-          className="px-6 py-2 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-all"
+          className="px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-all shadow-md"
         >
           Next Topic
         </button>
       </div>
     </div>
   ) : selectedQuiz ? (
-    <div className="mt-6">
+    <div className="mt-10">
       {/* Quiz Section */}
-      <h3 className="text-2xl font-semibold text-gray-800 mb-6">Quiz</h3>
-      <Quiz 
-        selectedQuiz={selectedQuiz.questions} 
-        chapterIndex={selectedQuiz.chapterIndex} 
-        openNextChapter={openNextChapter} 
+      <h3 className="text-2xl font-bold text-gray-900 mb-6">Quiz</h3>
+      <Quiz
+        selectedQuiz={selectedQuiz.questions}
+        chapterIndex={selectedQuiz.chapterIndex}
+        openNextChapter={openNextChapter}
       />
     </div>
   ) : (
@@ -352,6 +427,7 @@ const CourseDetail = () => {
     </p>
   )}
 </div>
+
 
           </div>
         </div>

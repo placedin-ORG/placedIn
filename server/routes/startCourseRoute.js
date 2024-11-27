@@ -4,11 +4,23 @@ const Course = require("../models/courseModel");
 const router = require("express").Router();
 router.post("/fetchCourse", async (req, res) => {
   try {
-    const { id } = req.body;
+    const { id,userId } = req.body;
     const course = await Course.findOne({
       _id: id,
+
     });
-    res.json({ status: true, course });
+    const user = await User.findOne({
+      _id: userId,
+      'ongoingCourses.courseId': id, // Check if courseId exists in the ongoingCourses array of objects
+    });
+       
+    console.log(!!user)
+   
+    const relatedCourses = await Course.find({
+      category: course.category,
+      _id: { $ne: id }, // Exclude the course itself
+    });
+    res.json({ status: true, course,relatedCourses,started:!!user });
   } catch (err) {
     console.log(err);
   }
@@ -30,6 +42,7 @@ router.post("/startLearning", async (req, res) => {
       const course = await Course.findById(_id);
       const courseData = {
         courseId: course._id,
+        examDuration:course.examDuration,
         courseName: course.title,
         chapters: course.chapters.map((chapter, chapterIndex) => ({
           title: chapter.title,
@@ -285,6 +298,29 @@ router.post("/examData", async (req, res) => {
       // Calculate adjusted accuracy
       const adjustedAccuracy = (correct / totalQuestions) * 100;
       const accuracy = adjustedAccuracy.toFixed(2);
+      const accuracies = await User.aggregate([
+        { $unwind: "$ongoingCourses" },
+        { $match: { "ongoingCourses.courseId": courseId } },
+        {
+          $project: {
+            _id: 0,
+            accuracy: "$ongoingCourses.finalExam.result.accuracy",
+          },
+        },
+        { $match: { accuracy: { $ne: null } } }, // Exclude null accuracies
+      ]);
+  
+      // Sort accuracies to calculate beat percentages
+      const sortedAccuracies = accuracies
+        .map((a) => a.accuracy)
+        .sort((a, b) => a - b);
+  
+      const dataPoints = sortedAccuracies.map((accuracy, index) => {
+        const lowerAccuracies = index; // Number of students with lower accuracy
+        const totalStudents = sortedAccuracies.length;
+        const beatPercentage = (lowerAccuracies / totalStudents) * 100;
+        return { accuracy, beatPercentage };
+      });
       const userAfterUpdate = await User.findOne(
         { _id: userId, "ongoingCourses.courseId": courseId },
         { "ongoingCourses.$": 1 } // Project only the matching element from the array
@@ -300,6 +336,7 @@ router.post("/examData", async (req, res) => {
         analyseAnswers,
         accuracy,
         totalQuestions,
+        dataPoints
       };
       return res.json({ status: true, updatedData, msg: "found" });
     } else {

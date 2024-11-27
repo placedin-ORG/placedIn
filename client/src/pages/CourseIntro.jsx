@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Navbar from "../component/Navbar";
 import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import {useSelector,useDispatch} from "react-redux";
 import {
   FaClock,
   FaList,
@@ -10,29 +11,115 @@ import {
   FaShare,
   FaShieldAlt,
 } from "react-icons/fa";
-import axios from "axios";
+import Slider from "react-slick";
+
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 import Footer from "../component/Layout/Footer";
 import API from "../utils/API";
+import CourseCard from "../component/CourseCard";
+import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
+import { setCurrentCourse } from "../redux/UserSlice";
+const CustomPrevArrow = ({ onClick }) => (
+  <button
+    onClick={onClick}
+    className="absolute left-0 z-10 bg-black text-white p-2 rounded-full"
+    style={{ transform: "translate(-50%, -50%)" }}
+  >
+    <FaArrowLeft />
+  </button>
+);
+
+const CustomNextArrow = ({ onClick }) => (
+  <button
+    onClick={onClick}
+    className="absolute right-0 z-10 bg-black text-white p-2 rounded-full"
+    style={{ transform: "translate(50%, -50%)" }}
+  >
+    <FaArrowRight />
+  </button>
+);
 const CourseIntro = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const { id } = useParams();
   const [course, setCourse] = useState(null);
+  const [relatedCourses,setRelatedCourses]=useState(null);
+  const state=useSelector((state)=>state.user.currentCourse);
+  const [start,setStart]=useState(false);
+  const user = useSelector((state) => state);
   useEffect(() => {
     const call = async () => {
+ 
       const data = await API.post("/learn/fetchCourse", {
         id,
+        userId: user.user.user._id,
       });
       if (data.data.status) {
         setCourse(data.data.course);
+        console.log(data.data.relatedCourses.length)
+        if(data.data.relatedCourses.length!==0){
+          setRelatedCourses(data.data.relatedCourses)
+        }
+         if(data.data.started){
+          setStart(true);
+         }
       }
     };
     call();
   }, []);
 
-  const startLearning = () => {
+  const startLearning = async() => {
+   if(state===null){
+    navigate('/register')
+   }else if(course.price>0){
+      toast.warning("this is a paid course");
+   }else{
+    const response = await API.post("/learn/startLearning", {
+      _id:id,
+      userId: user.user.user._id,
+    });
+    if (response.data.status) {
+      dispatch(
+        setCurrentCourse({
+          course: response.data.updatedUse,
+        })
+      );
+      // console.log(_id);
+      // navigate(`/courseDetail/${_id}`)
+    } else {
+      alert("error");
+      
+    }
     navigate(`/courseDetail/${id}`);
+   }
+  
   };
+  const settings = {
+    dots: true, // Show pagination dots
+    infinite: true, // Infinite loop scrolling
+    speed: 500, // Animation speed
+    slidesToShow: 3, // Number of slides to show
+    slidesToScroll: 1, // Number of slides to scroll per click
+    // arrows: true, // Show navigation arrows
+    nextArrow: <CustomNextArrow />,
+    prevArrow: <CustomPrevArrow />,
 
+    responsive: [
+      {
+        breakpoint: 1024, // Below 1024px
+        settings: {
+          slidesToShow: 2,
+        },
+      },
+      {
+        breakpoint: 600, // Below 600px
+        settings: {
+          slidesToShow: 1,
+        },
+      },
+    ],
+  };
   const [showMore, setShowMore] = useState(false);
   const maxDescriptionLength = 100; // Adjust as needed
   let truncatedDescription = "";
@@ -78,14 +165,17 @@ const CourseIntro = () => {
                   <span className="text-red-500 text-sm lg:text-lg flex items-center gap-1 mt-3">
                     <FaClock /> :{" "}
                     <span className="text-slate-600 font-semibold">
-                      9 hours of learning
-                    </span>
+  {course.examDuration >= 60
+    ? `${Math.floor(course.examDuration / 60)} hours of learning`
+    : `${course.examDuration} minutes of learning`}
+</span>
                   </span>
                   <button
                     className="text-base lg:text-xl text-white bg-red-500 w-fit px-8 lg:px-16 rounded-xl py-1.5 font-semibold"
                     onClick={() => startLearning()}
                   >
-                    Continue Learning
+                    {start ? "Continue Your Learning":" Start Learning"}
+                   
                   </button>
                   <p className="font-semibold text-slate-600 flex gap-1 items-center text-sm lg:text-base">
                     <FaPhone /> For enquiry call: 91XXXXXXXXXX
@@ -98,8 +188,7 @@ const CourseIntro = () => {
                 <div className="h-96 w-full overflow-hidden rounded-r-3xl">
                   <img
                     src={
-                      optimizedImage ||
-                      "https://via.placeholder.com/800x600?text=No+Image+Available"
+                    course.courseThumbnail
                     }
                     className="w-full h-full object-cover"
                   />
@@ -196,16 +285,26 @@ const CourseIntro = () => {
               {/**
  Similar Courses
  */}
-              <div className="mt-10">
-                <p className="font-mono">RELATED COURSES</p>
-                <h1 className="text-3xl font-semibold">
-                  <span className="text-red-500">Learn More with </span> Similar
-                  Courses
-                </h1>
-                <div className="bg-white flex items-center justify-center p-10 text-4xl">
-                  Similar courses goes here
-                </div>
-              </div>
+ {
+  relatedCourses && (
+    <div className="mt-10 mb-6">
+      <p className="font-mono">RELATED COURSES</p>
+      <h1 className="text-3xl font-semibold">
+        <span className="text-red-500">Learn More with </span> Similar Courses
+      </h1>
+      <div className="mt-16">
+        <Slider {...settings}>
+          {relatedCourses?.map((course, index) => (
+            <div key={index}>
+              <CourseCard course={course} />
+            </div>
+          ))}
+        </Slider>
+      </div>
+    </div>
+  )
+ }
+             
             </div>
           </div>
         )}

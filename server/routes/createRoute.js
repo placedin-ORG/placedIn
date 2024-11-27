@@ -5,19 +5,46 @@ const bcrypt = require("bcryptjs");
 
 router.post("/createCourse", async (req, res) => {
   try {
-    const { courseTitle, description, chapters, paid, price, questions } =
+    const { courseTitle, description, chapters, paid, price, questions,examDuration,courseThumbnail,id ,courseCategory} =
       req.body;
-
-    const newCourse = new Course({
+if(id === null ){
+const newCourse = new Course({
       paid,
       price,
       title: courseTitle,
       description,
       chapters,
       questions,
+      examDuration,
+      courseThumbnail,
+      courseCategory
     });
     await newCourse.save();
     return res.json({ status: true });
+}else {
+  const updatedCourse = await Course.findByIdAndUpdate(
+      id, 
+      {
+          paid,
+          price,
+          title: courseTitle,
+          description,
+          chapters,
+          questions,
+          examDuration,
+          courseThumbnail,
+          courseCategory
+      }, 
+      { new: true } // Ensures the response is the updated document
+  );
+
+  if (!updatedCourse) {
+      return res.status(404).json({ status: false, message: "Course not found" });
+  }
+
+  return res.json({ status: true, updatedCourse });
+}
+    
   } catch (err) {
     console.log(err);
   }
