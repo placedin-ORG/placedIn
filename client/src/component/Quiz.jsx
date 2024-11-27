@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import Toast from "./Toast"
 const Quiz = ({ selectedQuiz,chapterIndex,openNextChapter }) => {
     const [selectedOptions, setSelectedOptions] = useState({});
     const [condition, setCondition] = useState(false)
@@ -17,12 +19,13 @@ const Quiz = ({ selectedQuiz,chapterIndex,openNextChapter }) => {
 
             openNextChapter(chapterIndex)
         }else{
-          alert("select all options")
+          toast.warn("Complete All the Quiz Question ")
         }
     }
     return (
         <>
 <div className="space-y-6 pr-4 pb-5">
+  <Toast/>
   {selectedQuiz.map((question, questionIndex) => (
     <div key={questionIndex} className="bg-white shadow-lg rounded-lg p-6">
       {/* Question */}
@@ -52,27 +55,28 @@ const Quiz = ({ selectedQuiz,chapterIndex,openNextChapter }) => {
           </div>
         ))}
 
-        {condition && (
-          <div className="text-sm mt-4">
-            {selectedOptions[questionIndex].split(' ')[0] === question.correctAnswer ? (
-              <p className="text-green-600 font-medium">
-                <span className="font-bold">Your Answer:</span>{" "}
-                {selectedOptions[questionIndex]} ✔ Correct
-              </p>
-            ) : (
-              <div>
-                <p className="text-red-600 font-medium">
-                  <span className="font-bold">Your Answer:</span>{" "}
-                  {selectedOptions[questionIndex]} ✘
-                </p>
-                <p className="text-green-700 font-medium mt-2">
-                  <span className="font-bold">Correct Answer:</span>{" "}
-                  {question.options.find(opt=>opt.split(' ')[0]===question.correctAnswer)}
-                </p>
-              </div>
-            )}
-          </div>
-        )}
+{condition && (
+  <div className="text-sm mt-4">
+    {selectedOptions[questionIndex].split(')')[0] === question.correctAnswer ? (
+      <p className="text-green-600 font-medium">
+        <span className="font-bold">Your Answer:</span>{" "}
+        {selectedOptions[questionIndex]} ✔ Correct
+      </p>
+    ) : (
+      <div>
+        <p className="text-red-600 font-medium">
+          <span className="font-bold">Your Answer:</span>{" "}
+          {selectedOptions[questionIndex]} ✘
+        </p>
+        <p className="text-green-700 font-medium mt-2">
+          <span className="font-bold">Correct Answer:</span>{" "}
+          {question.options.find(opt => opt.split(')')[0] === question.correctAnswer)}
+        </p>
+      </div>
+    )}
+  </div>
+)}
+
       </div>
     </div>
   ))}

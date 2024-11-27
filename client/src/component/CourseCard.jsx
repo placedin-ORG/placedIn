@@ -14,23 +14,23 @@ const CourseCard = ({ course }) => {
 
   const startLearning = async (_id, title) => {
     try {
-      const response = await API.post("/learn/startLearning", {
-        _id,
-        userId: user.user.user._id,
-      });
+      // const response = await API.post("/learn/startLearning", {
+      //   _id,
+      //   userId: user.user.user._id,
+      // });
       // console.log(response.data.user)
-      if (response.data.status) {
-        dispatch(
-          setCurrentCourse({
-            course: response.data.updatedUse,
-          })
-        );
-        console.log(_id);
+      // if (response.data.status) {
+      //   dispatch(
+      //     setCurrentCourse({
+      //       course: response.data.updatedUse,
+      //     })
+      //   );
+      //   console.log(_id);
         navigate(`/intro/course/${_id}`);
         // navigate(`/courseDetail/${_id}`)
-      } else {
-        alert("error");
-      }
+      // } else {
+      //   alert("error");
+      // }
     } catch (err) {
       console.log(err);
     }

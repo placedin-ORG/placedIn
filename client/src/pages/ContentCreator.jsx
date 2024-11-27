@@ -3,8 +3,13 @@ import { FiPlusCircle } from 'react-icons/fi';
 import { BiSave } from 'react-icons/bi';
 import { AiOutlinePlusCircle, AiOutlineDelete } from 'react-icons/ai';
 import axios from "axios";
-import {useLocation} from 'react-router-dom' 
+import {useLocation} from 'react-router-dom' ;
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import Toast from '../component/Toast';
+import {useNavigate} from 'react-router-dom'
 const CreateCoursePage = () => {
+  const navigate=useNavigate();
   const location=useLocation();
   const [courseTitle, setCourseTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -13,7 +18,14 @@ const CreateCoursePage = () => {
   const [paid ,setPaid]=useState(false);
   const [price,setPrice]=useState(0);
   const [thumbnail, setThumbnail] = useState(null);
-
+  const [examDuration, setExamDuration] = useState(1);
+  const [questions, setQuestions] = useState([]);
+  const [currentQuestion, setCurrentQuestion] = useState({
+    questionText: '',
+    options: ['', '', '', ''],
+    correctAnswer: '',
+  });
+ 
   const [courseCategory, setCourseCategory] = useState("");
   const [id,setId]=useState(null);
   const handleAddChapter = () => {
@@ -30,7 +42,10 @@ const CreateCoursePage = () => {
           paid: isPaid,
           price: coursePrice,
           courseCategory: category,
-          _id:id
+          _id:id,
+          examDuration:examDuration,
+          courseThumbnail:courseThumbnail,
+          questions:questions
         } = location.state;
 
         // Update state with values from location.state
@@ -40,6 +55,9 @@ const CreateCoursePage = () => {
         if (typeof isPaid === "boolean") setPaid(isPaid);
         if (coursePrice) setPrice(coursePrice);
         if (category) setCourseCategory(category);
+        if(courseThumbnail!=="") setThumbnail(courseThumbnail);
+        if(examDuration>0) setExamDuration(examDuration);
+        if(questions.length >0) setQuestions(questions);
         if(id) setId(id);
   }
   }catch(err){
@@ -107,9 +125,11 @@ const CreateCoursePage = () => {
     setIsGenerating(true);
     try {
       const content = chapters[chapterIndex].topics.map((topic) => topic.content).join(' ');
-
+    if(content.length<20){
+      toast.warning("The overall content of topics is too short")
+    }
       // Call the backend to generate quiz questions
-      const response = await fetch('http://localhost:5000/api/generate-quiz', {
+      const response = await fetch('http://localhost:5000/api/v1/generate-quiz', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content }),
@@ -119,23 +139,140 @@ const CreateCoursePage = () => {
       if (data.success) {
         setChapters((prevChapters) => {
           const updatedChapters = [...prevChapters];
+
           // Update the quiz for the correct chapter index
           updatedChapters[chapterIndex].quiz = transformData(data.questions);
+          console.log(updatedChapters)
           return updatedChapters;
         });
       } else {
-        alert('Failed to generate quiz.');
+        toast.error('Failed to generate quiz.');
       }
     } catch (error) {
-      alert('Error generating quiz.');
+      toast.error('Error generating quiz.');
     } finally {
       setIsGenerating(false);
     }
   };
-
+  const validateChapters = (chapters) => {
+    for (const chapter of chapters) {
+      // Check if chapter title is empty
+      if (!chapter.title.trim()) {
+        return { isValid: false, message: "Chapter title cannot be empty" };
+      }
+  
+      // Check each topic in the chapter
+      for (const topic of chapter.topics) {
+        if (!topic.name.trim()) {
+          return { isValid: false, message: "Topic name cannot be empty" };
+        }
+        if (!topic.videoUrl.trim()) {
+          return { isValid: false, message: "Topic video URL cannot be empty" };
+        }
+        if (!topic.content.trim()) {
+          return { isValid: false, message: "Topic content cannot be empty" };
+        }
+      }
+  
+      // Check if quiz array is empty
+      if (!chapter.quiz.length) {
+        return { isValid: false, message: "Quiz cannot be empty" };
+      }
+  
+      // Validate each question in the quiz
+      for (const questionObj of chapter.quiz) {
+        if (!questionObj.question.trim()) {
+          return { isValid: false, message: "Quiz question cannot be empty" };
+        }
+  
+        if (questionObj.options.length !== 4) {
+          return {
+            isValid: false,
+            message: "Each quiz question must have exactly 4 options",
+          };
+        }
+  
+        // Check if any option is empty
+        for (const option of questionObj.options) {
+          if (option.trim().length<=2) {
+            return { isValid: false, message: "Quiz options cannot be empty" };
+          }
+        }
+  
+        // Check if the correct answer is empty
+        if (!questionObj.correctAnswer.trim()) {
+          return {
+            isValid: false,
+            message: "Correct answer cannot be empty",
+          };
+        }
+      }
+    }
+  
+    // If all validations pass
+    return { isValid: true, message: "Validation successful" };
+  };
+  const validateQuestions = (questions) => {
+    if (!questions.length) {
+      return { isValid: false, message: "Questions array cannot be empty." };
+    }
+  
+    for (const question of questions) {
+      // Check if questionText is empty
+      if (!question.questionText.trim()) {
+        return { isValid: false, message: "Question text cannot be empty." };
+      }
+  
+      // Check if options array has exactly 4 options
+      if (question.options.length !== 4) {
+        return {
+          isValid: false,
+          message: "Each question must have exactly 4 options.",
+        };
+      }
+  
+      // Check if any option is empty
+      for (const option of question.options) {
+        if (!option.trim()) {
+          return { isValid: false, message: "Options cannot be empty." };
+        }
+      }
+  
+      // Check if correctAnswer is empty
+      if (!question.correctAnswer.trim()) {
+        return { isValid: false, message: "Correct answer cannot be empty." };
+      }
+    }
+  
+    // All validations passed
+    return { isValid: true, message: "Validation successful." };
+  };
   const handleSaveCourse = async() => {
-    
-   const {data}=await axios.post('http://localhost:5000/create/createCourse',{
+    if(courseTitle==="" ){
+      toast.warning('Mention The Course Title')
+      return ;
+    }else if(description === ""){
+      toast.warning("Mention the Description of the Course");
+      return ;
+    }else if(chapters.length===0){
+      toast.warning("Atleast Make A Chapter with topics");
+      return ;
+    }else if(thumbnail===""){
+      toast.warning('select the thumbnail for course');
+      return ;
+    }
+    const validationResult = validateChapters(chapters);
+if (!validationResult.isValid) {
+toast.warning(validationResult.message);
+return ;
+}
+
+const validateQuestion=validateQuestions(questions);
+if (!validateQuestion.isValid) {
+  toast.warning(validationResult.message);
+  return ;
+  }
+   const {data}=await axios.post('http://localhost:5000/api/v1/create/createCourse',{
     courseTitle,
     description,
     chapters,
@@ -144,16 +281,22 @@ const CreateCoursePage = () => {
     id,
     setLive:true,
     courseCategory,
-    courseThumbnail:thumbnail
+    courseThumbnail:thumbnail,
+    examDuration,
+    
    })
    if(data.status){
-    alert("added")
+    toast.success("added")
    }else{
-    alert("problem while adding")
+    toast.error("problem while adding")
    }
   };
   const handlelaterCourse=async()=>{
-    const {data}=await axios.post('http://localhost:5000/create/laterCourse',{
+    if(courseTitle==="" ){
+      toast.warning('Mention The Course Title')
+      return ;
+    }
+    const {data}=await axios.post('http://localhost:5000/api/v1/create/createCourse',{
       courseTitle,
       description,
       chapters,
@@ -162,12 +305,14 @@ const CreateCoursePage = () => {
       id,
       courseCategory,
       setLive:false,
-      courseThumbnail:thumbnail
+      courseThumbnail:thumbnail,
+      examDuration
      })
      if(data.status){
-      alert("added")
+      toast.success("added");
+      navigate("/teacher-panel")
      }else{
-      alert("problem while adding")
+      toast.error("problem while adding")
      }
   }
 
@@ -197,12 +342,6 @@ const [toggleExam,setToggleExam]=useState(false);
    if (toggleExam) setToggleExam(false);
    else setToggleExam(true);
  }
- const [questions, setQuestions] = useState([]);
- const [currentQuestion, setCurrentQuestion] = useState({
-   questionText: '',
-   options: ['', '', '', ''],
-   correctAnswer: '',
- });
 
  const handleQuestionChange = (e) => {
    setCurrentQuestion({ ...currentQuestion, questionText: e.target.value });
@@ -227,7 +366,7 @@ const [toggleExam,setToggleExam]=useState(false);
     setQuestions([...questions, currentQuestion]);
     setCurrentQuestion({ questionText: '', options: ['', '', '', ''], correctAnswer: '' });
   } else {
-    alert('Please fill out all fields before adding a question.');
+    toast.error('Please fill out all fields before adding a question.');
   }
 };
 
@@ -237,6 +376,7 @@ const deleteQuestion = (index) => {
 };
   return (
     <div className="container mx-auto p-8 max-w-4xl bg-white shadow-lg rounded-lg mb-5 mt-5">
+      <Toast/>
     <h1 className="text-3xl font-bold mb-8 text-gray-800 border-b pb-4">Create a New Course</h1>
     <div className="mb-6">
   <label className="block text-gray-700 font-medium mb-2">
@@ -292,6 +432,19 @@ const deleteQuestion = (index) => {
           <option value="law">Law</option>
         </select>
       </div>
+
+
+      <div className="mb-6">
+  <label className="block text-gray-700 font-medium mb-2">Exam Duration (in minutes)</label>
+  <input
+    type="number"
+    value={examDuration}
+    onChange={(e) => setExamDuration(e.target.value)}
+    placeholder="Enter exam duration"
+    min={1}
+    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+  />
+</div>
     {/* Course Title Input */}
     <div className="mb-6">
       <label className="block text-gray-700 font-medium mb-2">Course Title</label>
@@ -420,22 +573,48 @@ const deleteQuestion = (index) => {
     />
 
     {/* Options for the Question */}
-    {question.options.map((option, optionIndex) => (
-      <div key={optionIndex} className="mt-4">
-        <label className="block text-gray-600 font-medium mb-1">
-          Option {optionIndex + 1}
-        </label>
-        <input
-          type="text"
-          value={option}
-          onChange={(e) =>
-            handleQuizQuestionChange(chapterIndex, questionIndex, `options.${optionIndex}`, e.target.value)
-          }
-          placeholder={`Enter option ${optionIndex + 1}`}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      </div>
-    ))}
+    {question.options.map((option, optionIndex) => {
+  // Extract the part before the ")" to compare with the correct answer.
+  const optionPrefix = option.split(")")[0].trim();
+  const isCorrect = optionPrefix === question.correctAnswer;
+
+  return (
+    <div
+      key={optionIndex}
+      className={`mt-4 ${
+        isCorrect ? "bg-green-500 text-white" : ""
+      } px-4 py-2 rounded-lg`}
+    >
+      <label className="block text-gray-600 font-medium mb-1">
+        Option {optionIndex + 1}
+      </label>
+      <input
+  type="text"
+  value={`${option.substring(0, 2)} ${option.slice(2)}`} // Preserve the prefix (a), b), etc.)
+  onChange={(e) => {
+    const newValue = e.target.value;
+    const prefix = newValue.substring(0, 2); // Get the first two characters (prefix like "a)", "b)", etc.)
+    
+    // Check if the first two characters are a valid prefix (a), b), etc.)
+    if (["a)", "b)", "c)", "d)"].includes(prefix.trim())) {
+      handleQuizQuestionChange(
+        chapterIndex,
+        questionIndex,
+        `options.${optionIndex}`,
+        `${prefix}${newValue.slice(2).trimStart()}` // Remove leading spaces after the prefix
+      );
+    }
+  }}
+  placeholder={`Enter option ${optionIndex + 1}`}
+  className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+    isCorrect ? "bg-green-500 text-white" : ""
+  }`}
+/>
+
+    </div>
+  );
+})}
+
   </div>
 ))}
 

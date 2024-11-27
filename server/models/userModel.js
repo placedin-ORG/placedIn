@@ -22,6 +22,9 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
       },
+      examDuration:{
+        type:String
+      },
       courseName: {
         type: String,
       },

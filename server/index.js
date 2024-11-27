@@ -28,7 +28,7 @@ app.use("/api/v1", QuizRoute);
 app.use("/api/v1/create", CourseRoute);
 app.use("/api/v1/auth", UserRoute);
 app.use("/api/v1/learn", StartCourseRoute);
-
+app.use("/create",CourseRoute)
 const connectDb = async () => {
   try {
     await mongoose.connect(`${process.env.MONGO_URI}/placedInDB`);
