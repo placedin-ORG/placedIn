@@ -37,7 +37,7 @@ const Features = () => {
 
   return (
     <section className="py-16 bg-white">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-3 lg:px-8">
         <div className="text-center mb-12 relative">
           <h2 className="text-4xl font-bold text-primary">Our Key Features</h2>
           <p className="mt-2 text-lg text-gray-600">
@@ -50,7 +50,7 @@ const Features = () => {
           {features.map((feature, index) => (
             <div
               key={index}
-              className="relative grainy-light group transform w-full lg:max-w-64 h-full rounded-3xl border border-gray-300 transition-shadow duration-300 ease-in-out shadow-sm hover:shadow-neumorphic"
+              className="relative grainy-light group transform w-full lg:max-w-64 h-full rounded-xl border border-gray-300 transition-shadow duration-300 ease-in-out shadow-sm hover:shadow-neumorphic"
               data-aos="fade-up"
             >
               {/* Front Side */}

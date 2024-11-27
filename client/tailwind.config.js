@@ -1,4 +1,6 @@
 /** @type {import('tailwindcss').Config} */
+const colors = require("tailwindcss/colors");
+
 module.exports = {
   content: ["./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
@@ -11,9 +13,19 @@ module.exports = {
       },
       colors: {
         primary: {
-          DEFAULT: "#075985",
-          light: "#0369A1",
-          dark: "#0C4A6E",
+          // DEFAULT: colors.green[500],
+          DEFAULT: "hsl(var(--primary))",
+          light: "#22C55E",
+          dark: "#15803D",
+        },
+      },
+      animation: {
+        shimmer: "shimmer 2s infinite",
+      },
+      keyframes: {
+        shimmer: {
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(100%)" },
         },
       },
     },

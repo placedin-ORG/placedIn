@@ -19,12 +19,26 @@ const Hero = () => {
   }, []);
 
   return (
-    <section className="relative pt-16 grainy-light">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 flex flex-col lg:flex-row items-center gap-10">
+    <section className="relative pt-10 grainy-light">
+      <div className="max-w-7xl mx-auto px-3 lg:px-8 flex flex-col lg:flex-row items-end gap-10">
+        {/* <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t via-slate-50/50 from-slate-50 h-28" /> */}
         {/* Left Content */}
-        <div className="lg:w-1/2 text-left lg:text-left">
-          <h1 className="text-4xl md:text-6xl font-bold text-primary mb-6 leading-tight">
-            Ace Your Exams with Expertly Crafted Courses and Test Series!
+        <div className="lg:w-1/2 text-left lg:text-left pb-10">
+          <h1 className="text-4xl md:text-6xl font-bold text-gray-700 mb-6">
+            <span className="text-primary tracking-widest leading-[1.3]">
+              {" "}
+              Ace{" "}
+            </span>
+            Your Exams with{" "}
+            <span className="text-primary tracking-widest leading-[1.3]">
+              {" "}
+              Expertly{" "}
+            </span>
+            Crafted Courses and
+            <span className="text-primary tracking-widest leading-[1.3]">
+              {" "}
+              Test Series!{" "}
+            </span>
           </h1>
           <p className="text-lg md:text-xl text-gray-600 mb-6">
             Discover a world of knowledge with interactive learning tools,
@@ -32,7 +46,7 @@ const Hero = () => {
           </p>
 
           {/* Call-to-Action Buttons */}
-          <div className="flex justify-center lg:justify-start gap-4">
+          <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
             <Button
               title={"Explore Courses"}
               className="bg-primary text-sky-100"
@@ -53,11 +67,11 @@ const Hero = () => {
         </div>
 
         {/* Right Image */}
-        <div className="lg:w-1/2 rounded-lg relative">
+        <div className="lg:w-1/2 h-full rounded-lg relative scale-x-[-1] pb-[3.1rem]">
           <img
             src="/images/home/hero-2.png"
             alt="Students taking exams"
-            className="w-full rounded-lg"
+            className="w-full lg:scale-125 rounded-lg"
           />
         </div>
       </div>

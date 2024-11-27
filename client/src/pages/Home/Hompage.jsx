@@ -19,7 +19,7 @@ const Hompage = () => {
       {/* <IntroHome />
        */}
       <Hero />
-      <Hero2 />
+      {/* <Hero2 /> */}
       <Features />
       <PopularCourses />
       <FAQ />

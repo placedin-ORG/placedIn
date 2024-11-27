@@ -17,9 +17,9 @@ const CourseNavbar = () => {
 
   return (
     <>
-      <nav className="max-w-7xl mx-auto flex text-black py-4 justify-center items-center">
+      <nav className="relative max-w-7xl mx-auto flex text-black py-4 justify-center items-center">
         <div className="container flex flex-wrap justify-center gap-4 items-center text-sm">
-          <ul className="grid grid-cols-3 md:grid-cols-4 lg:flex flex-wrap gap-4 justify-center w-full sm:space-x-8 sm:gap-4">
+          <ul className="h-full z-10 sticky top-0 flex gap-10 w-full overflow-y-hidden overflow-x-auto justify-center sm:space-x-8 sm:gap-4 pb-2 px-6">
             {/* Doctorate Dropdown */}
             <li className="relative group hover:text-red-700 w-full sm:w-auto">
               <button
@@ -37,9 +37,9 @@ const CourseNavbar = () => {
                 </span>
               </button>
               <div
-                className={`absolute left-0 w-full sm:w-40 ${
+                className={`absolute z-10 left-0 w-full sm:w-40 ${
                   openDropdown === "doctorate" ? "block" : "hidden"
-                } bg-white text-gray-800 shadow-lg py-2 mt-1 sm:mt-0 sm:top-full z-10`}
+                } bg-white text-gray-800 shadow-lg py-2 mt-1 sm:mt-0 sm:top-full`}
               >
                 <a href="#" className="block px-4 py-2 hover:bg-gray-100">
                   PhD Programs
@@ -113,7 +113,7 @@ const CourseNavbar = () => {
                 onClick={() => toggleDropdown("dataScience")}
               >
                 <FaDatabase />
-                <span className="text-sm">Data Science</span>
+                <span className="text-sm text-nowrap">Data Science</span>
                 <span className="ml-2">
                   {openDropdown === "dataScience" ? (
                     <FaChevronUp />

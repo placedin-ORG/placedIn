@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import API from "../../utils/API";
 import CourseCard from "../../component/CourseCard";
 import SmallUnderline from "../../component/SmallUnderline";
+import Navbar from "../../component/Navbar";
 
-const PopularCourses = () => {
+const AllCourses = () => {
   const [courses, setCourses] = useState([]);
 
   useEffect(() => {
@@ -21,9 +22,10 @@ const PopularCourses = () => {
 
   return (
     <div className="grainy-light">
-      <div className="max-w-7xl mx-auto px-3 lg:px-8 py-16">
+      <Navbar />
+      <div className="max-w-7xl mx-auto px-3 lg:px-8 py-10">
         <h1 className="text-center text-primary text-4xl font-bold relative">
-          Popular Courses
+          Explore Courses
           <SmallUnderline />
         </h1>
 
@@ -39,4 +41,4 @@ const PopularCourses = () => {
   );
 };
 
-export default PopularCourses;
+export default AllCourses;

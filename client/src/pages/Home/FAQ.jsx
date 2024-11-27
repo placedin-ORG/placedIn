@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import SmallUnderline from "../../component/SmallUnderline";
 
 const FAQ = () => {
   const [activeIndex, setActiveIndex] = useState(null);
@@ -37,11 +38,12 @@ const FAQ = () => {
   };
 
   return (
-    <div className="px-4 py-16 sm:px-8 md:px-16 max-w-6xl mx-auto">
-      <h2 className="text-2xl font-bold text-center mb-6">
+    <div className="py-16 px-2 sm:px-8 md:px-16 max-w-6xl mx-auto">
+      <h2 className="text-2xl font-bold text-center mb-6 relative">
         Frequently Asked Questions
+        <SmallUnderline />
       </h2>
-      <div className="space-y-4">
+      <div className="space-y-4 pt-10">
         {faqs.map((faq, index) => (
           <div key={index} className="pb-4 border-b border-gray-300">
             {/* Question */}
@@ -49,7 +51,9 @@ const FAQ = () => {
               className="flex items-center justify-between p-2 font-medium cursor-pointer sm:text-lg"
               onClick={() => toggleFAQ(index)}
             >
-              <span className="font-[500] text-lg">{faq.question}</span>
+              <span className="font-[500] text-base sm:text-lg">
+                {faq.question}
+              </span>
               <span
                 className={`text-gray-900 dark:text-darkText-500 transform transition-transform ${
                   activeIndex === index ? "rotate-90" : "rotate-0"
@@ -84,7 +88,9 @@ const FAQ = () => {
                 willChange: "opacity, transform",
               }}
             >
-              <p className="p-2 text-gray-700 text-base">{faq.answer}</p>
+              <p className="p-2 text-gray-700 text-sm sm:text-base">
+                {faq.answer}
+              </p>
             </div>
           </div>
         ))}

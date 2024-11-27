@@ -4,7 +4,7 @@ const Button = ({ title, className, height = 30, width = 30, onClick }) => {
   return (
     <button
       onClick={onClick}
-      className={`${className} text-white text-center relative cursor-pointer font-bold font-sans transition-all duration-200 px-5 py-2.5 rounded-full bg-primary border border-transparent flex items-center justify-center gap-2 text-sm  active:scale-95 overflow-hidden button`}
+      className={`${className} text-white text-center relative cursor-pointer font-bold transition-all duration-200 px-5 py-2.5 rounded-full bg-primary border border-transparent flex items-center justify-center gap-2 text-sm  active:scale-95 overflow-hidden button`}
     >
       <span className="text-center">{title}</span>
       <CiCircleChevRight className="text-2xl" />

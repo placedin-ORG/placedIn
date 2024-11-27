@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import axios from "axios";
 
 import { setCurrentCourse } from "../redux/UserSlice";
 import { useNavigate } from "react-router-dom";
-import { FaPlayCircle } from "react-icons/fa";
 import API from "../utils/API";
 import Button from "./Button";
-const CourseCard = ({ course }) => {
+
+const CourseCard = ({ course, isUser = false }) => {
   const navigate = useNavigate();
   const user = useSelector((state) => state);
   const dispatch = useDispatch();
@@ -53,22 +52,43 @@ const CourseCard = ({ course }) => {
 
         {/* Course Title */}
         <h3 className="text-lg font-semibold text-gray-800 truncate">
-          {course.title}
+          {course.title || course?.courseName}
         </h3>
 
         {/* Edit Button */}
         <div className="mt-4 flex justify-between items-end gap-3">
-          {course?.price ? (
-            <h5 className="text-emerald-500 font-semibold">₹{course.price} </h5>
+          {isUser ? (
+            <h5>
+              <h5 className="text-emerald-500 font-semibold">Enrolled</h5>
+            </h5>
           ) : (
-            <h5 className="text-emerald-500 font-semibold">Free</h5>
+            <>
+              {course?.price ? (
+                <h5 className="text-emerald-500 font-semibold">
+                  ₹{course.price}{" "}
+                </h5>
+              ) : (
+                <h5 className="text-emerald-500 font-semibold">Free</h5>
+              )}
+            </>
           )}
 
-          <Button
-            title="Start"
-            className={"bg-emerald-500 !px-2 !py-1 font-semibold"}
-            onClick={() => startLearning(course._id)}
-          />
+          {isUser ? (
+            <button
+              className={
+                "px-4 py-1 bg-primary text-white rounded-md hover:bg-primary-light"
+              }
+              onClick={() => startLearning(course._id)}
+            >
+              View
+            </button>
+          ) : (
+            <Button
+              title="View"
+              className={"bg-emerald-500 !px-2 !py-1 font-semibold"}
+              onClick={() => startLearning(course._id)}
+            />
+          )}
         </div>
       </div>
     </>

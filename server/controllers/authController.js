@@ -1,6 +1,6 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { User } = require("../models/userModel");
+const User = require("../models/userModel");
 const ejs = require("ejs");
 const path = require("path");
 const { sendEmail } = require("../utils/sendMail.js");
@@ -15,14 +15,14 @@ const createActivationToken = (user) => {
 
 const sendVerficationEmail = async (user) => {
   const activationToken = createActivationToken(user);
-  const activationUrl = `${process.env.SERVER_URL}/api/auth/verify-email?token=${activationToken}`;
+  const activationUrl = `${process.env.SERVER_URL}/api/v1/auth/verify-email?token=${activationToken}`;
   const data = { user: { name: user.name }, activationUrl };
   const html = await ejs.renderFile(
     path.join(__dirname, "../emails/activation-email.ejs"),
     data
   );
   await sendEmail({
-    to: user.username,
+    to: user.email,
     subject: "Activate Your Acount",
     html,
   });
@@ -56,21 +56,27 @@ const login = async (req, res) => {
     /* Check if user exists */
     const user = await User.findOne({ email });
     if (!user) {
-      return res.json({ status: false, message: "user does not exist" });
+      return res
+        .status(404)
+        .json({ status: false, message: "user does not exist" });
     }
 
     /* Compare the password with the hashed password */
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.json({ status: false, message: "wrong password" });
+      return res
+        .status(401)
+        .json({ status: false, message: "Invalid Credentials" });
     }
 
+    const userData = await User.findById(user._id).select("-password");
     // Generate The token
     const token = user.generateToken();
     res.json({
       success: true,
       message: "User logged in Successfully",
       token,
+      user: userData,
     });
   } catch (error) {
     console.log(error);
@@ -88,7 +94,7 @@ const verifyEmail = async (req, res) => {
     decodeData.password = hashedPassword;
     await User.create(decodeData);
 
-    res.redirect(`${process.env.CLIENT_URL}/auth/login`);
+    res.redirect(`${process.env.CLIENT_URL}/login`);
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: error.message });
@@ -100,10 +106,33 @@ const signToken = (data) => {
   return token;
 };
 
+const getCurrentUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ status: false, message: "user does not exist" });
+    }
+
+    res.json({
+      success: true,
+      message: "User logged in Successfully",
+
+      user,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to get Current User" });
+  }
+};
+
 const updatePassword = async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = req.user._id;
     const { currentPassword, newPassword } = req.body;
+
     const user = await User.findById(id);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -115,9 +144,33 @@ const updatePassword = async (req, res) => {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
     await user.save();
-    res.json({ message: "Password updated successfully" });
+    res.json({ success: true, message: "Password updated successfully" });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.log(error);
+
+    res.status(500).json({ message: "Failed to updated password" });
+  }
+};
+
+const updateProfile = async (req, res) => {
+  try {
+    const id = req.user._id;
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    console.log(req.body);
+
+    await User.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
+
+    res.json({ success: true, message: "Profile updated successfully" });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({ message: "Failed to updated password" });
   }
 };
 
@@ -164,8 +217,7 @@ const resetPassword = async (req, res, next) => {
   if (!user)
     return res.status(400).json({ message: "Invalid or expired token" });
 
-  const { newPassword: password, confirmNewPassword: confirmPassword } =
-    req.body;
+  const { password, confirmPassword } = req.body;
   if (!password || !confirmPassword || password !== confirmPassword) {
     return res
       .status(400)
@@ -194,4 +246,6 @@ module.exports = {
   resetPassword,
   sendResetPassword,
   verifyEmail,
+  getCurrentUser,
+  updateProfile,
 };
