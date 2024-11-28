@@ -12,6 +12,10 @@ router.post("/fetchCourse", async (req, res) => {
     console.log(id);
 
     const course = await Course.findById(id);
+    const relatedCourses = await Course.find({
+      category: course?.category,
+      _id: { $ne: id },
+    });
     if (userId !== null) {
       const user = await User.findOne({
         _id: userId,
@@ -25,10 +29,6 @@ router.post("/fetchCourse", async (req, res) => {
       });
     }
 
-    const relatedCourses = await Course.find({
-      category: course?.category,
-      _id: { $ne: id },
-    });
     res.json({ status: true, course, relatedCourses });
   } catch (err) {
     console.log(err);
