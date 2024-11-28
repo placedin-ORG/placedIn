@@ -8,7 +8,7 @@ import Button from "./Button";
 
 const CourseCard = ({ course, isUser = false }) => {
   const navigate = useNavigate();
-  const user = useSelector((state) => state);
+  // const user = useSelector((state) => state);
   const dispatch = useDispatch();
 
   const startLearning = async (_id, title) => {
@@ -25,7 +25,9 @@ const CourseCard = ({ course, isUser = false }) => {
       //     })
       //   );
       //   console.log(_id);
+
         navigate(`/intro/course/${_id}`);
+        window.location.reload();
         // navigate(`/courseDetail/${_id}`)
       // } else {
       //   alert("error");

@@ -19,6 +19,7 @@ import AllCourses from "./pages/courses/AllCourses";
 import ScrollToTop from "./component/ScrollToTop";
 import ForgotPassword from "./pages/auth/forgot-password/page";
 import ResetPassword from "./pages/auth/reset-password/page";
+import GiveExam from "./pages/exam/GiveExam";
 function App() {
   return (
     <>
@@ -51,6 +52,7 @@ function App() {
             <Route path="settings" element={<Setting />} />
             <Route path="enrolled/courses" element={<MyCourses />} />
           </Route>
+          <Route path="/exam" element={<GiveExam/>}/>
         </Routes>
       </BrowserRouter>
     </>

@@ -12,7 +12,9 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../component/Navbar";
 import FinalExam from "./FinalExam";
 import API from "../utils/API";
+import Disccussion from "../component/Disccussion";
 const CourseDetail = () => {
+  const [discussion,setDiscussion]=useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [courseData, setCourseData] = useState(null);
@@ -232,6 +234,35 @@ const CourseDetail = () => {
     <>
       {/* <button onClick={()=>clear()}>clear</button> */}
       <Navbar />
+      <div className="w-full flex justify-center py-4 bg-gray-100">
+  <div className="flex space-x-6">
+    {/* Course Tab */}
+    <p
+      className={`cursor-pointer text-lg font-medium transition-all duration-300 ${
+        !discussion
+          ? "text-primary-light border-b-4 border-primary-dark pb-1"
+          : "text-gray-600 hover:text-primary-dark"
+      }`}
+      onClick={() => setDiscussion(false)}
+    >
+      Course
+    </p>
+    {/* Discussion Tab */}
+    <p
+      className={`cursor-pointer text-lg font-medium transition-all duration-300 ${
+        discussion
+          ? "text-primary-light border-b-4 border-primary-dark pb-1"
+          : "text-gray-600 hover:text-primary-dark"
+      }`}
+      onClick={() => setDiscussion(true)}
+    >
+      Discussion
+    </p>
+  </div>
+</div>
+{
+  !discussion ? <div>
+
      {
       courseData && (
         <div className="p-6 bg-gray-50 min-h-9 flex flex-col items-center space-y-6">
@@ -244,7 +275,7 @@ const CourseDetail = () => {
           <div className="relative w-full h-6 bg-gray-200 rounded-full overflow-hidden shadow-md">
             {/* Filled Progress */}
             <div
-              className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-500"
+              className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary-light to-green-500 transition-all duration-500"
               style={{ width: `${progressPercentage}%` }}
             ></div>
           </div>
@@ -290,10 +321,10 @@ const CourseDetail = () => {
                  className="flex justify-between items-center mb-2 cursor-pointer group"
                  onClick={() => toggleChapter(chapterIndex)}
                >
-                 <h3 className="text-lg font-medium text-gray-800 group-hover:text-blue-600">
+                 <h3 className="text-lg font-medium text-gray-800 group-hover:text-primary-dark">
                    {chapter.title}
                  </h3>
-                 <button className="text-gray-600 hover:text-blue-600 focus:outline-none">
+                 <button className="text-black hover:text-primary-dark focus:outline-none">
                    {expandedChapter === chapterIndex ? <FaAngleUp /> : <FaAngleDown />}
                  </button>
                </div>
@@ -307,7 +338,7 @@ const CourseDetail = () => {
                        className={`cursor-pointer mb-3 p-2 rounded-md transition-all ${
                          selectedTopic &&
                          selectedTopic.topic.name === topic.name
-                           ? 'bg-blue-500 text-white'
+                           ? 'bg-primary-light text-white'
                            : 'text-gray-700 hover:bg-gray-100'
                        }`}
                        onClick={() =>
@@ -324,7 +355,7 @@ const CourseDetail = () => {
                              e.stopPropagation();
                              toggleTopicContent(topicIndex);
                            }}
-                           className="text-gray-600 hover:text-blue-600 focus:outline-none"
+                           className="text-white  focus:outline-none"
                          >
                            {expandedTopic === topicIndex ? <FaAngleUp /> : <FaAngleDown />}
                          </button>
@@ -340,7 +371,7 @@ const CourseDetail = () => {
                                  e.stopPropagation();
                                  toggleTopicContent(topicIndex);
                                }}
-                               className="text-blue-600 ml-2 focus:outline-none"
+                               className="text-primary-light ml-2 focus:outline-none"
                              >
                                {expandedTopic === topicIndex ? 'Read Less' : 'Read More'}
                              </button>
@@ -356,7 +387,7 @@ const CourseDetail = () => {
                        onClick={() => handleQuizClick(chapter.quiz, chapterIndex)}
                        className={`text-sm font-medium px-4 py-2 rounded-md ${
                          chapter.quiz.isCurrent
-                           ? 'bg-blue-500 text-white hover:bg-blue-600'
+                           ? 'bg-primary-light text-white hover:bg-primary-dark'
                            : 'bg-gray-300 text-gray-600 cursor-not-allowed'
                        }`}
                        disabled={!chapter.quiz.isCurrent}
@@ -375,9 +406,11 @@ const CourseDetail = () => {
                <h2 className="text-lg font-semibold text-gray-900 mb-2">Final Exam</h2>
                <button
                  onClick={() => handleFinalExam()}
-                 className="text-sm font-medium px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-all"
-               >
-                 Start Final Exam
+                 className="text-sm font-medium px-4 py-2 bg-primary-light text-white rounded-md hover:bg-primary-dark transition-all"
+               >{
+                courseData.finalExam.isCompleted?"View Result":"Start Final Exam"
+               }
+                 {/* Start Final Exam */}
                </button>
              </div>
            )}
@@ -405,7 +438,7 @@ const CourseDetail = () => {
       <div className="flex justify-start">
         <button
           onClick={() => nextTopic()}
-          className="px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-all shadow-md"
+          className="px-6 py-3 bg-primary-dark text-white font-medium rounded-md hover:bg-primary-light transition-all shadow-md"
         >
           Next Topic
         </button>
@@ -432,6 +465,9 @@ const CourseDetail = () => {
           </div>
         </div>
       )}
+  </div> : <Disccussion courseId={id} userId={currentCourse._id} username={currentCourse.name}/>
+}
+    
     </>
   );
 };

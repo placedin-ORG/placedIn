@@ -9,18 +9,21 @@ router.post("/fetchCourse", async (req, res) => {
       _id: id,
 
     });
-    const user = await User.findOne({
+    if(userId!==null){
+ const user = await User.findOne({
       _id: userId,
       'ongoingCourses.courseId': id, // Check if courseId exists in the ongoingCourses array of objects
     });
-       
-    console.log(!!user)
+   return  res.json({ status: true, course,relatedCourses,started:!!user });
+    }
+   
+    
    
     const relatedCourses = await Course.find({
       category: course.category,
       _id: { $ne: id }, // Exclude the course itself
     });
-    res.json({ status: true, course,relatedCourses,started:!!user });
+    res.json({ status: true, course,relatedCourses });
   } catch (err) {
     console.log(err);
   }
@@ -40,6 +43,11 @@ router.post("/startLearning", async (req, res) => {
       return res.json({ status: true, updatedUse: user }); // Course is present
     } else {
       const course = await Course.findById(_id);
+       await Course.findByIdAndUpdate(
+        _id,
+        { $inc: { studentEnrolled: 1 } }, // MongoDB $inc operator
+        { new: true } // Return the updated document
+      );
       const courseData = {
         courseId: course._id,
         examDuration:course.examDuration,
