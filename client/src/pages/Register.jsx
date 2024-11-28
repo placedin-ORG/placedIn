@@ -4,6 +4,7 @@ import { toast } from "react-hot-toast";
 import "react-toastify/dist/ReactToastify.css";
 import Toast from "../component/Toast";
 import API from "../utils/API";
+import Navbar from "../component/Navbar";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -105,7 +106,8 @@ const Register = () => {
 
   return (
     <>
-      <div className="flex items-center justify-center min-h-screen grainy-dark">
+      <Navbar />
+      <div className="flex items-center p-3 justify-center min-h-[90vh] grainy-dark">
         <Toast />
         <div className="relative z-10 w-full max-w-lg p-8 bg-white bg-opacity-10 backdrop-blur-lg rounded-lg shadow-neumorphic border border-gray-500 border-opacity-30 animate-slide-in-left">
           <h2 className="text-2xl font-bold mb-4 text-center text-primary">

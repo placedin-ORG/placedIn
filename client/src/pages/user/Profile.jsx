@@ -82,7 +82,7 @@ const Profile = () => {
               <p className="text-sm font-normal text-gray-500">
                 Progress:{" "}
                 {(
-                  (course.chapters.filter((ch) => ch.isCompleted).length /
+                  (course.chapters.filter((ch) => ch.isCurrent).length /
                     course.chapters.length) *
                   100
                 ).toFixed(0)}
@@ -91,10 +91,10 @@ const Profile = () => {
               {/* Progress Bar */}
               <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
                 <div
-                  className="bg-orange-500 h-2 rounded-full"
+                  className="bg-blue-500 h-2 rounded-full"
                   style={{
                     width: `${
-                      (course.chapters.filter((ch) => ch.isCompleted).length /
+                      (course.chapters.filter((ch) => ch.isCurrent).length /
                         course.chapters.length) *
                       100
                     }%`,

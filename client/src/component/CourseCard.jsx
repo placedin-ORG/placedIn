@@ -11,7 +11,7 @@ const CourseCard = ({ course, isUser = false }) => {
   const user = useSelector((state) => state);
   const dispatch = useDispatch();
 
-  const startLearning = async (_id, title) => {
+  const startLearning = async () => {
     try {
       // const response = await API.post("/learn/startLearning", {
       //   _id,
@@ -25,8 +25,14 @@ const CourseCard = ({ course, isUser = false }) => {
       //     })
       //   );
       //   console.log(_id);
-        navigate(`/intro/course/${_id}`);
-        // navigate(`/courseDetail/${_id}`)
+
+      if (isUser) {
+        navigate(`/courseDetail/${course.courseId}`);
+      } else {
+        navigate(`/intro/course/${course._id}`);
+      }
+
+      // navigate(`/courseDetail/${_id}`)
       // } else {
       //   alert("error");
       // }
@@ -86,7 +92,7 @@ const CourseCard = ({ course, isUser = false }) => {
             <Button
               title="View"
               className={"bg-emerald-500 !px-2 !py-1 font-semibold"}
-              onClick={() => startLearning(course._id)}
+              onClick={() => startLearning()}
             />
           )}
         </div>

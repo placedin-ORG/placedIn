@@ -19,13 +19,21 @@ import AllCourses from "./pages/courses/AllCourses";
 import ScrollToTop from "./component/ScrollToTop";
 import ForgotPassword from "./pages/auth/forgot-password/page";
 import ResetPassword from "./pages/auth/reset-password/page";
+import ProtectedRoutes from "./component/routes/ProtectedRoutes";
 function App() {
   return (
     <>
       <BrowserRouter>
         <ScrollToTop />
         <Routes>
-          <Route path="/courseDetail/:id" element={<CourseDetail />} />
+          <Route
+            path="/courseDetail/:id"
+            element={
+              <ProtectedRoutes>
+                <CourseDetail />
+              </ProtectedRoutes>
+            }
+          />
           <Route path="/create" element={<ContentCreator />} />
           <Route path="/" element={<Hompage />} />
           <Route path="/register" element={<Register />} />
@@ -37,19 +45,51 @@ function App() {
             element={<ResetPassword />}
           />
 
-          <Route path="/finalExam/:userId/:courseId" element={<FinalExam />} />
+          <Route
+            path="/finalExam/:userId/:courseId"
+            element={
+              <ProtectedRoutes>
+                <FinalExam />
+              </ProtectedRoutes>
+            }
+          />
           <Route
             path="/finalExam-Instruction/:userId/:courseId"
-            element={<ExamInfoPage />}
+            element={
+              <ProtectedRoutes>
+                <ExamInfoPage />
+              </ProtectedRoutes>
+            }
           />
           <Route path="/intro/course/:id" element={<CourseIntro />} />
           <Route path="/courses" element={<AllCourses />} />
 
           <Route path="/teacher-panel" element={<TeacherPanel />} />
           <Route path="/user" element={<UserLayout />}>
-            <Route path="profile" element={<Profile />} />
-            <Route path="settings" element={<Setting />} />
-            <Route path="enrolled/courses" element={<MyCourses />} />
+            <Route
+              path="profile"
+              element={
+                <ProtectedRoutes>
+                  <Profile />
+                </ProtectedRoutes>
+              }
+            />
+            <Route
+              path="settings"
+              element={
+                <ProtectedRoutes>
+                  <Setting />
+                </ProtectedRoutes>
+              }
+            />
+            <Route
+              path="enrolled/courses"
+              element={
+                <ProtectedRoutes>
+                  <MyCourses />
+                </ProtectedRoutes>
+              }
+            />
           </Route>
         </Routes>
       </BrowserRouter>
