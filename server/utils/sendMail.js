@@ -14,12 +14,14 @@ const transporter = nodemailer.createTransport({
 
 async function sendEmail(options) {
   try {
+    console.log(process.env.SMTP_MAIL_PASS)
     await transporter.sendMail({
-      from: `no.reply@nuturemite.info`,
+      from: `no.reply@placedIn.com`,
       to: options.to,
       subject: options.subject,
       html: options.html,
     });
+  
     console.log("Email sent successfully");
   } catch (error) {
     console.error("Error sending email:", error);

@@ -19,6 +19,7 @@ import AllCourses from "./pages/courses/AllCourses";
 import ScrollToTop from "./component/ScrollToTop";
 import ForgotPassword from "./pages/auth/forgot-password/page";
 import ResetPassword from "./pages/auth/reset-password/page";
+import GiveExam from "./pages/exam/GiveExam";
 import ProtectedRoutes from "./component/routes/ProtectedRoutes";
 function App() {
   return (
@@ -91,6 +92,7 @@ function App() {
               }
             />
           </Route>
+          <Route path="/exam" element={<GiveExam />} />
         </Routes>
       </BrowserRouter>
     </>

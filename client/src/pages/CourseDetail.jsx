@@ -12,7 +12,9 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../component/Navbar";
 import FinalExam from "./FinalExam";
 import API from "../utils/API";
+import Disccussion from "../component/Disccussion";
 const CourseDetail = () => {
+  const [discussion, setDiscussion] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [courseData, setCourseData] = useState(null);
@@ -238,224 +240,267 @@ const CourseDetail = () => {
     <>
       {/* <button onClick={()=>clear()}>clear</button> */}
       <Navbar />
-      {courseData && (
-        <div className="p-6 bg-gray-50 min-h-9 flex flex-col items-center space-y-6">
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-wide mb-4">
-            Course Progress
-          </h1>
-
-          {/* Progress Bar */}
-          <div className="w-full max-w-4xl">
-            <div className="relative w-full h-6 bg-gray-200 rounded-full overflow-hidden shadow-md">
-              {/* Filled Progress */}
-              <div
-                className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-500"
-                style={{ width: `${progressPercentage}%` }}
-              ></div>
-            </div>
-            {/* Percentage Label */}
-            <div className="flex justify-between mt-2 text-sm font-semibold text-gray-700">
-              <span>0%</span>
-              <span>{Math.round(progressPercentage)}%</span>
-            </div>
-          </div>
-
-          {/* Emoji Display */}
-          <div className="flex items-center space-x-4">
-            <span
-              className={`text-4xl ${
-                progressPercentage >= 50 ? "animate-bounce" : ""
-              }`}
-            >
-              {getEmoji(progressPercentage)}
-            </span>
-            <p className="text-lg font-semibold text-gray-700">
-              {progressPercentage === 100
-                ? "Congratulations! 🎉"
-                : "Keep going! You're doing great!"}
-            </p>
-          </div>
+      <div className="w-full flex justify-center py-4 bg-gray-100">
+        <div className="flex space-x-6">
+          {/* Course Tab */}
+          <p
+            className={`cursor-pointer text-lg font-medium transition-all duration-300 ${
+              !discussion
+                ? "text-primary-light border-b-4 border-primary-dark pb-1"
+                : "text-gray-600 hover:text-primary-dark"
+            }`}
+            onClick={() => setDiscussion(false)}
+          >
+            Course
+          </p>
+          {/* Discussion Tab */}
+          <p
+            className={`cursor-pointer text-lg font-medium transition-all duration-300 ${
+              discussion
+                ? "text-primary-light border-b-4 border-primary-dark pb-1"
+                : "text-gray-600 hover:text-primary-dark"
+            }`}
+            onClick={() => setDiscussion(true)}
+          >
+            Discussion
+          </p>
         </div>
-      )}
-      {courseData && (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
-          {/* Top Section - Course Title and Description */}
-          <div className="flex flex-col lg:flex-row relative container mx-auto p-4 lg:p-8">
-            {/* Left Section (Sticky Sidebar for Course Content) */}
-            <aside className="w-full lg:w-1/4 bg-white p-6 shadow-md rounded-lg lg:sticky top-6 h-fit lg:h-screen overflow-y-auto scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-gray-300">
-              <h2 className="text-xl font-semibold mb-6 border-b pb-2 text-gray-900">
-                Course Content
-              </h2>
-              {courseData.chapters.map((chapter, chapterIndex) => (
-                <div key={chapterIndex} className="mb-6">
-                  {/* Chapter Header */}
-                  <div
-                    className="flex justify-between items-center mb-2 cursor-pointer group"
-                    onClick={() => toggleChapter(chapterIndex)}
-                  >
-                    <h3 className="text-lg font-medium text-gray-800 group-hover:text-blue-600">
-                      {chapter.title}
-                    </h3>
-                    <button className="text-gray-600 hover:text-blue-600 focus:outline-none">
-                      {expandedChapter === chapterIndex ? (
-                        <FaAngleUp />
-                      ) : (
-                        <FaAngleDown />
-                      )}
-                    </button>
-                  </div>
+      </div>
+      {!discussion ? (
+        <div>
+          {courseData && (
+            <div className="p-6 bg-gray-50 min-h-9 flex flex-col items-center space-y-6">
+              <h1 className="text-3xl font-extrabold text-gray-900 tracking-wide mb-4">
+                Course Progress
+              </h1>
 
-                  {/* Chapter Topics */}
-                  {expandedChapter === chapterIndex && (
-                    <div className="pl-4 mt-2">
-                      {chapter.topics.map((topic, topicIndex) => (
-                        <div
-                          key={topicIndex}
-                          className={`cursor-pointer mb-3 p-2 rounded-md transition-all ${
-                            selectedTopic &&
-                            selectedTopic.topic.name === topic.name
-                              ? "bg-blue-500 text-white"
-                              : "text-gray-700 hover:bg-gray-100"
-                          }`}
-                          onClick={() =>
-                            handleTopicClick(
-                              topic,
-                              topicIndex,
-                              chapter.topics,
-                              chapterIndex
-                            )
-                          }
-                        >
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm flex items-center gap-2">
-                              {topic.name}
-                              {topic.isCurrent ? <FaLockOpen /> : <FaLock />}
-                            </span>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleTopicContent(topicIndex);
-                              }}
-                              className="text-gray-600 hover:text-blue-600 focus:outline-none"
+              {/* Progress Bar */}
+              <div className="w-full max-w-4xl">
+                <div className="relative w-full h-6 bg-gray-200 rounded-full overflow-hidden shadow-md">
+                  {/* Filled Progress */}
+                  <div
+                    className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary-light to-green-500 transition-all duration-500"
+                    style={{ width: `${progressPercentage}%` }}
+                  ></div>
+                </div>
+                {/* Percentage Label */}
+                <div className="flex justify-between mt-2 text-sm font-semibold text-gray-700">
+                  <span>0%</span>
+                  <span>{Math.round(progressPercentage)}%</span>
+                </div>
+              </div>
+
+              {/* Emoji Display */}
+              <div className="flex items-center space-x-4">
+                <span
+                  className={`text-4xl ${
+                    progressPercentage >= 50 ? "animate-bounce" : ""
+                  }`}
+                >
+                  {getEmoji(progressPercentage)}
+                </span>
+                <p className="text-lg font-semibold text-gray-700">
+                  {progressPercentage === 100
+                    ? "Congratulations! 🎉"
+                    : "Keep going! You're doing great!"}
+                </p>
+              </div>
+            </div>
+          )}
+          {courseData && (
+            <div className="min-h-screen bg-gray-50 flex flex-col">
+              {/* Top Section - Course Title and Description */}
+              <div className="flex flex-col lg:flex-row relative container mx-auto p-4 lg:p-8">
+                {/* Left Section (Sticky Sidebar for Course Content) */}
+                <aside className="w-full lg:w-1/4 bg-white p-6 shadow-md rounded-lg lg:sticky top-6 h-fit lg:h-screen overflow-y-auto scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-gray-300">
+                  <h2 className="text-xl font-semibold mb-6 border-b pb-2 text-gray-900">
+                    Course Content
+                  </h2>
+                  {courseData.chapters.map((chapter, chapterIndex) => (
+                    <div key={chapterIndex} className="mb-6">
+                      {/* Chapter Header */}
+                      <div
+                        className="flex justify-between items-center mb-2 cursor-pointer group"
+                        onClick={() => toggleChapter(chapterIndex)}
+                      >
+                        <h3 className="text-lg font-medium text-gray-800 group-hover:text-primary-dark">
+                          {chapter.title}
+                        </h3>
+                        <button className="text-black hover:text-primary-dark focus:outline-none">
+                          {expandedChapter === chapterIndex ? (
+                            <FaAngleUp />
+                          ) : (
+                            <FaAngleDown />
+                          )}
+                        </button>
+                      </div>
+
+                      {/* Chapter Topics */}
+                      {expandedChapter === chapterIndex && (
+                        <div className="pl-4 mt-2">
+                          {chapter.topics.map((topic, topicIndex) => (
+                            <div
+                              key={topicIndex}
+                              className={`cursor-pointer mb-3 p-2 rounded-md transition-all ${
+                                selectedTopic &&
+                                selectedTopic.topic.name === topic.name
+                                  ? "bg-primary-light text-white"
+                                  : "text-gray-700 hover:bg-gray-100"
+                              }`}
+                              onClick={() =>
+                                handleTopicClick(
+                                  topic,
+                                  topicIndex,
+                                  chapter.topics,
+                                  chapterIndex
+                                )
+                              }
                             >
-                              {expandedTopic === topicIndex ? (
-                                <FaAngleUp />
-                              ) : (
-                                <FaAngleDown />
-                              )}
-                            </button>
-                          </div>
-                          {expandedTopic === topicIndex && (
-                            <p className="text-sm text-gray-600 mt-2 leading-relaxed">
-                              {topic.content.length > 150
-                                ? `${topic.content.substring(0, 150)}...`
-                                : topic.content}
-                              {topic.content.length > 150 && (
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm flex items-center gap-2">
+                                  {topic.name}
+                                  {topic.isCurrent ? (
+                                    <FaLockOpen />
+                                  ) : (
+                                    <FaLock />
+                                  )}
+                                </span>
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     toggleTopicContent(topicIndex);
                                   }}
-                                  className="text-blue-600 ml-2 focus:outline-none"
+                                  className="text-white  focus:outline-none"
                                 >
-                                  {expandedTopic === topicIndex
-                                    ? "Read Less"
-                                    : "Read More"}
+                                  {expandedTopic === topicIndex ? (
+                                    <FaAngleUp />
+                                  ) : (
+                                    <FaAngleDown />
+                                  )}
                                 </button>
+                              </div>
+                              {expandedTopic === topicIndex && (
+                                <p className="text-sm text-gray-600 mt-2 leading-relaxed">
+                                  {topic.content.length > 150
+                                    ? `${topic.content.substring(0, 150)}...`
+                                    : topic.content}
+                                  {topic.content.length > 150 && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleTopicContent(topicIndex);
+                                      }}
+                                      className="text-primary-light ml-2 focus:outline-none"
+                                    >
+                                      {expandedTopic === topicIndex
+                                        ? "Read Less"
+                                        : "Read More"}
+                                    </button>
+                                  )}
+                                </p>
                               )}
-                            </p>
-                          )}
-                        </div>
-                      ))}
+                            </div>
+                          ))}
 
-                      {/* Quiz Button */}
-                      <div className="mt-4">
+                          {/* Quiz Button */}
+                          <div className="mt-4">
+                            <button
+                              onClick={() =>
+                                handleQuizClick(chapter.quiz, chapterIndex)
+                              }
+                              className={`text-sm font-medium px-4 py-2 rounded-md ${
+                                chapter.quiz.isCurrent
+                                  ? "bg-primary-light text-white hover:bg-primary-dark"
+                                  : "bg-gray-300 text-gray-600 cursor-not-allowed"
+                              }`}
+                              disabled={!chapter.quiz.isCurrent}
+                            >
+                              {chapter.quiz.isCurrent ? "View Quiz" : "Locked"}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  {/* Final Exam Section */}
+                  {courseData.finalExam.isCurrent && (
+                    <div className="mt-6 border-t pt-4">
+                      <h2 className="text-lg font-semibold text-gray-900 mb-2">
+                        Final Exam
+                      </h2>
+                      <button
+                        onClick={() => handleFinalExam()}
+                        className="text-sm font-medium px-4 py-2 bg-primary-light text-white rounded-md hover:bg-primary-dark transition-all"
+                      >
+                        {courseData.finalExam.isCompleted
+                          ? "View Result"
+                          : "Start Final Exam"}
+                        {/* Start Final Exam */}
+                      </button>
+                    </div>
+                  )}
+                </aside>
+                {/* Right Section (Selected Topic Video & Content) */}
+                <div className="w-full lg:w-3/4 lg:pl-6 mt-10 lg:mt-0">
+                  {selectedTopic ? (
+                    <div>
+                      {/* Topic Header */}
+                      <h3 className="text-2xl font-bold text-gray-900 mb-6">
+                        {selectedTopic.topic.name}
+                      </h3>
+
+                      {/* Video Section */}
+                      <div className="mb-8">
+                        <div className="aspect-video bg-gray-200 rounded-lg overflow-hidden shadow-md">
+                          <iframe
+                            className="w-full h-full"
+                            src={getEmbedUrl(selectedTopic.topic.videoUrl)}
+                            title={selectedTopic.topic.name}
+                            allowFullScreen
+                          />
+                        </div>
+                      </div>
+
+                      {/* Next Topic Button */}
+                      <div className="flex justify-start">
                         <button
-                          onClick={() =>
-                            handleQuizClick(chapter.quiz, chapterIndex)
-                          }
-                          className={`text-sm font-medium px-4 py-2 rounded-md ${
-                            chapter.quiz.isCurrent
-                              ? "bg-blue-500 text-white hover:bg-blue-600"
-                              : "bg-gray-300 text-gray-600 cursor-not-allowed"
-                          }`}
-                          disabled={!chapter.quiz.isCurrent}
+                          onClick={() => nextTopic()}
+                          className="px-6 py-3 bg-primary-dark text-white font-medium rounded-md hover:bg-primary-light transition-all shadow-md"
                         >
-                          {chapter.quiz.isCurrent ? "View Quiz" : "Locked"}
+                          Next Topic
                         </button>
                       </div>
                     </div>
-                  )}
-                </div>
-              ))}
-
-              {/* Final Exam Section */}
-              {courseData.finalExam.isCurrent && (
-                <div className="mt-6 border-t pt-4">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-2">
-                    Final Exam
-                  </h2>
-                  <button
-                    onClick={() => handleFinalExam()}
-                    className="text-sm font-medium px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-all"
-                  >
-                    Start Final Exam
-                  </button>
-                </div>
-              )}
-            </aside>
-            {/* Right Section (Selected Topic Video & Content) */}
-            <div className="w-full lg:w-3/4 lg:pl-6 mt-10 lg:mt-0">
-              {selectedTopic ? (
-                <div>
-                  {/* Topic Header */}
-                  <h3 className="text-2xl font-bold text-gray-900 mb-6">
-                    {selectedTopic.topic.name}
-                  </h3>
-
-                  {/* Video Section */}
-                  <div className="mb-8">
-                    <div className="aspect-video bg-gray-200 rounded-lg overflow-hidden shadow-md">
-                      <iframe
-                        className="w-full h-full"
-                        src={getEmbedUrl(selectedTopic.topic.videoUrl)}
-                        title={selectedTopic.topic.name}
-                        allowFullScreen
+                  ) : selectedQuiz ? (
+                    <div className="mt-10">
+                      {/* Quiz Section */}
+                      <h3 className="text-2xl font-bold text-gray-900 mb-6">
+                        Quiz
+                      </h3>
+                      <Quiz
+                        selectedQuiz={selectedQuiz.questions}
+                        chapterIndex={selectedQuiz.chapterIndex}
+                        openNextChapter={openNextChapter}
                       />
                     </div>
-                  </div>
-
-                  {/* Next Topic Button */}
-                  <div className="flex justify-start">
-                    <button
-                      onClick={() => nextTopic()}
-                      className="px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-all shadow-md"
-                    >
-                      Next Topic
-                    </button>
-                  </div>
+                  ) : (
+                    <p className="text-gray-600 text-lg text-center mt-10">
+                      Select a topic to view its content and video, or take the
+                      quiz.
+                    </p>
+                  )}
                 </div>
-              ) : selectedQuiz ? (
-                <div className="mt-10">
-                  {/* Quiz Section */}
-                  <h3 className="text-2xl font-bold text-gray-900 mb-6">
-                    Quiz
-                  </h3>
-                  <Quiz
-                    selectedQuiz={selectedQuiz.questions}
-                    chapterIndex={selectedQuiz.chapterIndex}
-                    openNextChapter={openNextChapter}
-                  />
-                </div>
-              ) : (
-                <p className="text-gray-600 text-lg text-center mt-10">
-                  Select a topic to view its content and video, or take the
-                  quiz.
-                </p>
-              )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
+      ) : (
+        <Disccussion
+          courseId={id}
+          userId={currentCourse._id}
+          username={currentCourse.name}
+        />
       )}
     </>
   );

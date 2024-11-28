@@ -12,7 +12,7 @@ import {
   FaShieldAlt,
 } from "react-icons/fa";
 import Slider from "react-slick";
-
+import { FaStar, FaRegStar } from "react-icons/fa";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Footer from "../component/Layout/Footer";
@@ -20,6 +20,9 @@ import API from "../utils/API";
 import CourseCard from "../component/CourseCard";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import { setCurrentCourse } from "../redux/UserSlice";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import Toast from '../component/Toast';
 const CustomPrevArrow = ({ onClick }) => (
   <button
     onClick={onClick}
@@ -50,13 +53,18 @@ const CourseIntro = () => {
   const user = useSelector((state) => state);
   useEffect(() => {
     const call = async () => {
- 
-      const data = await API.post("/learn/fetchCourse", {
+  console.log(user.user.user)
+  console.log(state.user)
+  if(user.user.user!==null){
+    
+    const data = await API.post("/learn/fetchCourse", {
         id,
         userId: user.user.user._id,
       });
+         
       if (data.data.status) {
         setCourse(data.data.course);
+        console.log(data.data.course)
         console.log(data.data.relatedCourses.length)
         if(data.data.relatedCourses.length!==0){
           setRelatedCourses(data.data.relatedCourses)
@@ -65,12 +73,27 @@ const CourseIntro = () => {
           setStart(true);
          }
       }
+  }else{
+    const data = await API.post("/learn/fetchCourse", {
+      id,
+      userId: null,
+    });
+    if (data.data.status) {
+      setCourse(data.data.course);
+      console.log(data.data.course)
+      console.log(data.data.relatedCourses.length)
+      if(data.data.relatedCourses.length!==0){
+        setRelatedCourses(data.data.relatedCourses)
+      }
+    }
+  }
+   
     };
     call();
   }, []);
 
   const startLearning = async() => {
-   if(state===null){
+   if(user.user.user===null){
     navigate('/register')
    }else if(course.price>0){
       toast.warning("this is a paid course");
@@ -134,21 +157,45 @@ const CourseIntro = () => {
       course.courseThumbnail &&
       `${course.courseThumbnail}?w_800,h_600,c_fill,q_auto,f_auto`;
   }
+  const calculateAverageRating = () => {
+    if(course){
+        if (course.rating.length === 0) return 0;
+    const totalRating = course.rating.reduce((acc, cur) => acc + cur.rating, 0);
+    return totalRating / course.rating.length;
+    }
+  
+  };
 
+  const averageRating = calculateAverageRating();
   return (
     <>
       <Navbar />
       <div className="bg-slate-50">
+        <Toast/>
         {course && (
           <div>
             <div className="w-full flex flex-col lg:flex-row">
               {/* Text Section */}
               <div className="lg:w-5/6 w-full flex items-center justify-center py-5">
+
                 <div className="px-5 lg:px-36 flex flex-col gap-3">
                   <p className="px-5 py-1 bg-green-100 text-green-500 rounded-2xl w-fit font-semibold">
                     Free Course
                   </p>
-                  <h1 className="text-red-600 font-semibold text-3xl lg:text-5xl">
+{/** Ratings */}
+                  <div className="flex items-center space-y-4 justify-start    rounded-lg  w-full max-w-sm">
+     
+      <div className="flex   justify-start space-x-1">
+        {Array.from({ length: 5 }).map((_, index) =>
+          index < averageRating ? (
+            <FaStar key={index} className="text-yellow-500 text-3xl" />
+          ) : (
+            <FaRegStar key={index} className="text-gray-400 text-3xl" />
+          )
+        )}
+      </div>
+    </div>
+                  <h1 className="text-red-500 font-semibold text-3xl lg:text-5xl">
                     {course.title}
                   </h1>
                   <p className="text-base lg:text-lg font-semibold text-slate-600">
@@ -156,7 +203,7 @@ const CourseIntro = () => {
                     {course.description.length > maxDescriptionLength && (
                       <button
                         onClick={() => setShowMore(!showMore)}
-                        className="text-red-500 font-bold ml-2"
+                        className="text-red-500 light font-bold ml-2"
                       >
                         {showMore ? "See Less" : "See More"}
                       </button>
@@ -171,7 +218,7 @@ const CourseIntro = () => {
 </span>
                   </span>
                   <button
-                    className="text-base lg:text-xl text-white bg-red-500 w-fit px-8 lg:px-16 rounded-xl py-1.5 font-semibold"
+                    className="text-base lg:text-xl text-white bg-primary-light w-fit px-8 lg:px-16 rounded-xl py-1.5 font-semibold"
                     onClick={() => startLearning()}
                   >
                     {start ? "Continue Your Learning":" Start Learning"}
@@ -199,7 +246,7 @@ const CourseIntro = () => {
             <div className="px-14 mt-4 ">
               <p className="font-semibold">Key Highlights</p>
               <p className="text-3xl font-bold flex items-center gap-2 mt-2">
-                What You will <span className="text-red-500">Learn</span>
+                What You will <span className="text-primary-light">Learn</span>
               </p>
 
               {/*
@@ -209,7 +256,7 @@ const CourseIntro = () => {
                 {course.chapters.map((elem, index) => (
                   <div
                     key={index}
-                    className="border-2 border-gray-300 flex p-10 rounded-xl hover:border-red-500 hover:text-red-500 items-center justify-center font-semibold"
+                    className="border-2 border-gray-300 flex p-10 rounded-xl hover:border-primary-dark hover:text-red-500 items-center justify-center font-semibold"
                   >
                     {elem.title}
                   </div>
@@ -222,7 +269,7 @@ const CourseIntro = () => {
               <div className="px-5 lg:px-20 mt-7 py-5 rounded-3xl">
                 <p className="font-mono text-lg lg:text-xl">CERTIFICATE</p>
                 <h1 className="text-xl lg:text-3xl font-semibold">
-                  <span className="text-red-500">Earn and Share</span> Your
+                  <span className="text-primary-light">Earn and Share</span> Your
                   Certificate
                 </h1>
                 <div className="flex flex-col lg:flex-row mt-9 gap-6 lg:gap-11">
@@ -230,7 +277,7 @@ const CourseIntro = () => {
                   <div className="flex flex-col gap-4 lg:w-1/2">
                     {/* Official & Verifiable */}
                     <div className="flex gap-3">
-                      <FaShieldAlt className="text-3xl lg:text-5xl text-red-500" />
+                      <FaShieldAlt className="text-3xl lg:text-5xl text-primary-light" />
                       <div className="flex flex-col">
                         <h1 className="font-semibold text-lg lg:text-2xl">
                           Official & Verifiable
@@ -244,7 +291,7 @@ const CourseIntro = () => {
 
                     {/* Share Your Achievement */}
                     <div className="flex gap-3">
-                      <FaShare className="text-3xl lg:text-5xl text-red-500" />
+                      <FaShare className="text-3xl lg:text-5xl text-primary-light" />
                       <div className="flex flex-col">
                         <h1 className="font-semibold text-lg lg:text-2xl">
                           Share Your Achievement
@@ -258,7 +305,7 @@ const CourseIntro = () => {
 
                     {/* Stand Out to Recruiters */}
                     <div className="flex gap-3">
-                      <FaReceipt className="text-3xl lg:text-5xl text-red-500" />
+                      <FaReceipt className="text-3xl lg:text-5xl text-primary-light" />
                       <div className="flex flex-col">
                         <h1 className="font-semibold text-lg lg:text-2xl">
                           Stand Out to Recruiters
@@ -287,21 +334,27 @@ const CourseIntro = () => {
  */}
  {
   relatedCourses && (
-    <div className="mt-10 mb-6">
-      <p className="font-mono">RELATED COURSES</p>
-      <h1 className="text-3xl font-semibold">
-        <span className="text-red-500">Learn More with </span> Similar Courses
-      </h1>
-      <div className="mt-16">
-        <Slider {...settings}>
-          {relatedCourses?.map((course, index) => (
-            <div key={index}>
-              <CourseCard course={course} />
-            </div>
-          ))}
-        </Slider>
-      </div>
+    <div className="mt-10">
+    <p className="text-sm font-mono tracking-wide text-gray-500 uppercase">
+      Related Courses
+    </p>
+    <h1 className="text-4xl font-bold text-gray-800 leading-snug">
+      <span className="text-primary-light">Learn More with </span> Similar Courses
+    </h1>
+    <div className="mt-12">
+      <Slider {...settings} className="space-x-6">
+        {relatedCourses?.map((course, index) => (
+          <div
+            key={index}
+            className="   hover:shadow-xl transition duration-300 rounded-xl bg-white overflow-hidden"
+          >
+            <CourseCard course={course} />
+          </div>
+        ))}
+      </Slider>
     </div>
+  </div>
+  
   )
  }
              

@@ -4,24 +4,42 @@ const courseSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  rating:[
+    {
+      userId:{
+        type:String
+      },
+      rating:{
+        type:Number
+      }
+    }
+  ],
+  studetnEnrolled:{
+   type:Number
+  },
   price: {
     type: Number,
     default: 0,
-  }, discussion: [
+  }, 
+  discussion: [
     {
       username: {
         type: String,
-        required: true,  // Ensure username is required
+        required: true,
       },
       comment: {
         type: String,
-        required: true,  // Ensure comment is required
+        required: true,
+      },
+      userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User", // Assuming you have a User model
       },
       timestamp: {
         type: Date,
-        default: Date.now,  // Automatically set the current date and time
-      }
-    }
+        default: Date.now,
+      },
+    },
   ],
   title: { type: String, required: true },
   courseCategory: {

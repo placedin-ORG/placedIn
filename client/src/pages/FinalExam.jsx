@@ -7,6 +7,8 @@ import ResultChart from '../component/ResultChart';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Toast from '../component/Toast';
+import Rating from '../component/Rating'
+import Footer from '../component/Layout/Footer';
 const FinalExam = () => {
   const navigate=useNavigate();
     const { userId ,courseId} = useParams(); 
@@ -380,6 +382,12 @@ const handleDoItLaterClick = (questionIndex) => {
       </button>
 </div>
 
+<div className="p-6 bg-white shadow-lg rounded-lg mt-10 max-w-md w-full">
+    <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">Rate this Course</h2>
+    <div className="flex items-center justify-center">
+      <Rating courseId={courseId} userId={userId} />
+    </div>
+  </div>
 </div>
   )
 }
@@ -444,7 +452,7 @@ const handleDoItLaterClick = (questionIndex) => {
         
    
 
-   
+   <Footer/>
     </>
   );
 }
