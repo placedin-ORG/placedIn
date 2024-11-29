@@ -18,6 +18,20 @@ const examSchema = new mongoose.Schema({
       options: [String], // Array of options for objective questions (optional for subjective)
     },
   ],
+  examThumbnail:{
+    type:String
+  },
+  examTitle:{
+    type:String
+  },
+  examDescription:{
+    type:String
+  },
+  topics:[{
+    type:String
+  }
+    
+  ]
 });
 const Exam = mongoose.model('Exam', examSchema);
 
@@ -26,7 +40,7 @@ const Exam = mongoose.model('Exam', examSchema);
 
 const examResultSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // Reference to User
-  examId: { type: mongoose.Schema.Types.ObjectId, ref: 'Exam', required: true }, // Reference to Exam
+  ExamId: { type: mongoose.Schema.Types.ObjectId, ref: 'Exam', required: true }, // Reference to Exam
   userAnswers: [
     {
       questionId: { type: mongoose.Schema.Types.ObjectId, required: true }, // Reference to the question in the Exam schema

@@ -23,6 +23,7 @@ const GiveExam = () => {
     const [start,setStart]=useState(false);
     const [remainingTime, setRemainingTime] = useState(null);
     const [cond,setcond]=useState(false);
+    const [isSubmit,setIsSubmit]=useState(false);
   const finalConfirmation = () => {
     setShowModal(true); // Show the confirmation modal
   };
@@ -31,7 +32,13 @@ const GiveExam = () => {
       setStart(true);
     }
    
-  },[cond])
+  },[cond]);
+  // useEffect(()=>{
+  //   const call=async()=>{
+  //   const data=axios.post('http://localhost:5000/api/v1/exam/get')
+  //   }
+  //   call();
+  // },[])
  
   const handleStart=()=>{
     const elem = document.documentElement;
@@ -70,12 +77,16 @@ const GiveExam = () => {
     useEffect(()=>{
         const call=async()=>{
            const data=await axios.post('http://localhost:5000/api/v1/exam/speceficExam',{
-            ExamId
+            ExamId,
+            userId
            });
            console.log(data.data.exam)
-           if(data.data.msg!=='Exam not found') {
+           if(data.data.msg==='exam found') {
            setExamData(data.data.exam);
            setcond(true)
+           }else if(data.data.msg==='user found'){
+            setIsSubmit(true);
+            setShowModal(false);
            }
         }
         call()
@@ -158,7 +169,7 @@ const GiveExam = () => {
           const response = await axios.post('http://localhost:5000/api/v1/exam/submit-exam', {
             userId, // Replace with actual user ID
             ExamId, // Replace with actual exam ID
-            answers: finalAnswers,
+            userAnswers: finalAnswers,
           });
 if(response.data.message==="Exam submitted successfully"){
       setExamData(null);
@@ -187,6 +198,7 @@ const handleDoItLaterClick = (questionIndex) => {
       <div className="bg-gray-50  flex flex-col">
       {/* Remaining Time */}
       <Toast/>
+      
       {remainingTime !== null && (
         <div className="fixed top-0 left-0 right-0 bg-blue-600 text-white text-center py-2 z-50">
           <span className="text-lg font-semibold">
@@ -289,8 +301,14 @@ const handleDoItLaterClick = (questionIndex) => {
       </>
     )}
   </div>
-
     </div>
+    {
+      isSubmit && (
+        <div className='flex justify-center items-center w-full h-full'>
+           you Exam is Submited wait for the result
+        </div>
+      )
+    }
  
 {
   examResult && ("your exam is submitted"
@@ -472,7 +490,6 @@ const handleDoItLaterClick = (questionIndex) => {
         
    
 
-   <Footer/>
     </>
   );
 }

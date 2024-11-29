@@ -41,7 +41,7 @@ const Navbar = () => {
                 Courses
               </NavLink>
               <NavLink
-                to="/exams"
+                to="/allExams"
                 className={({ isActive }) =>
                   isActive
                     ? "text-primary font-medium border-b-2 border-primary"

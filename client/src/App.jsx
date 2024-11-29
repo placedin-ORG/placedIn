@@ -21,6 +21,9 @@ import ForgotPassword from "./pages/auth/forgot-password/page";
 import ResetPassword from "./pages/auth/reset-password/page";
 import GiveExam from "./pages/exam/GiveExam";
 import ProtectedRoutes from "./component/routes/ProtectedRoutes";
+import AllExams from "./pages/exam/AllExams";
+import ExamInstructionPage from "./pages/exam/ExamInstructionPage";
+import ExamIntro from "./pages/exam/ExamIntro";
 function App() {
   return (
     <>
@@ -92,7 +95,10 @@ function App() {
               }
             />
           </Route>
-          <Route path="/exam" element={<GiveExam />} />
+          <Route path="/exam/:userId/:ExamId" element={<GiveExam />} />
+          <Route path="/allExams" element={<AllExams />} />
+          <Route path="/examInstruction/:userId/:ExamId" element={<ExamInstructionPage/>}/>
+         <Route path="/intro/exam/:id" element={<ExamIntro/>}/>
         </Routes>
       </BrowserRouter>
     </>
