@@ -56,3 +56,6 @@
 .animate-slide-in {
   animation: slideIn 0.8s ease-out;
 }
+.resultPage{
+  background-color: #FFFFFF;
+}

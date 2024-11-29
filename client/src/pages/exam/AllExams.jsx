@@ -5,9 +5,11 @@ import SmallUnderline from "../../component/SmallUnderline";
 import Navbar from "../../component/Navbar";
 import ExamCard from "../../component/exams/ExamCard";
 import axios from 'axios'
+import Xskeletonn from "../../component/loading/Xskeleton";
 const AllExams = () => {
   const [exams, setExams] = useState([]);
   const [filteredExams, setFilteredExams] = useState([]);
+  const [loading,setLoading]=useState(true);
   const [filters, setFilters] = useState({
     category: "",
     topic: "",
@@ -19,6 +21,7 @@ const AllExams = () => {
       try {
         const response = await axios.get("http://localhost:5000/api/v1/exam/get");
         setExams(response.data.exams);
+     setLoading(false);
         setFilteredExams(response.data.exams); // Initially show all exams
       } catch (error) {
         console.error("Error fetching exams:", error);
@@ -53,7 +56,7 @@ const AllExams = () => {
   return (
     <div className="grainy-light">
       <Navbar />
-      <div className="max-w-7xl mx-auto px-3 lg:px-8 py-10">
+       <div className="max-w-7xl mx-auto px-3 lg:px-8 py-10">
         <h1 className="text-center text-primary text-4xl font-bold relative">
           Explore Exams
           <SmallUnderline />
@@ -88,26 +91,25 @@ const AllExams = () => {
 
        
 
-          <input
-            type="date"
-            name="startDate"
-            value={filters.startDate}
-            onChange={handleFilterChange}
-            className="border p-2 rounded-md"
-          />
+         
         </div>
 
         {/* Exam Cards */}
         {filteredExams.length === 0 ? (
           <div className="text-center text-gray-500 text-xl">No exams found</div>
         ) : (
-          <div className="grid grid-cols-1 place-items-center sm:grid-cols-2 lg:grid-cols-3 gap-10">
-            {filteredExams.map((exam) => (
-              <ExamCard key={exam._id} exam={exam} />
-            ))}
-          </div>
+          <div>
+          {
+            loading? <Xskeletonn/> :<div className="mt-16 grid grid-cols-1 place-items-center sm:grid-cols-2 lg:grid-cols-3 gap-10">
+          {filteredExams?.map((exam, index) => (
+            <ExamCard exam={exam} key={exam._id} />
+          ))}
+        </div>
+          }  </div>
         )}
       </div>
+      
+     
     </div>
   );
 };

@@ -10,7 +10,7 @@ const ExamCard = ({ exam, isUser = false }) => {
   const navigate = useNavigate();
   // const user = useSelector((state) => state);
   const dispatch = useDispatch();
-
+console.log(exam._id)
   const startLearning = async () => {
     try {
       // const response = await API.post("/learn/startLearning", {
@@ -29,6 +29,7 @@ const ExamCard = ({ exam, isUser = false }) => {
       if (isUser) {
         navigate(`/courseDetail/${course.courseId}`);
       } else {
+        console.log(exam._id)
         navigate(`/intro/exam/${exam._id}`);
         window.location.reload();
       }

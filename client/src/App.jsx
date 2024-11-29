@@ -24,6 +24,7 @@ import ProtectedRoutes from "./component/routes/ProtectedRoutes";
 import AllExams from "./pages/exam/AllExams";
 import ExamInstructionPage from "./pages/exam/ExamInstructionPage";
 import ExamIntro from "./pages/exam/ExamIntro";
+import SearchResult from "./pages/searching/SearchResult";
 function App() {
   return (
     <>
@@ -99,6 +100,7 @@ function App() {
           <Route path="/allExams" element={<AllExams />} />
           <Route path="/examInstruction/:userId/:ExamId" element={<ExamInstructionPage/>}/>
          <Route path="/intro/exam/:id" element={<ExamIntro/>}/>
+         <Route path='/search/:query' element={<SearchResult/>}/>
         </Routes>
       </BrowserRouter>
     </>

@@ -12,6 +12,7 @@ const StartCourseRoute = require("./routes/startCourseRoute");
 const DiscussionRoute = require("./routes/discussionRoute");
 const RatingRoute = require("./routes/ratingRoute");
 const ExamRoute = require("./routes/examRoute");
+const SearchRoute=require("./routes/SearchRoute")
 require("dotenv").config();
 const cloudinary = require("cloudinary");
 
@@ -38,6 +39,7 @@ app.use("/create", CourseRoute);
 app.use("/api/discussion", DiscussionRoute);
 app.use("/api/rating", RatingRoute);
 app.use("/api/v1/exam", ExamRoute);
+app.use("/api/v1/search",SearchRoute)
 const connectDb = async () => {
   try {
     await mongoose.connect(`${process.env.MONGO_URI}/placedInDB`);

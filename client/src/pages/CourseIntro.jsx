@@ -23,6 +23,7 @@ import { setCurrentCourse } from "../redux/UserSlice";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Toast from '../component/Toast';
+import Skeleto from "../component/loading/SkeletonLoading";
 const CustomPrevArrow = ({ onClick }) => (
   <button
     onClick={onClick}
@@ -170,7 +171,8 @@ const CourseIntro = () => {
   return (
     <>
       <Navbar />
-      <div className="bg-slate-50">
+      {
+        course===null ? <Skeleto/> :  <div className="bg-slate-50">
         <Toast/>
         {course && (
           <div>
@@ -361,6 +363,8 @@ const CourseIntro = () => {
           </div>
         )}
       </div>
+      }
+     
       <Footer />
     </>
   );

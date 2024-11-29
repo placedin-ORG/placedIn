@@ -11,11 +11,11 @@ import {
   FaShare,
   FaShieldAlt,
 } from "react-icons/fa";
-import Slider from "react-slick";
 import { FaStar, FaRegStar } from "react-icons/fa";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Footer from "../../component/Layout/Footer";
+import SkeletonLoading from "../../component/loading/SkeletonLoading"
 import API from "../../utils/API";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import { ToastContainer, toast } from 'react-toastify';
@@ -46,11 +46,12 @@ const ExamIntro = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { id } = useParams();
+  console.log(id)
   const [exam, setExam] = useState(null);
   const [relatedExam,setRelatedExam]=useState(null);
   const state=useSelector((state)=>state.user.currentCourse);
   const [start,setStart]=useState(false);
-  
+  const [loading,setLoading]=useState(true);
   const user = useSelector((state) => state);
   useEffect(() => {
     const call = async () => {
@@ -64,6 +65,8 @@ const ExamIntro = () => {
       });
          
       if (data.data.status) {
+        setLoading(false)
+        console.log(new Date(data.data.exam.startDate))
         setExam(data.data.exam);
         console.log(data.data.exam)
         console.log(data.data.relatedExams)
@@ -103,7 +106,7 @@ const ExamIntro = () => {
        if(exam.price>0){
         toast.warning("this is a paid Exam");
      }else{
-      navigate(`examInstruction/${user.user.user._id}/${id}`)
+      navigate(`/examInstruction/${user.user.user._id}/${id}`)
      }
       
     }
@@ -179,7 +182,8 @@ const ExamIntro = () => {
   return (
     <>
       <Navbar />
-      <div className="bg-slate-50">
+      {
+        loading ?<SkeletonLoading/> : <div className="bg-slate-50">
         <Toast/>
         {exam && (
           <div>
@@ -228,7 +232,7 @@ const ExamIntro = () => {
                   </span>
 
                   {
-  new Date(exam.startDate) <= new Date() ? (
+  new Date(new Date(exam.startDate).toDateString()) <= new Date(new Date().toDateString()) ? (
     <button
       className="text-base lg:text-xl text-white bg-primary-light w-fit px-8 lg:px-16 rounded-xl py-1.5 font-semibold"
       onClick={() => startLearning()}
@@ -240,10 +244,11 @@ const ExamIntro = () => {
       className="text-base lg:text-xl text-white bg-gray-400 w-fit px-8 lg:px-16 rounded-xl py-1.5 font-semibold"
       disabled
     >
-     On {new Date(exam.startDate).toLocaleDateString()}
+      On {new Date(exam.startDate).toLocaleDateString()}
     </button>
   )
 }
+
  {/* <button
       className="text-base lg:text-xl text-white bg-primary-light w-fit px-8 lg:px-16 rounded-xl py-1.5 font-semibold"
       onClick={() => startLearning()}
@@ -389,6 +394,8 @@ const ExamIntro = () => {
           </div>
         )}
       </div>
+      }
+      
       <Footer />
     </>
   );

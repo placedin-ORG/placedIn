@@ -134,7 +134,7 @@ const getSpeceficExam = async(req, res) => {
     const {ExamId,userId}=req.body
     console.log(ExamId,userId)
     const exam = await Exam.findById(ExamId);
-    const user=await ExamResult.findOne({userId});
+    const user=await ExamResult.findOne({userId,ExamId});
     if(user){
         return res.json({msg:'user found'})
     }

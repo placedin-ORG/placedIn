@@ -470,6 +470,9 @@ router.post("/examresult", async (req, res) => {
           "ongoingCourses.$.finalExam.isCompleted": true,
           "ongoingCourses.$.finalExam.result.accuracy": accuracy, // Mark the exam as completed
         },
+        $inc: {
+          coin: 100, // Increment the coin field by 100
+        },
       }
     );
 

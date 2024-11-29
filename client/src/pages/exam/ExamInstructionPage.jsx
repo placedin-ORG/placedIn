@@ -5,9 +5,10 @@ import {useNavigate} from 'react-router-dom';
 const ExamInstructionPage = () => {
     const navigate=useNavigate();
     const { userId,ExamId } = useParams(); 
+    console.log(ExamId)
     const [showModal, setShowModal] = useState(false);
-    const location = useLocation();
-    const { id } = location.state
+    // const location = useLocation();
+    // const { id } = location.state
   const handleFinalExam = () => {
     setShowModal(true); // Show the confirmation modal
   };

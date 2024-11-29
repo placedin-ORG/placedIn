@@ -3,6 +3,7 @@ import API from "../../utils/API";
 import CourseCard from "../../component/CourseCard";
 import SmallUnderline from "../../component/SmallUnderline";
 import Navbar from "../../component/Navbar";
+import Xskeletonn from "../../component/loading/Xskeleton";
 
 const AllCourses = () => {
   const [courses, setCourses] = useState([]);
@@ -14,13 +15,14 @@ const AllCourses = () => {
     status: "",
     paid: "",
   });
-
+  const [loading,setLoading]=useState(true);
   useEffect(() => {
     const getCourses = async () => {
       try {
         const { data } = await API.get("/create/getCourses");
         setCourses(data.courses);
-        setFilteredCourses(data.courses); // Initialize filtered courses
+        setFilteredCourses(data.courses); 
+        setLoading(false);// Initialize filtered courses
       } catch (error) {
         console.log(error);
       }
@@ -79,6 +81,7 @@ const AllCourses = () => {
   return (
     <div className="grainy-light">
       <Navbar />
+    
       <div className="max-w-7xl mx-auto px-3 lg:px-8 py-10">
         <h1 className="text-center text-primary text-4xl font-bold relative">
           Explore Courses
@@ -118,11 +121,15 @@ const AllCourses = () => {
         {filteredCourses?.length === 0 ? (
           <p className="text-center text-gray-500">No courses found.</p>
         ) : (
-          <div className="mt-16 grid grid-cols-1 place-items-center sm:grid-cols-2 lg:grid-cols-3 gap-10">
+          <div>
+            {
+              loading? <Xskeletonn/> :<div className="mt-16 grid grid-cols-1 place-items-center sm:grid-cols-2 lg:grid-cols-3 gap-10">
             {filteredCourses?.map((course, index) => (
               <CourseCard course={course} key={index} />
             ))}
           </div>
+            }  </div>
+        
         )}
       </div>
     </div>

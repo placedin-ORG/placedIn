@@ -11,9 +11,9 @@ import Rating from '../../component/Rating'
 import Footer from '../../component/Layout/Footer';
 const GiveExam = () => {
   const navigate=useNavigate();
-    // const { userId ,courseId} = useParams(); 
-    const userId="67457ed3b6632562e2f2d60a";
-    const ExamId="6748776f11d6f5a4525824aa"
+    const { userId ,ExamId} = useParams(); 
+    // const userId="67457ed3b6632562e2f2d60a";
+    // const ExamId="6748776f11d6f5a4525824aa"
     const [examData,setExamData]=useState(null);
     const [examResult,setExamResult]=useState(null);
     const [subjectiveAnswers, setSubjectiveAnswers] = useState({});
@@ -173,6 +173,7 @@ const GiveExam = () => {
           });
 if(response.data.message==="Exam submitted successfully"){
       setExamData(null);
+      setIsSubmit(true)
       //  setExamResult(data.data.updatedData)
        setRemainingTime(null)
 }
