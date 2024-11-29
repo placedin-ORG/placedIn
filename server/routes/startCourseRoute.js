@@ -6,10 +6,6 @@ const router = require("express").Router();
 router.post("/fetchCourse", async (req, res) => {
   try {
     const { id, userId } = req.body;
-    // const course = await Course.findOne({
-    //   _id: id,
-    // });
-    console.log(id);
 
     const course = await Course.findById(id);
     const relatedCourses = await Course.find({

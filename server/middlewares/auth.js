@@ -16,4 +16,16 @@ const isAuth = (req, res, next) => {
   }
 };
 
-module.exports = isAuth;
+const authoriseRoles = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({
+        success: false,
+        message: `Permission denied for ${req.user.role}`,
+      });
+    }
+    next();
+  };
+};
+
+module.exports = { isAuth, authoriseRoles };
