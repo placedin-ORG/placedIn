@@ -6,6 +6,9 @@ import 'react-toastify/dist/ReactToastify.css';
 import Toast from './Toast';
 const Rating = ({ courseId, userId }) => {
   const [rating, setRating] = useState(0);
+   // Replace with actual state logic
+  const [hoveredStar, setHoveredStar] = useState(null);
+
 
   const handleRating = async (selectedRating) => {
     setRating(selectedRating);
@@ -22,18 +25,23 @@ const Rating = ({ courseId, userId }) => {
   };
 
   return (
-    <div className="flex items-center">
-      <Toast/>
-      {[1, 2, 3, 4, 5].map((star) => (
-        <FaStar
-          key={star}
-          className={`cursor-pointer text-3xl ${
-            star <= rating ? 'text-yellow-500' : 'text-gray-300'
-          }`}
-          onClick={() => handleRating(star)}
-        />
-      ))}
-    </div>
+    <div className="flex items-center space-x-2">
+    <Toast />
+    {[1, 2, 3, 4, 5].map((star) => (
+      <FaStar
+        key={star}
+        className={`cursor-pointer text-4xl transition-all duration-300 ease-in-out transform 
+          ${star <= (hoveredStar || rating)
+            ? 'text-yellow-500'
+            : 'text-gray-300'}
+          hover:text-yellow-400`} // Color change on hover
+        onClick={() => handleRating(star)}
+        onMouseEnter={() => setHoveredStar(star)} // Set hovered star
+        onMouseLeave={() => setHoveredStar(null)} // Reset hovered star
+      />
+    ))}
+  </div>
+  
   );
 };
 

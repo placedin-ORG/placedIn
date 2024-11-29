@@ -13,6 +13,8 @@ import Navbar from "../component/Navbar";
 import FinalExam from "./FinalExam";
 import API from "../utils/API";
 import Disccussion from "../component/Disccussion";
+import Rating from "../component/Rating"
+import Footer from "../component/Layout/Footer";
 const CourseDetail = () => {
   const [discussion, setDiscussion] = useState(false);
   const navigate = useNavigate();
@@ -493,7 +495,15 @@ const CourseDetail = () => {
                 </div>
               </div>
             </div>
+
+            
           )}
+          <div className="p-6 bg-white shadow-lg rounded-lg mt-10 w-full">
+    <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">Rate this Course</h2>
+    <div className="flex items-center justify-center">
+      <Rating courseId={id} userId={currentCourse._id} />
+    </div>
+  </div>
         </div>
       ) : (
         <Disccussion
@@ -502,6 +512,7 @@ const CourseDetail = () => {
           username={currentCourse.name}
         />
       )}
+      <Footer/>
     </>
   );
 };

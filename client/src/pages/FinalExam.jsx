@@ -285,9 +285,7 @@ const handleDoItLaterClick = (questionIndex) => {
     {examResult && (
       <div className="space-y-6">
 
-        <div>
-          <ResultChart data={examResult.dataPoints} currentUserAccuracy={examResult.accuracy}/>
-        </div>
+      
         {/* Correct Answers */}
 
         <div className="flex items-center justify-between p-4 bg-green-100 border-l-4 border-green-500 rounded-lg animate-slide-in">
@@ -374,15 +372,15 @@ const handleDoItLaterClick = (questionIndex) => {
   )
 }
 
-<div className='flex flex-col gap-3 w-[50%] h-72 mb-24'>
+{/* <div className='flex flex-col gap-3 w-[50%] h-72 mb-24'>
 <h1 className='text-3xl font-semibold font-mono'>Certificate</h1>
 <img className='w-full h-full' src='https://th.bing.com/th/id/OIP.rxDrB65ZGXpz6L5nE22ecAHaFP?w=249&h=180&c=7&r=0&o=5&dpr=1.4&pid=1.7'/>
 <button className="text-base lg:text-xl text-white bg-red-500 w-fit px-8 lg:px-16 rounded-xl py-1.5 font-semibold" >
      Download Certificate
       </button>
-</div>
+</div> */}
 
-<div className="p-6 bg-white shadow-lg rounded-lg mt-10 max-w-md w-full">
+<div className="p-6 bg-white shadow-lg rounded-lg mt-10 w-full">
     <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">Rate this Course</h2>
     <div className="flex items-center justify-center">
       <Rating courseId={courseId} userId={userId} />
