@@ -7,19 +7,48 @@ import ExamCard from "../../component/exams/ExamCard";
 import axios from 'axios'
 const AllExams = () => {
   const [exams, setExams] = useState([]);
-
+  const [filteredExams, setFilteredExams] = useState([]);
+  const [filters, setFilters] = useState({
+    category: "",
+    topic: "",
+    price: "",
+    startDate: "",
+  });
   useEffect(() => {
-    // console.log(user.user)
     const getExams = async () => {
       try {
-        const data = await axios.get("http://localhost:5000/api/v1/exam/get");
-        setExams(data.data.exams);
+        const response = await axios.get("http://localhost:5000/api/v1/exam/get");
+        setExams(response.data.exams);
+        setFilteredExams(response.data.exams); // Initially show all exams
       } catch (error) {
-        console.log(error);
+        console.error("Error fetching exams:", error);
       }
     };
     getExams();
   }, []);
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters((prev) => ({ ...prev, [name]: value }));
+
+    // Dynamically filter exams based on filters
+    const updatedExams = exams.filter((exam) => {
+      // Check if category matches or is empty (meaning no filter applied)
+      const matchesCategory = !filters.category || exam.category === filters.category;
+      
+      // Check if topic matches or is empty (meaning no filter applied)
+      const matchesTopic = !filters.topic || exam.topics.some(topic => topic === filters.topic);
+      
+      // Check if price is less than or equal to the selected value or if no filter applied
+      const matchesPrice = !filters.price || exam.price <= Number(filters.price);
+      
+      // Check if start date matches or is empty (meaning no filter applied)
+      const matchesDate = !filters.startDate || new Date(exam.startDate).toISOString().slice(0, 10) === filters.startDate;
+
+      return matchesCategory && matchesTopic && matchesPrice && matchesDate;
+    });
+
+    setFilteredExams(updatedExams);
+};
 
   return (
     <div className="grainy-light">
@@ -30,11 +59,52 @@ const AllExams = () => {
           <SmallUnderline />
         </h1>
 
-        {exams?.length === 0 ? null : (
-          <div className="mt-16 grid grid-cols-1 place-items-center sm:grid-cols-2 lg:grid-cols-3 gap-10">
-            {exams?.map((exam, index) => {
-              return <ExamCard exam={exam} />;
-            })}
+        {/* Filter Section */}
+        <div className="mt-8 mb-16 flex flex-wrap justify-center gap-5">
+          <select
+            name="category"
+            value={filters.category}
+            onChange={handleFilterChange}
+            className="border p-2 rounded-md"
+          >
+            <option value="">All Categories</option>
+            <option value="software">Software</option>
+            <option value="science">Science</option>
+          </select>
+
+          <select
+            name="topic"
+            value={filters.topic}
+            onChange={handleFilterChange}
+            className="border p-2 rounded-md"
+          >
+            <option value="">All Topics</option>
+            {Array.from(new Set(exams.flatMap((exam) => exam.topics))).map((topic) => (
+              <option key={topic} value={topic}>
+                {topic}
+              </option>
+            ))}
+          </select>
+
+       
+
+          <input
+            type="date"
+            name="startDate"
+            value={filters.startDate}
+            onChange={handleFilterChange}
+            className="border p-2 rounded-md"
+          />
+        </div>
+
+        {/* Exam Cards */}
+        {filteredExams.length === 0 ? (
+          <div className="text-center text-gray-500 text-xl">No exams found</div>
+        ) : (
+          <div className="grid grid-cols-1 place-items-center sm:grid-cols-2 lg:grid-cols-3 gap-10">
+            {filteredExams.map((exam) => (
+              <ExamCard key={exam._id} exam={exam} />
+            ))}
           </div>
         )}
       </div>

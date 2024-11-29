@@ -77,7 +77,7 @@ const ExamIntro = () => {
       }
   }else{
     console.log("sdj")
-    const data = await axios.post("http://localhost:5000/api/v1/exam/fetchCourse", {
+    const data = await axios.post("http://localhost:5000/api/v1/exam/fetchExam", {
       id,
       userId: null,
     });
@@ -96,13 +96,16 @@ const ExamIntro = () => {
   const startLearning = async() => {
    if(user.user.user===null){
     navigate('/register')
-   }else if(exam.price>0){
-      toast.warning("this is a paid Exam");
    }else{
     if(start){
       navigate(`/exam/${user.user.user._id}/${id}`)
     }else{
+       if(exam.price>0){
+        toast.warning("this is a paid Exam");
+     }else{
       navigate(`examInstruction/${user.user.user._id}/${id}`)
+     }
+      
     }
     // const response = await axios.post("http://localhost:5000/api/v1/exam/startLearning", {
     //   _id:id,
@@ -224,7 +227,7 @@ const ExamIntro = () => {
 </span>
                   </span>
 
-                  {/* {
+                  {
   new Date(exam.startDate) <= new Date() ? (
     <button
       className="text-base lg:text-xl text-white bg-primary-light w-fit px-8 lg:px-16 rounded-xl py-1.5 font-semibold"
@@ -240,13 +243,13 @@ const ExamIntro = () => {
      On {new Date(exam.startDate).toLocaleDateString()}
     </button>
   )
-} */}
- <button
+}
+ {/* <button
       className="text-base lg:text-xl text-white bg-primary-light w-fit px-8 lg:px-16 rounded-xl py-1.5 font-semibold"
       onClick={() => startLearning()}
     >
       {start ? "View Result" : "Start Your Exam"}
-    </button>
+    </button> */}
                  
                   <p className="font-semibold text-slate-600 flex gap-1 items-center text-sm lg:text-base">
                     <FaPhone /> For enquiry call: 91XXXXXXXXXX
@@ -280,7 +283,7 @@ const ExamIntro = () => {
                 {exam.topics.map((elem, index) => (
                   <div
                     key={index}
-                    className="border-2 border-gray-300 flex p-10 rounded-xl hover:border-primary-dark hover:text-red-500 items-center justify-center font-semibold"
+                    className="border-2 border-gray-300 flex p-3 rounded-xl hover:border-primary-dark hover:text-red-500 items-center justify-center font-semibold"
                   >
                     {elem}
                   </div>
@@ -365,17 +368,17 @@ const ExamIntro = () => {
     <h1 className="text-4xl font-bold text-gray-800 leading-snug">
       <span className="text-primary-light">Learn More with </span> Similar Courses
     </h1>
-    <div className="mt-12">
-      <Slider {...settings} className="space-x-6">
+    <div className="mt-12 mb-6 flex gap-6 overflow-x-scroll px-4">
+      {/* <Slider {...settings} className="space-x-6"> */}
         {relatedExam?.map((exam, index) => (
           <div
             key={index}
-            className="   hover:shadow-xl transition duration-300 rounded-xl bg-white overflow-hidden"
+            className="  flex-shrink-0 hover:shadow-xl transition duration-300 rounded-xl bg-white overflow-hidden"
           >
             <ExamCard exam={exam} />
           </div>
         ))}
-      </Slider>
+      {/* </Slider> */}
     </div>
   </div>
   

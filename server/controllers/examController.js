@@ -3,7 +3,7 @@ const {ExamResult} = require('../models/ExamModel');
 // Create a new exam
 const create = async (req, res) => {
   try {
-    const { startDate, duration, acceptedResultDate, price, numberOfStudents, questions,category } = req.body;
+    const { startDate, duration, acceptedResultDate, price, numberOfStudents, questions,category,examTitle,topics,description,examThumbnail,examDescription } = req.body;
 
     const exam = new Exam({
       startDate,
@@ -12,7 +12,8 @@ const create = async (req, res) => {
       price,
       numberOfStudents,
       questions,
-      category
+      category,
+      examTitle,topics,description,examThumbnail,description
     });
 
     await exam.save();
@@ -107,7 +108,7 @@ const fetchExam = async(req, res) => {
         category: exam?.category,
         _id: { $ne: id },
       });
-      const user=await ExamResult.findOne({userId});
+      const user=await ExamResult.findOne({userId,ExamId:id});
       console.log(user)
       if(user!==null){
           
@@ -118,7 +119,7 @@ const fetchExam = async(req, res) => {
   
       res.json({status:true,exam ,msg:'exam found',relatedExams,attempted:false});
       }else{
-        res.json({status:ture,exam ,msg:'exam found',relatedExams,attempted:false});
+        res.json({status:true,exam ,msg:'exam found',relatedExams,attempted:false});
       }
    
     } catch (error) {
@@ -131,6 +132,7 @@ const fetchExam = async(req, res) => {
 const getSpeceficExam = async(req, res) => {
   try {
     const {ExamId,userId}=req.body
+    console.log(ExamId,userId)
     const exam = await Exam.findById(ExamId);
     const user=await ExamResult.findOne({userId});
     if(user){

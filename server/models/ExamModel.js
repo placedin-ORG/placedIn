@@ -24,7 +24,7 @@ const examSchema = new mongoose.Schema({
   examTitle:{
     type:String
   },
-  examDescription:{
+  description:{
     type:String
   },
   topics:[{

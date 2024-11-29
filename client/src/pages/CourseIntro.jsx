@@ -341,18 +341,17 @@ const CourseIntro = () => {
     <h1 className="text-4xl font-bold text-gray-800 leading-snug">
       <span className="text-primary-light">Learn More with </span> Similar Courses
     </h1>
-    <div className="mt-12">
-      <Slider {...settings} className="space-x-6">
-        {relatedCourses?.map((course, index) => (
-          <div
-            key={index}
-            className="   hover:shadow-xl transition duration-300 rounded-xl bg-white overflow-hidden"
-          >
-            <CourseCard course={course} />
-          </div>
-        ))}
-      </Slider>
+    <div className="mt-12 w-full mb-6 flex gap-2 border overflow-x-auto px-4">
+  {relatedCourses?.map((course, index) => (
+    <div
+      key={index}
+      className=" flex-shrink-0 h-full border hover:shadow-xl transition duration-300 rounded-xl bg-white overflow-hidden"
+    >
+      <CourseCard course={course} />
     </div>
+  ))}
+</div>
+
   </div>
   
   )
