@@ -4,23 +4,23 @@ const courseSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  rating:[
+  rating: [
     {
-      userId:{
-        type:String
+      userId: {
+        type: String,
       },
-      rating:{
-        type:Number
-      }
-    }
+      rating: {
+        type: Number,
+      },
+    },
   ],
-  studetnEnrolled:{
-   type:Number
+  studetnEnrolled: {
+    type: Number,
   },
   price: {
     type: Number,
     default: 0,
-  }, 
+  },
   discussion: [
     {
       username: {
@@ -86,8 +86,8 @@ const courseSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  examDuration:{
-    type:Number
+  examDuration: {
+    type: Number,
   },
   sponsoredBy: { type: String }, // e.g., 'Google', 'Facebook'
   isSponsored: { type: Boolean, default: false },

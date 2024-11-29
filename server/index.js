@@ -6,10 +6,12 @@ const QuizRoute = require("./routes/quizRoute");
 const mongoose = require("mongoose");
 const CourseRoute = require("./routes/createRoute");
 const UserRoute = require("./routes/userRoutes");
+const adminAuthRoute = require("./routes/adminAuthRoute");
+
 const StartCourseRoute = require("./routes/startCourseRoute");
-const DiscussionRoute=require("./routes/discussionRoute");
-const RatingRoute=require("./routes/ratingRoute");
-const ExamRoute=require("./routes/examRoute");
+const DiscussionRoute = require("./routes/discussionRoute");
+const RatingRoute = require("./routes/ratingRoute");
+const ExamRoute = require("./routes/examRoute");
 require("dotenv").config();
 const cloudinary = require("cloudinary");
 
@@ -29,11 +31,13 @@ app.use(cors());
 app.use("/api/v1", QuizRoute);
 app.use("/api/v1/create", CourseRoute);
 app.use("/api/v1/auth", UserRoute);
+app.use("/api/v1/admin-auth", adminAuthRoute);
+
 app.use("/api/v1/learn", StartCourseRoute);
-app.use("/create",CourseRoute)
-app.use("/api/discussion",DiscussionRoute);
-app.use("/api/rating",RatingRoute)
-app.use("/api/v1/exam",ExamRoute)
+app.use("/create", CourseRoute);
+app.use("/api/discussion", DiscussionRoute);
+app.use("/api/rating", RatingRoute);
+app.use("/api/v1/exam", ExamRoute);
 const connectDb = async () => {
   try {
     await mongoose.connect(`${process.env.MONGO_URI}/placedInDB`);

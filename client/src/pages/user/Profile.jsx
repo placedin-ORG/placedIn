@@ -76,9 +76,17 @@ const Profile = () => {
         <div className="mt-4">
           {userData?.ongoingCourses?.map((course) => (
             <div key={course.courseId} className="p-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold capitalize text-primary">
-                {course.courseName}
-              </h3>
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold capitalize text-primary">
+                  {course.courseName}
+                </h3>
+                <Link
+                  to={`/courseDetail/${course.courseId}`}
+                  className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-light"
+                >
+                  Continue Learning
+                </Link>
+              </div>
               <p className="text-sm font-normal text-gray-500">
                 Progress:{" "}
                 {(
@@ -119,20 +127,22 @@ const Profile = () => {
                             : "text-gray-400"
                         }`}
                       >
-                        {chapter.isCompleted
-                          ? "✔️"
-                          : chapter.isCurrent
-                          ? "🔄"
-                          : "🎯"}
+                        {
+                          // chapter.isCompleted
+                          //   ? "✔️"
+                          //   :
+                          chapter.isCurrent ? "✔️" : "🎯"
+                        }
                       </span>
                       {chapter.title}
                     </p>
                     <p>
-                      {chapter.isCompleted
-                        ? "Completed"
-                        : chapter.isCurrent
-                        ? "In Progress"
-                        : "Pending"}
+                      {
+                        // chapter.isCompleted
+                        //   ? "Completed"
+                        //   :
+                        chapter.isCurrent ? "Completed" : "In Progress"
+                      }
                     </p>
                   </div>
                 ))}
