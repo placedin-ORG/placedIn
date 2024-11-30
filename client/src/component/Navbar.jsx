@@ -1,25 +1,22 @@
-import React,{useState} from "react";
+import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { Link, NavLink } from "react-router-dom";
-import {useNavigate} from 'react-router-dom'
+import { useNavigate } from "react-router-dom";
 const Navbar = () => {
-  const navigate=useNavigate();
+  const navigate = useNavigate();
   const { user } = useSelector((state) => state.user);
-  const [search,setSearch]=useState('');
+  const [search, setSearch] = useState("");
 
-  const handleSearch=(e)=>{
-    try{
-         e.preventDefault();
-      if(search!==''){
-navigate(`/search/${search}`);
+  const handleSearch = (e) => {
+    try {
+      e.preventDefault();
+      if (search !== "") {
+        navigate(`/search/${search}`);
       }
-   
-       
-      
-    }catch(err){
+    } catch (err) {
       console.log(err.message);
     }
-  }
+  };
   return (
     <nav className="sticky z-20 h-14 md:h-16 inset-x-0 top-0 w-full border-b border-gray-200 bg-white/50 backdrop-blur-lg transition-all text-sm">
       <div className="px-4 sm:px-6">
@@ -35,16 +32,15 @@ navigate(`/search/${search}`);
           </Link>
 
           <div className="hidden md:block">
-            <form onSubmit={(e)=>handleSearch(e)}>
-               <input
-              value={search}
-              onChange={(e)=>setSearch(e.target.value)}
-              type="text"
-              placeholder="Search What want to learn today? And press Enter"
-              className="cursor-pointer px-4 py-1.5 w-full md:min-w-[25rem] border rounded-md focus:ring-2 focus:ring-primary focus:outline-none"
-            />
+            <form onSubmit={(e) => handleSearch(e)}>
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                type="text"
+                placeholder="Search What want to learn today? And press Enter"
+                className="cursor-pointer px-4 py-1.5 w-full md:min-w-[25rem] border rounded-md focus:ring-2 focus:ring-primary focus:outline-none"
+              />
             </form>
-           
           </div>
 
           {/* Nav Links */}

@@ -25,6 +25,7 @@ import AllExams from "./pages/exam/AllExams";
 import ExamInstructionPage from "./pages/exam/ExamInstructionPage";
 import ExamIntro from "./pages/exam/ExamIntro";
 import SearchResult from "./pages/searching/SearchResult";
+import UserExams from "./pages/exam/UserExams";
 function App() {
   return (
     <>
@@ -70,6 +71,8 @@ function App() {
           <Route path="/courses" element={<AllCourses />} />
 
           <Route path="/teacher-panel" element={<TeacherPanel />} />
+
+          {/* User Profile Routes */}
           <Route path="/user" element={<UserLayout />}>
             <Route
               path="profile"
@@ -95,12 +98,38 @@ function App() {
                 </ProtectedRoutes>
               }
             />
+            <Route
+              path="my/exams"
+              element={
+                <ProtectedRoutes>
+                  <UserExams />
+                </ProtectedRoutes>
+              }
+            />
           </Route>
-          <Route path="/exam/:userId/:ExamId" element={<GiveExam />} />
+
+          {/* Exam Routes */}
           <Route path="/allExams" element={<AllExams />} />
-          <Route path="/examInstruction/:userId/:ExamId" element={<ExamInstructionPage/>}/>
-         <Route path="/intro/exam/:id" element={<ExamIntro/>}/>
-         <Route path='/search/:query' element={<SearchResult/>}/>
+          <Route path="/" element={<UserLayout />}>
+            <Route
+              path="exam/:userId/:ExamId"
+              element={
+                <ProtectedRoutes>
+                  <GiveExam />
+                </ProtectedRoutes>
+              }
+            />
+            <Route
+              path="examInstruction/:userId/:ExamId"
+              element={
+                <ProtectedRoutes>
+                  <ExamInstructionPage />
+                </ProtectedRoutes>
+              }
+            />
+          </Route>
+          <Route path="/intro/exam/:id" element={<ExamIntro />} />
+          <Route path="/search/:query" element={<SearchResult />} />
         </Routes>
       </BrowserRouter>
     </>

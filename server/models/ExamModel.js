@@ -1,46 +1,50 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const examSchema = new mongoose.Schema({
+  teacher: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Admin",
+    required: true,
+  },
   startDate: { type: Date, required: true }, // Start date and time of the exam
   duration: { type: Number, required: true }, // Duration in minutes
   acceptedResultDate: { type: Date, required: true }, // Date when results are accepted/published
   price: { type: Number, required: true },
   category: { type: String, required: true }, // Price for the exam
-  numberOfStudents: [{ 
-    userId:{
-        type: String 
-    }
-    }], // Number of students attempting the exam
+  numberOfStudents: [
+    {
+      userId: {
+        type: String,
+      },
+    },
+  ], // Number of students attempting the exam
   questions: [
     {
       questionText: { type: String, required: true }, // The question text
-      type: { type: String, enum: ['objective', 'subjective'], required: true }, // Type of question
+      type: { type: String, enum: ["objective", "subjective"], required: true }, // Type of question
       options: [String], // Array of options for objective questions (optional for subjective)
     },
   ],
-  examThumbnail:{
-    type:String
+  examThumbnail: {
+    type: String,
   },
-  examTitle:{
-    type:String
+  examTitle: {
+    type: String,
   },
-  description:{
-    type:String
+  description: {
+    type: String,
   },
-  topics:[{
-    type:String
-  }
-    
-  ]
+  topics: [
+    {
+      type: String,
+    },
+  ],
 });
-const Exam = mongoose.model('Exam', examSchema);
-
-
-
+const Exam = mongoose.model("Exam", examSchema);
 
 const examResultSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // Reference to User
-  ExamId: { type: mongoose.Schema.Types.ObjectId, ref: 'Exam', required: true }, // Reference to Exam
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // Reference to User
+  ExamId: { type: mongoose.Schema.Types.ObjectId, ref: "Exam", required: true }, // Reference to Exam
   userAnswers: [
     {
       questionId: { type: mongoose.Schema.Types.ObjectId, required: true }, // Reference to the question in the Exam schema
@@ -51,9 +55,6 @@ const examResultSchema = new mongoose.Schema({
   publishResult: { type: Boolean, default: false }, // Whether the result has been published
 });
 
-const ExamResult = mongoose.model('ExamResult', examResultSchema);
+const ExamResult = mongoose.model("ExamResult", examResultSchema);
 
-module.exports = {ExamResult,Exam};
-
-
-
+module.exports = { ExamResult, Exam };

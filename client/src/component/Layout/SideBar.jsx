@@ -10,6 +10,9 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { LuLogOut } from "react-icons/lu";
 import { useDispatch } from "react-redux";
 import { setLogOut } from "../../redux/UserSlice";
+import { PiExam } from "react-icons/pi";
+import { FiBookOpen } from "react-icons/fi";
+import { GiProgression } from "react-icons/gi";
 
 const SideBar = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
@@ -67,7 +70,7 @@ const SideBar = () => {
           className="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-emerald-100 text-gray-700 hover:text-primary"
           onClick={() => toggleDropdown("courses")}
         >
-          <FaBook className="text-lg" />
+          <FiBookOpen className="text-lg" />
           <div className="flex justify-between w-full items-center">
             <span className="text-[15px] ml-4 font-semibold">Courses</span>
             <span
@@ -104,6 +107,52 @@ const SideBar = () => {
               }
             >
               Explore Courses
+            </NavLink>
+          </div>
+        </div>
+
+        {/* Exams */}
+        <div
+          className="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-emerald-100 text-gray-700 hover:text-primary"
+          onClick={() => toggleDropdown("exams")}
+        >
+          <PiExam className="text-xl" />
+          <div className="flex justify-between w-full items-center">
+            <span className="text-[15px] ml-4 font-semibold">Exams</span>
+            <span
+              className={`text-lg transition-transform duration-300 ${
+                openDropdown === "exams" ? "rotate-180" : ""
+              }`}
+            >
+              <BiChevronDown />
+            </span>
+          </div>
+        </div>
+        <div
+          className={`transition-[max-height] duration-300 ease-in-out overflow-hidden ${
+            openDropdown === "exams" ? "max-h-40" : "max-h-0"
+          }`}
+        >
+          <div className="text-left text-sm mt-2 w-4/5 mx-auto font-semibold">
+            <NavLink
+              to={"/user/my/exams"}
+              className={({ isActive }) =>
+                `p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-emerald-100 text-gray-700 hover:text-primary ${
+                  isActive && "bg-emerald-100 text-primary"
+                }`
+              }
+            >
+              My Exams
+            </NavLink>
+            <NavLink
+              to={"/allExams"}
+              className={({ isActive }) =>
+                `p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-emerald-100 text-gray-700 hover:text-primary ${
+                  isActive && "bg-emerald-100 text-primary"
+                }`
+              }
+            >
+              All Exams
             </NavLink>
           </div>
         </div>
@@ -163,7 +212,7 @@ const SideBar = () => {
             }`
           }
         >
-          <FaClipboardList className="text-xl" />
+          <GiProgression className="text-xl" />
           <span className="text-[15px] ml-4 font-semibold">Progress</span>
         </NavLink>
 
