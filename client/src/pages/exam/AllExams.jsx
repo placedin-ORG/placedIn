@@ -4,6 +4,7 @@ import SmallUnderline from "../../component/SmallUnderline";
 import Navbar from "../../component/Navbar";
 import ExamCard from "../../component/exams/ExamCard";
 import Xskeletonn from "../../component/loading/Xskeleton";
+import cannot from "../../assets/cannot.jpeg"
 const AllExams = () => {
   const [exams, setExams] = useState([]);
   const [filteredExams, setFilteredExams] = useState([]);
@@ -14,48 +15,53 @@ const AllExams = () => {
     price: "",
     startDate: "",
   });
+
   useEffect(() => {
     const getExams = async () => {
       try {
         const response = await API.get("/exam/get");
         setExams(response.data.exams);
+        setFilteredExams(response.data.exams); // Show all exams initially
         setLoading(false);
-        setFilteredExams(response.data.exams); // Initially show all exams
       } catch (error) {
         console.error("Error fetching exams:", error);
       }
     };
     getExams();
   }, []);
+
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
-    setFilters((prev) => ({ ...prev, [name]: value }));
+    const updatedFilters = { ...filters, [name]: value };
+    setFilters(updatedFilters);
 
-    // Dynamically filter exams based on filters
     const updatedExams = exams.filter((exam) => {
-      // Check if category matches or is empty (meaning no filter applied)
       const matchesCategory =
-        !filters.category || exam.category === filters.category;
-
-      // Check if topic matches or is empty (meaning no filter applied)
+        !updatedFilters.category || exam.category === updatedFilters.category;
       const matchesTopic =
-        !filters.topic || exam.topics.some((topic) => topic === filters.topic);
-
-      // Check if price is less than or equal to the selected value or if no filter applied
+        !updatedFilters.topic || exam.topics.includes(updatedFilters.topic);
       const matchesPrice =
-        !filters.price || exam.price <= Number(filters.price);
-
-      // Check if start date matches or is empty (meaning no filter applied)
+        !updatedFilters.price || exam.price <= Number(updatedFilters.price);
       const matchesDate =
-        !filters.startDate ||
+        !updatedFilters.startDate ||
         new Date(exam.startDate).toISOString().slice(0, 10) ===
-          filters.startDate;
+          updatedFilters.startDate;
 
       return matchesCategory && matchesTopic && matchesPrice && matchesDate;
     });
 
     setFilteredExams(updatedExams);
   };
+
+  const filteredTopics = filters.category
+    ? Array.from(
+        new Set(
+          exams
+            .filter((exam) => exam.category === filters.category)
+            .flatMap((exam) => exam.topics)
+        )
+      )
+    : Array.from(new Set(exams.flatMap((exam) => exam.topics)));
 
   return (
     <div className="grainy-light">
@@ -86,32 +92,36 @@ const AllExams = () => {
             className="border p-2 rounded-md"
           >
             <option value="">All Topics</option>
-            {Array.from(new Set(exams.flatMap((exam) => exam.topics))).map(
-              (topic) => (
-                <option key={topic} value={topic}>
-                  {topic}
-                </option>
-              )
-            )}
+            {filteredTopics.map((topic) => (
+              <option key={topic} value={topic}>
+                {topic}
+              </option>
+            ))}
           </select>
         </div>
 
         {/* Exam Cards */}
-        {filteredExams.length === 0 ? (
-          <div className="text-center text-gray-500 text-xl">
-            No exams found
-          </div>
+        {loading ? (
+          <Xskeletonn />
+        ) : filteredExams.length === 0 ? (
+          <div className="mt-16 flex flex-col items-center">
+              <img
+                src={cannot}
+                alt="No results"
+                className="mix-blend-darken w-72 h-72 mb-6"
+              />
+              <h2 className="text-2xl font-semibold text-gray-700">
+                No results found 
+              </h2>
+              <p className="mt-2 text-gray-500 text-center">
+                Try refining your category or explore other categories.
+              </p>
+            </div>
         ) : (
-          <div>
-            {loading ? (
-              <Xskeletonn />
-            ) : (
-              <div className="mt-16 grid grid-cols-1 place-items-center sm:grid-cols-2 lg:grid-cols-3 gap-10">
-                {filteredExams?.map((exam, index) => (
-                  <ExamCard exam={exam} key={exam._id} />
-                ))}
-              </div>
-            )}{" "}
+          <div className="mt-16 grid grid-cols-1 place-items-center sm:grid-cols-2 lg:grid-cols-3 gap-10">
+            {filteredExams.map((exam) => (
+              <ExamCard exam={exam} key={exam._id} />
+            ))}
           </div>
         )}
       </div>
