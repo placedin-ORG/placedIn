@@ -5,8 +5,10 @@ import "react-toastify/dist/ReactToastify.css";
 import Toast from "../component/Toast";
 import API from "../utils/API";
 import Navbar from "../component/Navbar";
+import { useSelector } from "react-redux";
 
 const Register = () => {
+  const { user } = useSelector((state) => state.user);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -33,6 +35,12 @@ const Register = () => {
       [name]: value,
     });
   };
+
+  useEffect(() => {
+    if (user) {
+      navigate("/user/profile");
+    }
+  }, []);
 
   // Validation logic
   const validateForm = () => {

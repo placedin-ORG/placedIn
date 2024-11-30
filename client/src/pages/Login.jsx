@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useDispatch } from "react-redux";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import Toast from "../component/Toast";
@@ -10,6 +10,7 @@ import Navbar from "../component/Navbar";
 
 const Login = () => {
   const [email, setEmail] = useState("");
+  const { user } = useSelector((state) => state.user);
   const [password, setPassword] = useState("");
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -19,6 +20,12 @@ const Login = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
+
+  useEffect(() => {
+    if (user) {
+      navigate("/user/profile");
+    }
+  }, []);
 
   const validateForm = () => {
     const newErrors = {};

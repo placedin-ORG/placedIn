@@ -1,4 +1,16 @@
+import { useEffect } from "react";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+
 function EmailSentPage() {
+  const { user } = useSelector((state) => state.user);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate("/user/profile");
+    }
+  }, []);
   return (
     <div class="relative flex min-h-screen flex-col items-center justify-center overflow-hidden py-6 sm:py-12 ">
       <div class="max-w-xl px-5 text-center">
