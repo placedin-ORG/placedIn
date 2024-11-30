@@ -1,5 +1,6 @@
 const { Exam } = require("../models/ExamModel"); // Assuming Exam model is in the models folder
 const { ExamResult } = require("../models/ExamModel");
+const { uploadFile } = require("../utils/cloudinary");
 // Create a new exam
 const create = async (req, res) => {
   try {
@@ -15,8 +16,16 @@ const create = async (req, res) => {
       topics,
       description,
       examThumbnail,
+      discountAmount = 0,
       examDescription,
     } = req.body;
+
+    // Decode Base64 string to buffer
+    const base64Data = examThumbnail.split(";base64,").pop(); // Remove metadata
+    const buffer = Buffer.from(base64Data, "base64");
+
+    const image = await uploadFile(buffer, "placedIn/teacher/exam");
+    thumbnail = image.url;
 
     const exam = new Exam({
       teacher: req.user._id,
@@ -24,13 +33,13 @@ const create = async (req, res) => {
       duration,
       acceptedResultDate,
       price,
-      numberOfStudents,
       questions,
       category,
       examTitle,
       topics,
       description,
-      examThumbnail,
+      discountAmount,
+      examThumbnail: thumbnail,
       description,
     });
 
@@ -118,7 +127,9 @@ const get = async (req, res) => {
     const exams = await Exam.find();
     res.status(200).json({ exams });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.log(error);
+
+    res.status(500).json({ error: "Error" });
   }
 };
 
@@ -158,12 +169,43 @@ const getUserCompletedExams = async (req, res) => {
   }
 };
 
+// Get Teacher exams
+
+const getTeacherExams = async (req, res) => {
+  try {
+    const exams = await Exam.find({ teacher: req.user._id });
+
+    if (!exams || exams.length == 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "No Exams Found" });
+    }
+
+    res.status(200).json({ exams, mesage: "Exams data fetched" });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to get exams data" });
+  }
+};
+
+// Get exam by id
+
+const getExamById = async (req, res) => {
+  try {
+    const exam = await Exam.findById(req.params.id);
+
+    if (!exam) return res.status(404).json({ msg: "Exam not found" });
+
+    res.status(200).json({ exam, msg: "exam found" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 // get completed exams
 
 const getCompletedExams = async (userId) => {
   try {
     const completedExams = await ExamResult.find({ userId }).populate("ExamId");
-    console.log(completedExams);
 
     return completedExams;
   } catch (error) {
@@ -237,33 +279,86 @@ const getSpeceficExam = async (req, res) => {
 // Update an exam
 const update = async (req, res) => {
   try {
-    const {
-      startDate,
-      duration,
-      acceptedResultDate,
-      price,
-      numberOfStudents,
-      questions,
-    } = req.body;
+    const base64Data = req.body.examThumbnail.split(";base64,").pop();
+    if (base64Data) {
+      const buffer = Buffer.from(base64Data, "base64");
+      const image = await uploadFile(buffer, "placedIn/teacher/exam");
+      req.body.examThumbnail = image.url;
+    }
 
-    const exam = await Exam.findByIdAndUpdate(
-      req.params.id,
-      {
-        startDate,
-        duration,
-        acceptedResultDate,
-        price,
-        numberOfStudents,
-        questions,
-      },
-      { new: true }
-    );
+    const exam = await Exam.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
 
     if (!exam) return res.status(404).json({ message: "Exam not found" });
 
     res.status(200).json({ message: "Exam updated successfully", exam });
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+};
+
+// Get all the submitted exams
+
+const getExamSubmissions = async (req, res) => {
+  try {
+    const submissions = await ExamResult.find({
+      ExamId: req.params.id,
+    }).populate("userId");
+
+    if (!submissions || submissions.length == 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "No Exam Data Found" });
+    }
+
+    return res.status(200).json({ success: true, data: submissions });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Get submissoins by id
+
+const getSubmissionById = async (req, res) => {
+  try {
+    const submission = await ExamResult.findById(req.params.id)
+      .populate("userId")
+      .populate("ExamId");
+
+    if (!submission) {
+      return res
+        .status(404)
+        .json({ success: false, message: "No Exam Data Found" });
+    }
+
+    return res.status(200).json({ success: true, data: submission });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Save the score
+
+const saveScore = async (req, res) => {
+  try {
+    const { totalScore, individualScores } = req.body;
+    const examId = req.params.id;
+
+    await ExamResult.findByIdAndUpdate(examId, { score: totalScore });
+
+    // Update individual question scores
+    for (const { questionId, score } of individualScores) {
+      await ExamResult.updateOne(
+        { "userAnswers.questionId": questionId },
+        { $set: { "userAnswers.$.score": score } }
+      );
+    }
+
+    res.status(200).json({ message: "Scores saved successfully!" });
+  } catch (error) {
+    console.error("Error saving scores:", error);
+    res.status(500).json({ message: "Failed to save scores" });
   }
 };
 
@@ -289,4 +384,9 @@ module.exports = {
   fetchExam,
   getUserCompletedExams,
   getUpcomingExams,
+  getTeacherExams,
+  getExamSubmissions,
+  getExamById,
+  getSubmissionById,
+  saveScore,
 };

@@ -9,14 +9,30 @@ const {
   fetchExam,
   getUpcomingExams,
   getUserCompletedExams,
+  getExamSubmissions,
+  getTeacherExams,
+  getExamById,
+  getSubmissionById,
+  saveScore,
 } = require("../controllers/examController");
 const { isAuth, authoriseRoles } = require("../middlewares/auth");
 
-router.post("/create", isAuth, authoriseRoles("teacher"), create);
+// TODO: Add role authentication
+
+router.post("/create", isAuth, create);
 router.post("/speceficExam", getSpeceficExam);
+
 router.post("/submit-exam", isAuth, submitExam);
 router.get("/upcoming-exams", isAuth, getUpcomingExams);
 router.get("/completed-exams", isAuth, getUserCompletedExams);
+router.get("/submissions/:id", isAuth, getExamSubmissions);
+router.get("/submissions-detail/:id", isAuth, getSubmissionById);
+router.put("/save-score/:id", isAuth, saveScore);
+
+router.get("/teacher/all", isAuth, getTeacherExams);
+
+router.get("/get/:id", getExamById);
+router.put("/update/:id", update);
 
 router.get("/get", get);
 router.post("/fetchExam", isAuth, fetchExam);
