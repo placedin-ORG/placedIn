@@ -23,11 +23,11 @@ const Navbar = () => {
         <div className="flex justify-between items-center py-3">
           {/* Logo */}
           <Link to={"/"} className="flex items-center">
-            <img
+            {/* <img
               src="https://via.placeholder.com/40"
               alt="Logo"
               className="h-8 w-8 mr-2"
-            />
+            /> */}
             <span className="text-xl font-semibold text-primary">PlacedIn</span>
           </Link>
 

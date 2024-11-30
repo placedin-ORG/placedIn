@@ -52,12 +52,48 @@ const newCourse = new Course({
 
 router.get("/getCourses", async (req, res) => {
   try {
-    const courses = await Course.find();
+    console.log(await Course.find())
+    const courses = await Course.aggregate([
+      {
+        $sort: { studentEnrolled: -1 } // Sort by studentEnrolled in descending order
+      },
+      {
+        $limit: 3 // Limit the result to the top 3
+      }
+    ]);
+    
     res.json({ courses });
+    
+res.json({ courses });
+
   } catch (err) {
     console.log(err);
   }
 });
+
+router.get("/topRatedCourses",async(req,res)=>{
+  try{
+    const courses = await Course.aggregate([
+      {
+        $addFields: {
+          avgRating: {
+            $avg: "$rating.rating", // Calculate average rating
+          },
+        },
+      },
+      {
+        $sort: { avgRating: -1 }, // Sort by highest rating
+      },
+      {
+        $limit: 3, // Limit to top 3 courses
+      },
+    ]);
+
+    res.status(200).json({courses});
+  }catch(err){
+    console.log(err.message);
+  }
+})
 router.post("/register", async (req, res) => {
   try {
     const existingUser = await User.findOne({ email: req.body.email });
