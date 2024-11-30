@@ -145,15 +145,15 @@ function App() {
 
           {/* Exam Routes */}
           <Route path="/allExams" element={<AllExams />} />
+          <Route
+            path="/exam/:userId/:ExamId"
+            element={
+              <ProtectedRoutes>
+                <GiveExam />
+              </ProtectedRoutes>
+            }
+          />
           <Route path="/" element={<UserLayout />}>
-            <Route
-              path="exam/:userId/:ExamId"
-              element={
-                <ProtectedRoutes>
-                  <GiveExam />
-                </ProtectedRoutes>
-              }
-            />
             <Route
               path="examInstruction/:userId/:ExamId"
               element={

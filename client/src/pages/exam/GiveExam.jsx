@@ -191,7 +191,7 @@ const GiveExam = () => {
   return (
     <>
       {/* Display remaining time */}
-      <div className="bg-gray-50  flex flex-col">
+      <div className="flex flex-col">
         {/* Remaining Time */}
         <Toast />
 
@@ -205,7 +205,11 @@ const GiveExam = () => {
         )}
 
         {/* Main Content */}
-        <div className="container mx-auto px-4 py-16 flex-grow">
+        <div
+          className={`container mx-auto px-4 py-16 flex-grow ${
+            isSubmit && "hidden"
+          }`}
+        >
           {examData && (
             <>
               {/* Navigation Bar */}
@@ -313,8 +317,12 @@ const GiveExam = () => {
         </div>
       </div>
       {isSubmit && (
-        <div className="flex justify-center items-center w-full h-full">
-          you Exam is Submited wait for the result
+        <div className="flex flex-col gap-5 min-h-screen grainy-light font-semibold justify-center items-center w-full h-full">
+          <h1 className="text-center text-2xl text-primary capitalize">
+            {" "}
+            Your Exam is Submited, please wait for the result announcement.
+          </h1>
+          <p className="text-gray-600 text-xl">Thank You!</p>
         </div>
       )}
 

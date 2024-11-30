@@ -2,29 +2,50 @@ const router = require("express").Router();
 const Course = require("../models/courseModel");
 const User = require("../models/userModel");
 const bcrypt = require("bcryptjs");
+const { uploadFile } = require("../utils/cloudinary");
 
 router.post("/createCourse", async (req, res) => {
   try {
-    const { courseTitle, description, chapters, paid, price, questions,examDuration,courseThumbnail,id ,courseCategory} =
-      req.body;
-if(id === null ){
-const newCourse = new Course({
-      paid,
-      price,
-      title: courseTitle,
+    const {
+      courseTitle,
       description,
       chapters,
+      paid,
+      price,
       questions,
       examDuration,
       courseThumbnail,
-      courseCategory
-    });
-    await newCourse.save();
-    return res.json({ status: true });
-}else {
-  const updatedCourse = await Course.findByIdAndUpdate(
-      id, 
-      {
+      id,
+      courseCategory,
+    } = req.body;
+
+    let thumbnail = courseThumbnail;
+    const base64Data = courseThumbnail.split(";base64,").pop(); // Remove metadata
+    if (base64Data) {
+      const buffer = Buffer.from(base64Data, "base64");
+
+      const image = await uploadFile(buffer, "placedIn/teacher/course");
+      thumbnail = image.url;
+    }
+
+    if (id === null) {
+      const newCourse = new Course({
+        paid,
+        price,
+        title: courseTitle,
+        description,
+        chapters,
+        questions,
+        examDuration,
+        courseThumbnail: thumbnail,
+        courseCategory,
+      });
+      await newCourse.save();
+      return res.json({ status: true });
+    } else {
+      const updatedCourse = await Course.findByIdAndUpdate(
+        id,
+        {
           paid,
           price,
           title: courseTitle,
@@ -32,19 +53,20 @@ const newCourse = new Course({
           chapters,
           questions,
           examDuration,
-          courseThumbnail,
-          courseCategory
-      }, 
-      { new: true } // Ensures the response is the updated document
-  );
+          courseThumbnail: thumbnail,
+          courseCategory,
+        },
+        { new: true } // Ensures the response is the updated document
+      );
 
-  if (!updatedCourse) {
-      return res.status(404).json({ status: false, message: "Course not found" });
-  }
+      if (!updatedCourse) {
+        return res
+          .status(404)
+          .json({ status: false, message: "Course not found" });
+      }
 
-  return res.json({ status: true, updatedCourse });
-}
-    
+      return res.json({ status: true, updatedCourse });
+    }
   } catch (err) {
     console.log(err);
   }

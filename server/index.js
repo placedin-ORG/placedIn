@@ -13,7 +13,7 @@ const StartCourseRoute = require("./routes/startCourseRoute");
 const DiscussionRoute = require("./routes/discussionRoute");
 const RatingRoute = require("./routes/ratingRoute");
 const ExamRoute = require("./routes/examRoute");
-const SearchRoute=require("./routes/SearchRoute")
+const SearchRoute = require("./routes/SearchRoute");
 const ResetDailyLogin=require("./routes/ScheduleDailyLogin");
 require("dotenv").config();
 const cloudinary = require("cloudinary");
@@ -22,13 +22,13 @@ const cloudinary = require("cloudinary");
 const genAI = new GoogleGenerativeAI("AIzaSyBBBaZ58MqJjDdPNhwCGKqlDyFepGRit8g"); // Replace with your actual API key
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 cloudinary.config({
-  cloud_name: "duhadnqmh",
-  api_key: "848465882823534",
-  api_secret: "Y_3JPUnLtfQALfq2SGcuNDpi5do",
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 const app = express();
 const port = 5000;
-app.use(express.json());
+app.use(express.json({ limit: "50mb", extended: true }));
 app.use(bodyParser.json());
 app.use(cors());
 app.use("/api/v1", QuizRoute);
@@ -41,7 +41,7 @@ app.use("/create", CourseRoute);
 app.use("/api/discussion", DiscussionRoute);
 app.use("/api/rating", RatingRoute);
 app.use("/api/v1/exam", ExamRoute);
-app.use("/api/v1/search",SearchRoute)
+app.use("/api/v1/search", SearchRoute);
 const connectDb = async () => {
   try {
     await mongoose.connect(`${process.env.MONGO_URI}/placedInDB`);
