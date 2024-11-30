@@ -25,7 +25,7 @@ const create = async (req, res) => {
     const buffer = Buffer.from(base64Data, "base64");
 
     const image = await uploadFile(buffer, "placedIn/teacher/exam");
-    thumbnail = image.url;
+    const thumbnail = image.url;
 
     const exam = new Exam({
       teacher: req.user._id,
