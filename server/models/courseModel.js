@@ -14,7 +14,7 @@ const courseSchema = new mongoose.Schema({
       },
     },
   ],
-  studetnEnrolled: {
+  studentEnrolled: {
     type: Number,
   },
   price: {

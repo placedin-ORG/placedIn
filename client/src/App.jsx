@@ -26,11 +26,46 @@ import ExamInstructionPage from "./pages/exam/ExamInstructionPage";
 import ExamIntro from "./pages/exam/ExamIntro";
 import SearchResult from "./pages/searching/SearchResult";
 import UserExams from "./pages/exam/UserExams";
+import {useEffect} from 'react' ;
+import axios from 'axios';
+import {useSelector } from 'react-redux';
+import CoinModel from "./component/CoinModel";
 function App() {
+  const user=useSelector((state)=>state);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  useEffect(() => {
+    if(user.user.user!==null){
+       const checkDailyLogin = async () => {
+      try {
+        const response = await axios.post('http://localhost:5000/api/v1/login/dailyLogin', { 
+        userId:user.user.user._id  
+        }); 
+        if(response.data.status){
+          setIsModalOpen(true);
+        }else{
+          setIsModalOpen(false);
+        }
+        // Backend API
+        const data = await response.json();
+
+        // Show modal if the user hasn't logged in for the day
+        if (!data.dailyLogin) {
+          setIsModalOpen(true);
+        }
+      } catch (error) {
+        console.error('Error checking daily login status:', error);
+      }
+    };
+
+    checkDailyLogin();
+    }
+   
+  }, []);
   return (
     <>
       <BrowserRouter>
         <ScrollToTop />
+        {isModalOpen && <CoinModel setIsModalOpen={setIsModalOpen} />}
         <Routes>
           <Route
             path="/courseDetail/:id"

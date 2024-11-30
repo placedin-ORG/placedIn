@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const schedule = require('node-schedule');
+
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
@@ -8,6 +10,10 @@ const userSchema = new mongoose.Schema({
   resetPasswordExpire: { type: Date },
   password: { type: String, required: true },
   coins: { type: Number, default: 0 },
+  dailyLogin:{
+    type:Boolean,
+    default:false
+          },
   // achievements: [
   //   {
   //     courseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
@@ -26,6 +32,7 @@ const userSchema = new mongoose.Schema({
       examDuration:{
         type:String
       },
+    
       courseName: {
         type: String,
       },
@@ -33,7 +40,6 @@ const userSchema = new mongoose.Schema({
         {
           title: {
             type: String,
-            required: true,
           },
           isCompleted: {
             type: Boolean,
@@ -47,7 +53,6 @@ const userSchema = new mongoose.Schema({
             {
               name: {
                 type: String,
-                required: true,
               },
               content: {
                 type: String,

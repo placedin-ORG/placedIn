@@ -10,6 +10,7 @@ import PopularCourses from "./PopularCourses";
 import FAQ from "./FAQ";
 import Footer from "../../component/Layout/Footer";
 import Hero2 from "./Hero2";
+import TopRatedCourses from "./TopRatedCourses";
 const Hompage = () => {
   return (
     <>
@@ -22,6 +23,7 @@ const Hompage = () => {
       {/* <Hero2 /> */}
       <Features />
       <PopularCourses />
+      <TopRatedCourses/>
       <FAQ />
       <Footer />
     </>

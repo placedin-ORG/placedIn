@@ -4,7 +4,7 @@ import CourseCard from "../../component/CourseCard";
 import SmallUnderline from "../../component/SmallUnderline";
 import Navbar from "../../component/Navbar";
 import Xskeletonn from "../../component/loading/Xskeleton";
-
+import cannot from "../../assets/cannot.jpeg"
 const AllCourses = () => {
   const [courses, setCourses] = useState([]);
   const [filteredCourses, setFilteredCourses] = useState([]);
@@ -119,7 +119,19 @@ const AllCourses = () => {
 
         {/* Course Cards */}
         {filteredCourses?.length === 0 ? (
-          <p className="text-center text-gray-500">No courses found.</p>
+           <div className="mt-16 flex flex-col items-center">
+           <img
+             src={cannot}
+             alt="No results"
+             className="mix-blend-darken w-72 h-72 mb-6"
+           />
+           <h2 className="text-2xl font-semibold text-gray-700">
+             No Course found 
+           </h2>
+           <p className="mt-2 text-gray-500 text-center">
+              explore other Courses.
+           </p>
+         </div>
         ) : (
           <div>
             {
