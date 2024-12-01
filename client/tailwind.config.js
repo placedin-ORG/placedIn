@@ -18,6 +18,7 @@ module.exports = {
           light: "#22C55E",
           dark: "#15803D",
         },
+        
       },
       animation: {
         shimmer: "shimmer 2s infinite",

@@ -50,17 +50,7 @@ const connectDb = async () => {
     console.log(error);
   }
 };
-const resetDailyLogin = () => {
-  schedule.scheduleJob('0 0 * * *', async () => {
-    try {
-      await User.updateMany({}, { $set: { dailyLogin: false } });
-      console.log('Daily login reset for all users.');
-    } catch (error) {
-      console.error('Error resetting daily login:', error);
-    }
-  });
-};
-resetDailyLogin();
+
 connectDb()
   .then(() => {
     app.listen(port, () => {
@@ -70,3 +60,15 @@ connectDb()
   .catch(() => {
     console.log("Error Connecting to databse");
   });
+  const resetDailyLogin = () => {
+    schedule.scheduleJob('0 0 * * *', async () => {
+      try {
+        await User.updateMany({}, { $set: { dailyLogin: false } });
+        console.log('Daily login reset for all users.');
+      } catch (error) {
+        console.error('Error resetting daily login:', error);
+      }
+    });
+  };
+
+  resetDailyLogin();

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route,useLocation } from "react-router-dom";
 import "./App.css";
 import ContentCreator from "./pages/ContentCreator";
 import CourseDetail from "./pages/CourseDetail";
@@ -30,9 +30,17 @@ import {useEffect} from 'react' ;
 import axios from 'axios';
 import {useSelector } from 'react-redux';
 import CoinModel from "./component/CoinModel";
+function AppWrapper() {
+  return (
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  );
+}
 function App() {
   const user=useSelector((state)=>state);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const location = useLocation();
   useEffect(() => {
     if(user.user.user!==null){
        const checkDailyLogin = async () => {
@@ -60,12 +68,11 @@ function App() {
     checkDailyLogin();
     }
    
-  }, []);
+  }, [location,user]);
   return (
     <>
-      <BrowserRouter>
         <ScrollToTop />
-        {isModalOpen && <CoinModel setIsModalOpen={setIsModalOpen} />}
+        {isModalOpen && <CoinModel setIsModalOpen={setIsModalOpen} type="all"/>}
         <Routes>
           <Route
             path="/courseDetail/:id"
@@ -166,9 +173,9 @@ function App() {
           <Route path="/intro/exam/:id" element={<ExamIntro />} />
           <Route path="/search/:query" element={<SearchResult />} />
         </Routes>
-      </BrowserRouter>
+     
     </>
   );
 }
 
-export default App;
+export default AppWrapper;

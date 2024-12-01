@@ -396,7 +396,7 @@ const deleteQuestion = (index) => {
           reader.readAsDataURL(file);
         }
       }}
-      className="w-full px-4 py-2 border border-gray-300 rounded-md cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-blue-500 file:text-white hover:file:bg-blue-600 focus:outline-none"
+      className="w-full px-4 py-2 border border-gray-300 rounded-md cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-primary-light file:text-white hover:file:bg-primary-dark focus:outline-none"
     />
   </div>
   {thumbnail && (
@@ -417,7 +417,7 @@ const deleteQuestion = (index) => {
         <select
           value={courseCategory}
           onChange={(e) => setCourseCategory(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-light"
         >
           <option value="" disabled>
             Select a category
@@ -442,7 +442,7 @@ const deleteQuestion = (index) => {
     onChange={(e) => setExamDuration(e.target.value)}
     placeholder="Enter exam duration"
     min={1}
-    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-light"
   />
 </div>
     {/* Course Title Input */}
@@ -453,7 +453,7 @@ const deleteQuestion = (index) => {
         value={courseTitle}
         onChange={(e) => setCourseTitle(e.target.value)}
         placeholder="Enter course title"
-        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-light"
       />
     </div>
   
@@ -464,7 +464,7 @@ const deleteQuestion = (index) => {
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         placeholder="Enter course description"
-        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-light"
       ></textarea>
     </div>
   
@@ -483,7 +483,7 @@ const deleteQuestion = (index) => {
             value={chapter.title}
             onChange={(e) => handleChapterChange(chapterIndex, "title", e.target.value)}
             placeholder={`Enter Chapter ${chapterIndex + 1} Title`}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-light"
           />
         </div>
   
@@ -499,7 +499,7 @@ const deleteQuestion = (index) => {
                   value={topic.name}
                   onChange={(e) => handleTopicChange(chapterIndex, topicIndex, "name", e.target.value)}
                   placeholder="Enter topic name"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-light"
                 />
               </div>
               <div>
@@ -509,7 +509,7 @@ const deleteQuestion = (index) => {
                   value={topic.videoUrl}
                   onChange={(e) => handleTopicChange(chapterIndex, topicIndex, "videoUrl", e.target.value)}
                   placeholder="Enter video URL"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-light"
                 />
               </div>
             </div>
@@ -533,7 +533,7 @@ const deleteQuestion = (index) => {
                 value={topic.content}
                 onChange={(e) => handleTopicChange(chapterIndex, topicIndex, "content", e.target.value)}
                 placeholder="Enter topic content or prompt"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-light"
               ></textarea>
             </div>
           </div>
@@ -550,7 +550,7 @@ const deleteQuestion = (index) => {
           <h3 className="text-lg font-semibold text-gray-700 mb-2">Quiz</h3>
           <button
             onClick={() => generateQuizFromContent(chapterIndex)}
-            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"
+            className="px-4 py-2 bg-primary-light text-white rounded-md hover:bg-primary-light disabled:opacity-50"
             disabled={isGenerating}
           >
             {isGenerating ? "Generating..." : "Generate Quiz from Content"}
@@ -569,7 +569,7 @@ const deleteQuestion = (index) => {
         handleQuizQuestionChange(chapterIndex, questionIndex, 'question', e.target.value)
       }
       placeholder={`Enter question ${questionIndex + 1}`}
-      className="w-full px-4 py-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+      className="w-full px-4 py-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-light"
     />
 
     {/* Options for the Question */}
@@ -606,7 +606,7 @@ const deleteQuestion = (index) => {
     }
   }}
   placeholder={`Enter option ${optionIndex + 1}`}
-  className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+  className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-light ${
     isCorrect ? "bg-green-500 text-white" : ""
   }`}
 />
@@ -646,7 +646,7 @@ const deleteQuestion = (index) => {
             placeholder="Enter question"
             value={currentQuestion.questionText}
             onChange={handleQuestionChange}
-            className="w-full p-2 mb-4 border rounded-lg focus:outline-none focus:ring focus:border-blue-300"
+            className="w-full p-2 mb-4 border rounded-lg focus:outline-none focus:ring focus:border-primary-light"
           />
           <div className="space-y-2">
             {currentQuestion.options.map((option, index) => (
@@ -656,7 +656,7 @@ const deleteQuestion = (index) => {
                   placeholder={`Option ${index + 1}`}
                   value={option}
                   onChange={(e) => handleOptionChange(index, e.target.value)}
-                  className="flex-grow p-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300"
+                  className="flex-grow p-2 border rounded-lg focus:outline-none focus:ring focus:border-primary-light"
                 />
               </div>
             ))}
@@ -664,7 +664,7 @@ const deleteQuestion = (index) => {
           <select
             value={currentQuestion.correctAnswer}
             onChange={handleCorrectAnswerChange}
-            className="w-full p-2 mt-4 border rounded-lg focus:outline-none focus:ring focus:border-blue-300"
+            className="w-full p-2 mt-4 border rounded-lg focus:outline-none focus:ring focus:border-primary-light"
           >
             <option value="">Select correct answer</option>
             {currentQuestion.options.map((option, index) => (
@@ -675,7 +675,7 @@ const deleteQuestion = (index) => {
           </select>
           <button
             onClick={addQuestion}
-            className="flex items-center mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            className="flex items-center mt-4 px-4 py-2 bg-primary-light text-white rounded-lg hover:bg-primary-light"
           >
             <AiOutlinePlusCircle className="mr-2" /> Add Question
           </button>
@@ -722,11 +722,11 @@ const deleteQuestion = (index) => {
     {/* Save Course Button */}
 <button
       onClick={handleSaveCourse}
-      className="w-full mt-6 px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 flex items-center justify-center"
+      className="w-full mt-6 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 flex items-center justify-center"
     >
       <BiSave className="mr-2" /> Save Course and live
     </button>
-    <button className='w-full mt-6 px-4 py-2 bg-purple-700 text-white rounded-md hover:bg-purple-600 flex items-center justify-center' onClick={()=>handlelaterCourse()}> Save Course Only </button>
+    <button className='w-full mt-6 px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-600 flex items-center justify-center' onClick={()=>handlelaterCourse()}> Save Course Only </button>
   </div>
   
   );

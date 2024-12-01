@@ -9,12 +9,13 @@ import 'react-toastify/dist/ReactToastify.css';
 import Toast from '../component/Toast';
 import Rating from '../component/Rating'
 import Footer from '../component/Layout/Footer';
+import CoinModel from '../component/CoinModel';
 const FinalExam = () => {
   const navigate=useNavigate();
     const { userId ,courseId} = useParams(); 
     const [examData,setExamData]=useState(null);
     const [examResult,setExamResult]=useState(null);
-  
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedOptions, setSelectedOptions] = useState({});
     const [isExamSubmitted, setIsExamSubmitted] = useState(false);
     const [showModal, setShowModal] = useState(false);
@@ -148,7 +149,7 @@ const FinalExam = () => {
         answers:selectedOptionsRef.current,
         userId,courseId
        })
-
+       setIsModalOpen(true);
        setExamData(null);
        setExamResult(data.data.updatedData)
        setRemainingTime(null)
@@ -331,7 +332,11 @@ const handleDoItLaterClick = (questionIndex) => {
  
 {
   examResult && (
+  
     <div className="bg-white w-[70%] mt-5 p-4 rounded shadow-md mb-6 max-h-[400px] overflow-y-auto">
+        <div>
+    {isModalOpen ? <CoinModel setIsModalOpen={setIsModalOpen} type="result"/>:null}
+    </div>
     <h2 className="text-xl font-bold mb-4">Final Exam Results</h2>
     {examResult.updatedcourse.finalExam.questions.map((question, index) => {
       const studentAnswer = examResult.updatedcourse.finalExam.result.answers[0][index.toString()];
