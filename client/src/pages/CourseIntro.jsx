@@ -55,7 +55,6 @@ const CourseIntro = () => {
   useEffect(() => {
     const call = async () => {
   console.log(user.user.user)
-  console.log(state.user)
   if(user.user.user!==null){
     
     const data = await API.post("/learn/fetchCourse", {
