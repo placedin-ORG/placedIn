@@ -54,12 +54,12 @@ function App() {
           setIsModalOpen(false);
         }
         // Backend API
-        const data = await response.json();
+        // const data = await response.json();
 
-        // Show modal if the user hasn't logged in for the day
-        if (!data.dailyLogin) {
-          setIsModalOpen(true);
-        }
+        // // Show modal if the user hasn't logged in for the day
+        // if (!data.dailyLogin) {
+        //   setIsModalOpen(true);
+        // }
       } catch (error) {
         console.error('Error checking daily login status:', error);
       }

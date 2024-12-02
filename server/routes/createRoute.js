@@ -85,8 +85,6 @@ router.get("/getCourses", async (req, res) => {
     ]);
     
     res.json({ courses });
-    
-res.json({ courses });
 
   } catch (err) {
     console.log(err);
