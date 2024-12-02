@@ -83,7 +83,9 @@ const ExamIntro = () => {
           id,
           userId: null,
         });
+       
         if (data.data.status) {
+          setLoading(false);
           setExam(data.data.exam);
           if (data.data.relatedExams.length !== 0) {
             setRelatedExam(data.data.relatedExams);

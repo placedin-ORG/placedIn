@@ -35,5 +35,5 @@ router.get("/get/:id", getExamById);
 router.put("/update/:id", update);
 
 router.get("/get", get);
-router.post("/fetchExam", isAuth, fetchExam);
+router.post("/fetchExam", fetchExam);
 module.exports = router;

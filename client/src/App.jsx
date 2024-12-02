@@ -42,6 +42,19 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const location = useLocation();
   useEffect(() => {
+    if(user.user.user!==null){
+       const checkDailyLogin = async () => {
+      try {
+        const response = await axios.post('http://localhost:5000/api/v1/login/dailyLogin', { 
+        userId:user.user.user._id  
+        }); 
+        if(response.data.status){
+          setIsModalOpen(true);
+        }else{
+          setIsModalOpen(false);
+        }
+        // Backend API
+        // const data = await response.json();
     if (user.user.user !== null) {
       const checkDailyLogin = async () => {
         try {
@@ -59,10 +72,10 @@ function App() {
           // Backend API
           const data = await response.json();
 
-          // Show modal if the user hasn't logged in for the day
-          if (!data.dailyLogin) {
-            setIsModalOpen(true);
-          }
+          // // Show modal if the user hasn't logged in for the day
+          // if (!data.dailyLogin) {
+          //   setIsModalOpen(true);
+          // }
         } catch (error) {
           console.error("Error checking daily login status:", error);
         }
