@@ -7,14 +7,15 @@ const mongoose = require("mongoose");
 const CourseRoute = require("./routes/createRoute");
 const UserRoute = require("./routes/userRoutes");
 const adminAuthRoute = require("./routes/adminAuthRoute");
-const schedule = require('node-schedule');
-const User = require('./models/userModel'); 
+const schedule = require("node-schedule");
+const User = require("./models/userModel");
 const StartCourseRoute = require("./routes/startCourseRoute");
 const DiscussionRoute = require("./routes/discussionRoute");
 const RatingRoute = require("./routes/ratingRoute");
 const ExamRoute = require("./routes/examRoute");
 const SearchRoute = require("./routes/SearchRoute");
-const ResetDailyLogin=require("./routes/ScheduleDailyLogin");
+const ResetDailyLogin = require("./routes/ScheduleDailyLogin");
+const purchaseRoutes = require("./routes/purchaseRoutes");
 require("dotenv").config();
 const cloudinary = require("cloudinary");
 
@@ -35,13 +36,15 @@ app.use("/api/v1", QuizRoute);
 app.use("/api/v1/create", CourseRoute);
 app.use("/api/v1/auth", UserRoute);
 app.use("/api/v1/admin-auth", adminAuthRoute);
-app.use("/api/v1/login",ResetDailyLogin)
+app.use("/api/v1/login", ResetDailyLogin);
 app.use("/api/v1/learn", StartCourseRoute);
 app.use("/create", CourseRoute);
 app.use("/api/discussion", DiscussionRoute);
 app.use("/api/rating", RatingRoute);
 app.use("/api/v1/exam", ExamRoute);
 app.use("/api/v1/search", SearchRoute);
+app.use("/api/v1/purchase", purchaseRoutes);
+
 const connectDb = async () => {
   try {
     await mongoose.connect(`${process.env.MONGO_URI}/placedInDB`);
@@ -60,15 +63,15 @@ connectDb()
   .catch(() => {
     console.log("Error Connecting to databse");
   });
-  const resetDailyLogin = () => {
-    schedule.scheduleJob('0 0 * * *', async () => {
-      try {
-        await User.updateMany({}, { $set: { dailyLogin: false } });
-        console.log('Daily login reset for all users.');
-      } catch (error) {
-        console.error('Error resetting daily login:', error);
-      }
-    });
-  };
+const resetDailyLogin = () => {
+  schedule.scheduleJob("0 0 * * *", async () => {
+    try {
+      await User.updateMany({}, { $set: { dailyLogin: false } });
+      console.log("Daily login reset for all users.");
+    } catch (error) {
+      console.error("Error resetting daily login:", error);
+    }
+  });
+};
 
-  resetDailyLogin();
+resetDailyLogin();

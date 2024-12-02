@@ -13,7 +13,7 @@ import Navbar from "../component/Navbar";
 import FinalExam from "./FinalExam";
 import API from "../utils/API";
 import Disccussion from "../component/Disccussion";
-import Rating from "../component/Rating"
+import Rating from "../component/Rating";
 import Footer from "../component/Layout/Footer";
 import confetti from "canvas-confetti";
 const CourseDetail = () => {
@@ -32,8 +32,6 @@ const CourseDetail = () => {
   const { id } = useParams();
   const currentCourse = useSelector((state) => state.user.currentCourse);
 
-
-
   useEffect(() => {
     const call = async () => {
       const fetchedData = await API.post("/learn/fetchuser", {
@@ -46,7 +44,7 @@ const CourseDetail = () => {
       for (let i = 0; i < data.length; i++) {
         console.log(data[i].courseId);
         if (data[i].courseId === id) {
-          if(data[i].finalExam.isCurrent){
+          if (data[i].finalExam.isCurrent) {
             doConfetii();
           }
           latest = data[i];
@@ -74,18 +72,17 @@ const CourseDetail = () => {
     call();
   }, []);
 
-  const doConfetii=()=>{
-    fireConfetti()
+  const doConfetii = () => {
+    fireConfetti();
+  };
 
-   }
-
-   const fireConfetti = () => {
-     confetti({
-       particleCount: 600,
-       spread: 350,
-       origin: { y: 0.6 },
-     });
-   };
+  const fireConfetti = () => {
+    confetti({
+      particleCount: 600,
+      spread: 350,
+      origin: { y: 0.6 },
+    });
+  };
   const handleTopicClick = (topic, index, topics, chapterIndex) => {
     console.log({ topic, index, topics, chapterIndex });
     if (topic.isCurrent) {
@@ -209,10 +206,9 @@ const CourseDetail = () => {
         (course) => course.courseId === id
       );
       setCourseData(course);
-      if(!courseData.finalExam.isCurrent){
-         doConfetii();
+      if (!courseData.finalExam.isCurrent) {
+        doConfetii();
       }
-     
     }
   };
   const clear = () => {
@@ -259,9 +255,9 @@ const CourseDetail = () => {
     if (progress === 0) return "😢"; // Sad face at 0%
     if (progress <= 25) return "😟"; // Slightly worried
     if (progress <= 50) return "😐"; // Neutral
-    if (progress <= 75) return "🙂"; 
+    if (progress <= 75) return "🙂";
     // Smiling
-    
+
     return "😁"; // Happy face at 100%
   };
   return (
@@ -521,15 +517,15 @@ const CourseDetail = () => {
                 </div>
               </div>
             </div>
-
-            
           )}
           <div className="p-6 bg-white shadow-lg rounded-lg mt-10 w-full">
-    <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">Rate this Course</h2>
-    <div className="flex items-center justify-center">
-      <Rating courseId={id} userId={currentCourse._id} />
-    </div>
-  </div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">
+              Rate this Course
+            </h2>
+            <div className="flex items-center justify-center">
+              <Rating courseId={id} userId={currentCourse?._id} />
+            </div>
+          </div>
         </div>
       ) : (
         <Disccussion
@@ -538,7 +534,7 @@ const CourseDetail = () => {
           username={currentCourse.name}
         />
       )}
-      <Footer/>
+      <Footer />
     </>
   );
 };

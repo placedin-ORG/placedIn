@@ -74,27 +74,24 @@ router.post("/createCourse", async (req, res) => {
 
 router.get("/getCourses", async (req, res) => {
   try {
-    console.log(await Course.find())
+    // console.log(await Course.find());
     const courses = await Course.aggregate([
       {
-        $sort: { studentEnrolled: -1 } // Sort by studentEnrolled in descending order
+        $sort: { studentEnrolled: -1 }, // Sort by studentEnrolled in descending order
       },
       {
-        $limit: 3 // Limit the result to the top 3
-      }
+        $limit: 3, // Limit the result to the top 3
+      },
     ]);
-    
-    res.json({ courses });
-    
-res.json({ courses });
 
+    return res.json({ courses });
   } catch (err) {
     console.log(err);
   }
 });
 
-router.get("/topRatedCourses",async(req,res)=>{
-  try{
+router.get("/topRatedCourses", async (req, res) => {
+  try {
     const courses = await Course.aggregate([
       {
         $addFields: {
@@ -111,11 +108,11 @@ router.get("/topRatedCourses",async(req,res)=>{
       },
     ]);
 
-    res.status(200).json({courses});
-  }catch(err){
+    res.status(200).json({ courses });
+  } catch (err) {
     console.log(err.message);
   }
-})
+});
 router.post("/register", async (req, res) => {
   try {
     const existingUser = await User.findOne({ email: req.body.email });

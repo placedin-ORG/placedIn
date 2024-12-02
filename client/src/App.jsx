@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BrowserRouter, Routes, Route,useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import "./App.css";
 import ContentCreator from "./pages/ContentCreator";
 import CourseDetail from "./pages/CourseDetail";
@@ -26,9 +26,9 @@ import ExamInstructionPage from "./pages/exam/ExamInstructionPage";
 import ExamIntro from "./pages/exam/ExamIntro";
 import SearchResult from "./pages/searching/SearchResult";
 import UserExams from "./pages/exam/UserExams";
-import {useEffect} from 'react' ;
-import axios from 'axios';
-import {useSelector } from 'react-redux';
+import { useEffect } from "react";
+import axios from "axios";
+import { useSelector } from "react-redux";
 import CoinModel from "./component/CoinModel";
 function AppWrapper() {
   return (
@@ -38,142 +38,140 @@ function AppWrapper() {
   );
 }
 function App() {
-  const user=useSelector((state)=>state);
+  const user = useSelector((state) => state);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const location = useLocation();
   useEffect(() => {
-    if(user.user.user!==null){
-       const checkDailyLogin = async () => {
-      try {
-        const response = await axios.post('http://localhost:5000/api/v1/login/dailyLogin', { 
-        userId:user.user.user._id  
-        }); 
-        if(response.data.status){
-          setIsModalOpen(true);
-        }else{
-          setIsModalOpen(false);
-        }
-        // Backend API
-        const data = await response.json();
+    if (user.user.user !== null) {
+      const checkDailyLogin = async () => {
+        try {
+          const response = await axios.post(
+            "http://localhost:5000/api/v1/login/dailyLogin",
+            {
+              userId: user.user.user._id,
+            }
+          );
+          if (response.data.status) {
+            setIsModalOpen(true);
+          } else {
+            setIsModalOpen(false);
+          }
+          // Backend API
+          const data = await response.json();
 
-        // Show modal if the user hasn't logged in for the day
-        if (!data.dailyLogin) {
-          setIsModalOpen(true);
+          // Show modal if the user hasn't logged in for the day
+          if (!data.dailyLogin) {
+            setIsModalOpen(true);
+          }
+        } catch (error) {
+          console.error("Error checking daily login status:", error);
         }
-      } catch (error) {
-        console.error('Error checking daily login status:', error);
-      }
-    };
+      };
 
-    checkDailyLogin();
+      checkDailyLogin();
     }
-   
-  }, [location,user]);
+  }, [location, user]);
   return (
     <>
-        <ScrollToTop />
-        {isModalOpen && <CoinModel setIsModalOpen={setIsModalOpen} type="all"/>}
-        <Routes>
+      <ScrollToTop />
+      {isModalOpen && <CoinModel setIsModalOpen={setIsModalOpen} type="all" />}
+      <Routes>
+        <Route
+          path="/courseDetail/:id"
+          element={
+            <ProtectedRoutes>
+              <CourseDetail />
+            </ProtectedRoutes>
+          }
+        />
+        <Route path="/create" element={<ContentCreator />} />
+        <Route path="/" element={<Hompage />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/auth/email-sent" element={<EmailSentPage />} />
+        <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+        <Route path="/auth/reset-password/:token" element={<ResetPassword />} />
+
+        <Route
+          path="/finalExam/:userId/:courseId"
+          element={
+            <ProtectedRoutes>
+              <FinalExam />
+            </ProtectedRoutes>
+          }
+        />
+        <Route
+          path="/finalExam-Instruction/:userId/:courseId"
+          element={
+            <ProtectedRoutes>
+              <ExamInfoPage />
+            </ProtectedRoutes>
+          }
+        />
+        <Route path="/intro/course/:id" element={<CourseIntro />} />
+        <Route path="/courses" element={<AllCourses />} />
+
+        <Route path="/teacher-panel" element={<TeacherPanel />} />
+
+        {/* User Profile Routes */}
+        <Route path="/user" element={<UserLayout />}>
           <Route
-            path="/courseDetail/:id"
+            path="profile"
             element={
               <ProtectedRoutes>
-                <CourseDetail />
+                <Profile />
               </ProtectedRoutes>
             }
           />
-          <Route path="/create" element={<ContentCreator />} />
-          <Route path="/" element={<Hompage />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/auth/email-sent" element={<EmailSentPage />} />
-          <Route path="/auth/forgot-password" element={<ForgotPassword />} />
           <Route
-            path="/auth/reset-password/:token"
-            element={<ResetPassword />}
-          />
-
-          <Route
-            path="/finalExam/:userId/:courseId"
+            path="settings"
             element={
               <ProtectedRoutes>
-                <FinalExam />
+                <Setting />
               </ProtectedRoutes>
             }
           />
           <Route
-            path="/finalExam-Instruction/:userId/:courseId"
+            path="enrolled/courses"
             element={
               <ProtectedRoutes>
-                <ExamInfoPage />
+                <MyCourses />
               </ProtectedRoutes>
             }
           />
-          <Route path="/intro/course/:id" element={<CourseIntro />} />
-          <Route path="/courses" element={<AllCourses />} />
-
-          <Route path="/teacher-panel" element={<TeacherPanel />} />
-
-          {/* User Profile Routes */}
-          <Route path="/user" element={<UserLayout />}>
-            <Route
-              path="profile"
-              element={
-                <ProtectedRoutes>
-                  <Profile />
-                </ProtectedRoutes>
-              }
-            />
-            <Route
-              path="settings"
-              element={
-                <ProtectedRoutes>
-                  <Setting />
-                </ProtectedRoutes>
-              }
-            />
-            <Route
-              path="enrolled/courses"
-              element={
-                <ProtectedRoutes>
-                  <MyCourses />
-                </ProtectedRoutes>
-              }
-            />
-            <Route
-              path="my/exams"
-              element={
-                <ProtectedRoutes>
-                  <UserExams />
-                </ProtectedRoutes>
-              }
-            />
-          </Route>
-
-          {/* Exam Routes */}
-          <Route path="/allExams" element={<AllExams />} />
           <Route
-            path="/exam/:userId/:ExamId"
+            path="my/exams"
             element={
               <ProtectedRoutes>
-                <GiveExam />
+                <UserExams />
               </ProtectedRoutes>
             }
           />
-          <Route path="/" element={<UserLayout />}>
-            <Route
-              path="examInstruction/:userId/:ExamId"
-              element={
-                <ProtectedRoutes>
-                  <ExamInstructionPage />
-                </ProtectedRoutes>
-              }
-            />
-          </Route>
-          <Route path="/intro/exam/:id" element={<ExamIntro />} />
-          <Route path="/search/:query" element={<SearchResult />} />
-        </Routes>
-     
+        </Route>
+
+        {/* Exam Routes */}
+        <Route path="/allExams" element={<AllExams />} />
+        <Route
+          path="/exam/:userId/:ExamId"
+          element={
+            <ProtectedRoutes>
+              <GiveExam />
+            </ProtectedRoutes>
+          }
+        />
+        <Route path="/" element={<UserLayout />}>
+          <Route
+            path="examInstruction/:userId/:ExamId"
+            element={
+              <ProtectedRoutes>
+                <ExamInstructionPage />
+              </ProtectedRoutes>
+            }
+          />
+        </Route>
+        <Route path="/intro/exam/:id" element={<ExamIntro />} />
+        <Route path="/search/:query" element={<SearchResult />} />
+      </Routes>
     </>
   );
 }
