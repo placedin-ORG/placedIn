@@ -16,6 +16,7 @@ const ExamRoute = require("./routes/examRoute");
 const SearchRoute = require("./routes/SearchRoute");
 const ResetDailyLogin = require("./routes/ScheduleDailyLogin");
 const purchaseRoutes = require("./routes/purchaseRoutes");
+const certificateRoute=require("./routes/certificateRoute");
 require("dotenv").config();
 const cloudinary = require("cloudinary");
 
@@ -44,7 +45,7 @@ app.use("/api/rating", RatingRoute);
 app.use("/api/v1/exam", ExamRoute);
 app.use("/api/v1/search", SearchRoute);
 app.use("/api/v1/purchase", purchaseRoutes);
-
+app.use("/api/v1/certificate",certificateRoute);
 const connectDb = async () => {
   try {
     await mongoose.connect(`${process.env.MONGO_URI}/placedInDB`);

@@ -42,17 +42,17 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const location = useLocation();
   useEffect(() => {
-    if(user.user.user!==null){
-       const checkDailyLogin = async () => {
-      try {
-        const response = await axios.post('http://localhost:5000/api/v1/login/dailyLogin', { 
-        userId:user.user.user._id  
-        }); 
-        if(response.data.status){
-          setIsModalOpen(true);
-        }else{
-          setIsModalOpen(false);
-        }
+    // if(user.user.user!==null){
+    //    const checkDailyLogin = async () => {
+    //   try {
+    //     const response = await axios.post('http://localhost:5000/api/v1/login/dailyLogin', { 
+    //     userId:user.user.user._id  
+    //     }); 
+    //     if(response.data.status){
+    //       setIsModalOpen(true);
+    //     }else{
+    //       setIsModalOpen(false);
+    //     }
         // Backend API
         // const data = await response.json();
     if (user.user.user !== null) {

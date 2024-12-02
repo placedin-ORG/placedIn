@@ -10,6 +10,8 @@ import Toast from '../component/Toast';
 import Rating from '../component/Rating'
 import Footer from '../component/Layout/Footer';
 import CoinModel from '../component/CoinModel';
+import API from '../utils/API';
+import certificate from '../assets/placedIn.png'
 const FinalExam = () => {
   const navigate=useNavigate();
     const { userId ,courseId} = useParams(); 
@@ -22,6 +24,7 @@ const FinalExam = () => {
     const [start,setStart]=useState(false);
     const [remainingTime, setRemainingTime] = useState(null);
     const [cond,setcond]=useState(false);
+    const [username,setUsername]=useState("");
   const finalConfirmation = () => {
     setShowModal(true); // Show the confirmation modal
   };
@@ -78,7 +81,7 @@ const FinalExam = () => {
             }
             else if(data.data.msg==='found'){
               setExamResult(data.data.updatedData);
-             
+             console.log(data.data.updatedData)
             }
         }
         call()
@@ -166,6 +169,91 @@ const handleDoItLaterClick = (questionIndex) => {
     ...prevState,
     [questionIndex]: !prevState[questionIndex] || false, // Properly toggles "Do It Later"
   }));
+};
+
+// const downloadCertificate=async()=>{
+//   try{
+//     const response = await API.post(
+//       "/certificate/certificate-download",
+//       { name: "karan rawat", course: "java" },
+//       { responseType: "blob" } // Ensure the response is treated as binary data
+//     );
+//     console.log("Response Content-Type:", response.headers["content-type"]);
+//     console.log("Response Data Length:", response.data.size);
+//     const url = window.URL.createObjectURL(new Blob([response.data]));
+//     const link = document.createElement("a");
+//     link.href = url;
+//     link.setAttribute("download", "certificate.pdf");
+//     document.body.appendChild(link);
+//     link.click();
+//     link.parentNode.removeChild(link);
+//   }catch(err){
+//     console.log(err.message);
+//   }
+// }
+
+const [certificteModel,setCertificateModel]=useState(false);
+const canvasRef = useRef(null);
+
+const [generatedCertificate, setGeneratedCertificate] = useState(null);
+
+const handleGenerateCertificate = () => {
+  const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+
+    // Load the template image
+    const template = new Image();
+    template.src = certificate; // Update the path to your template image
+    if(!username){
+      toast.error("enter your name")
+      return ;
+    }
+    template.onload = () => {
+      // Draw the template
+      ctx.drawImage(template, 0, 0, canvas.width, canvas.height);
+
+      // Overlay text
+      ctx.fillStyle = "#000000"; // Black text
+      ctx.textAlign = "center";
+
+      // Website name
+      ctx.font = "24px Arial";
+      ctx.fillText("placedin", canvas.width / 2, 100);
+
+      // Title
+      ctx.font = "30px Arial bold";
+      ctx.fillText("Course Completion Certificate", canvas.width / 2, 200);
+
+      // Name
+      ctx.font = "28px Arial";
+      console.log(username)
+      ctx.fillText(`${username}`, canvas.width / 2, 300);
+
+      // Description
+      ctx.font = "18px Arial";
+      ctx.fillText(`Successfully completed the course ${examResult.updatedcourse.courseName}`, canvas.width / 2, 350);
+
+      // Signature
+      ctx.font = "18px Arial";
+      ctx.fillText("[Signature]", canvas.width - 100, canvas.height - 50);
+
+      // Save to state
+      const dataURL = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.href = dataURL;
+      link.download = "certificate.png";
+      link.click();
+      // handleDownload();
+    }; // Save the generated certificate to state
+};
+
+const handleDownload = () => {
+  if (!generatedCertificate) return;
+
+  const link = document.createElement("a");
+  link.href = generatedCertificate;
+  link.download = "certificate.png";
+  link.click();
 };
   return (
     <>
@@ -327,8 +415,69 @@ const handleDoItLaterClick = (questionIndex) => {
       >
         Back to Dashboard
       </button>
+      <button
+        onClick={() =>setCertificateModel(true)}
+        className="ml-2 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 transform hover:scale-105"
+      >
+        Download Certificate
+      </button>
     </div>
   </div> 
+{/*certificate model*/}
+{certificteModel && (
+       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+       <div className="bg-white rounded-lg p-6 w-[95%] relative shadow-xl">
+         {/* Close Button */}
+         <button
+           className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+           onClick={() => setCertificateModel(false)}
+         >
+           ✖
+         </button>
+        
+<h1 className="text-3xl font-semibold text-gray-800 mb-6">Certificate Generator</h1>
+
+<div className="w-full max-w-sm bg-white p-6 rounded-lg shadow-lg">
+ <label htmlFor="nameInput" className="block text-lg font-medium text-gray-700 mb-2">
+   Enter Your Name:
+ </label>
+ <input
+   type="text"
+   id="nameInput"
+   placeholder="John Doe"
+   className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+   value={username}
+   onChange={(e)=>setUsername(e.target.value)}
+ />
+ 
+ <button
+   onClick={handleGenerateCertificate}
+   className="w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 mb-4"
+ >
+   Generate Certificate
+ </button>
+ 
+ <canvas
+   ref={canvasRef}
+   width={800}
+   height={600}
+   style={{ display: "none" }}
+ ></canvas>
+ 
+ <button
+   id="downloadButton"
+   onClick={handleDownload}
+   className="w-full bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400"
+   style={{ display: "none" }}
+ >
+   Download Certificate
+ </button>
+</div>
+
+
+       </div>
+     </div>
+      )}  
  
 {
   examResult && (

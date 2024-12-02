@@ -33,15 +33,15 @@ router.post("/fetchCourse", async (req, res) => {
 router.post("/startLearning", async (req, res) => {
   try {
     const { _id, userId } = req.body;
-    console.log(userId);
+    // console.log(userId);
     const user = await User.findOne({
       _id: userId,
       "ongoingCourses.courseId": _id,
     });
 
     if (user) {
-      console.log("Course found in user data");
-      console.log(user);
+      // console.log("Course found in user data");
+      // console.log(user);
       return res.json({ status: true, updatedUse: user }); // Course is present
     } else {
       const course = await Course.findById(_id);
@@ -94,7 +94,7 @@ router.post("/startLearning", async (req, res) => {
         },
         { new: true }
       );
-      console.log(updatedUse);
+      // console.log(updatedUse);
 
       return res.json({ status: true, updatedUse }); // Course is not present
     }
@@ -106,15 +106,15 @@ router.post("/startLearning", async (req, res) => {
 router.post("/updateUser", async (req, res) => {
   try {
     const { selectedTopic, courseId, userId } = req.body;
-    console.log(userId);
-    console.log(courseId);
-    console.log(selectedTopic.chapterIndex);
-    console.log(selectedTopic.index);
+    // console.log(userId);
+    // console.log(courseId);
+    // console.log(selectedTopic.chapterIndex);
+    // console.log(selectedTopic.index);
     const userData = await User.findOne({
       _id: userId,
       "ongoingCourses.courseId": courseId,
     });
-    console.log("User data before update:", JSON.stringify(userData, null, 2));
+    // console.log("User data before update:", JSON.stringify(userData, null, 2));
     await User.updateOne(
       {
         _id: userId,
@@ -135,7 +135,7 @@ router.post("/updateUser", async (req, res) => {
       _id: userId,
       "ongoingCourses.courseId": courseId,
     });
-    console.log(userAfterUpdate);
+    // console.log(userAfterUpdate);
     return res.json({ status: true, userAfterUpdate });
   } catch (err) {
     console.log(err);
@@ -172,7 +172,7 @@ router.post("/openquiz", async (req, res) => {
       _id: userId,
       "ongoingCourses.courseId": courseId,
     });
-    console.log(userAfterUpdate);
+    // console.log(userAfterUpdate);
     return res.json({ status: true, userAfterUpdate });
   } catch (err) {
     console.log(err);
@@ -200,7 +200,7 @@ router.post("/openNextChapter", async (req, res) => {
       _id: userId,
       "ongoingCourses.courseId": courseId,
     });
-    console.log(userAfterUpdate);
+    // console.log(userAfterUpdate);
     return res.json({ status: true, userAfterUpdate });
   } catch (err) {
     console.log(err);
@@ -229,7 +229,7 @@ router.post("/openFinalExam", async (req, res) => {
       _id: userId,
       "ongoingCourses.courseId": courseId,
     });
-    console.log(userAfterUpdate);
+    // console.log(userAfterUpdate);
     return res.json({ status: true, userAfterUpdate });
   } catch (err) {
     console.log(err);
@@ -246,7 +246,7 @@ router.post("/examData", async (req, res) => {
     const course = userAfterUpdate?.ongoingCourses?.[0]; // Access the specific course
     if (course.finalExam.isCompleted) {
       const answers = Object.fromEntries(course.finalExam.result.answers[0]);
-      console.log(answers);
+      // console.log(answers);
       const finalExam = course.finalExam;
       const result = finalExam.questions.reduce(
         (acc, question, index) => {
@@ -255,7 +255,7 @@ router.post("/examData", async (req, res) => {
           );
           const userAnswer = userAnswerObj ? userAnswerObj[1] : null; // Get the user's answer (value) or null
 
-          console.log(userAnswer + "256");
+          // console.log(userAnswer + "256");
           acc.totalQuestions += 1;
 
           // Update counters
@@ -295,7 +295,7 @@ router.post("/examData", async (req, res) => {
         }
       );
 
-      console.log(result);
+      // console.log(result);
       const {
         totalQuestions,
         correct,
@@ -385,7 +385,7 @@ router.post("/examresult", async (req, res) => {
         );
         const userAnswer = userAnswerObj ? userAnswerObj[1] : null; // Get the user's answer (value) or null
 
-        console.log(userAnswer + "256");
+        // console.log(userAnswer + "256");
         acc.totalQuestions += 1;
 
         // Update counters
@@ -425,7 +425,7 @@ router.post("/examresult", async (req, res) => {
       }
     );
 
-    console.log(result);
+    // console.log(result);
     const {
       totalQuestions,
       correct,
