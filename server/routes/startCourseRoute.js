@@ -125,6 +125,9 @@ router.post("/updateUser", async (req, res) => {
           [`ongoingCourses.$[course].chapters.${
             selectedTopic.chapterIndex
           }.topics.${selectedTopic.index + 1}.isCurrent`]: true,
+          [`ongoingCourses.$[course].chapters.${
+            selectedTopic.chapterIndex
+          }.topics.${selectedTopic.index }.isCompleted`]:true
         },
       },
       {
@@ -162,6 +165,9 @@ router.post("/openquiz", async (req, res) => {
       {
         $set: {
           [`ongoingCourses.$[course].chapters.${selectedTopic.chapterIndex}.quiz.isCurrent`]: true,
+          [`ongoingCourses.$[course].chapters.${
+            selectedTopic.chapterIndex
+          }.topics.${selectedTopic.index }.isCompleted`]:true
         },
       },
       {
@@ -190,6 +196,8 @@ router.post("/openNextChapter", async (req, res) => {
       {
         $set: {
           [`ongoingCourses.$[course].chapters.${chapterIndex}.topics.${0}.isCurrent`]: true,
+          [`ongoingCourses.$[course].chapters.${chapterIndex-1}.quiz.isCompleted`]: true,
+          [`ongoingCourses.$[course].chapters.${chapterIndex-1}.isCompleted`]: true,
         },
       },
       {
@@ -209,7 +217,7 @@ router.post("/openNextChapter", async (req, res) => {
 
 router.post("/openFinalExam", async (req, res) => {
   try {
-    const { userId, courseId } = req.body;
+    const { userId, courseId,chapterIndex } = req.body;
 
     await User.updateOne(
       {
@@ -219,6 +227,8 @@ router.post("/openFinalExam", async (req, res) => {
       {
         $set: {
           [`ongoingCourses.$[course].finalExam.isCurrent`]: true,
+          [`ongoingCourses.$[course].chapters.${chapterIndex}.quiz.isCompleted`]: true,
+          [`ongoingCourses.$[course].chapters.${chapterIndex}.isCompleted`]: true,
         },
       },
       {

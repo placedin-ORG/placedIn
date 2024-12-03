@@ -30,6 +30,7 @@ import { useEffect } from "react";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import CoinModel from "./component/CoinModel";
+import UserProgress from "./pages/progress/UserProgress";
 function AppWrapper() {
   return (
     <BrowserRouter>
@@ -70,7 +71,7 @@ function App() {
             setIsModalOpen(false);
           }
           // Backend API
-          const data = await response.json();
+          // const data = await response.json();
 
           // // Show modal if the user hasn't logged in for the day
           // if (!data.dailyLogin) {
@@ -159,6 +160,14 @@ function App() {
                 <UserExams />
               </ProtectedRoutes>
             }
+          />
+          <Route
+          path="progress"
+          element={
+              <ProtectedRoutes>
+                <UserProgress/>
+              </ProtectedRoutes>
+          }
           />
         </Route>
 
