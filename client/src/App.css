@@ -59,3 +59,80 @@
 .resultPage{
   background-color: #FFFFFF;
 }
+
+@keyframes wave {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+.animate-wave {
+  background-size: 200% 100%;
+  animation: wave 2.5s infinite linear;
+}
+
+@keyframes bob {
+  0%, 100% {
+    transform: translateY(-50%) scale(1);
+  }
+  50% {
+    transform: translateY(-60%) scale(1.1);
+  }
+}
+
+.animate-bob {
+  animation: bob 1.8s infinite ease-in-out;
+}
+
+.delay-100 {
+  animation-delay: 0.2s;
+}
+
+.delay-200 {
+  animation-delay: 0.4s;
+}
+@keyframes jump {
+  0% {
+    transform: translateY(0);
+  }
+  25% {
+    transform: translateY(-10px);
+  }
+  50% {
+    transform: translateY(0);
+  }
+  75% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes flip {
+  0% {
+    transform: rotateY(0deg);
+  }
+  50% {
+    transform: rotateY(180deg);
+  }
+  100% {
+    transform: rotateY(360deg);
+  }
+}
+
+@keyframes jump-and-flip {
+  0%, 50% {
+    animation: jump 1s infinite;
+  }
+  50% {
+    animation: flip 1s ease-in-out;
+  }
+}
+
+.animate-jump-and-flip {
+  animation: jump 2s infinite, flip 2s 1s infinite ease-in-out;
+}
