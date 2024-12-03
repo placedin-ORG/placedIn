@@ -144,19 +144,13 @@ const getUpcomingExams = async (req, res) => {
       startDate: { $gt: new Date() },
     });
 
-    const completedExams = await getCompletedExams(userId);
-
-    const completedExamIds = completedExams.map((exam) =>
-      exam.ExamId._id.toString()
-    );
-
-    const upcomingExams = exams.filter(
-      (exam) => !completedExamIds.includes(exam._id.toString())
+    const upcomingExams = exams.filter((exam) =>
+      exam?.enrolledStudents?.some((student) => student.userId === userId)
     );
 
     res.status(200).json({ exams: upcomingExams });
   } catch (error) {
-    res.status(500).json({ error: "Failed to get exams data" });
+    res.status(500).json({ error: "Failed to get upcoming exams data" });
   }
 };
 
@@ -298,6 +292,32 @@ const update = async (req, res) => {
   }
 };
 
+// Enroll user in the course
+const enrollUser = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const exam = await Exam.findByIdAndUpdate(
+      req.params.id,
+      {
+        $push: { enrolledStudents: { userId } },
+      },
+      { new: true }
+    );
+
+    if (!exam) {
+      return res.status(404).json({ message: "Exam not found" });
+    }
+
+    res.status(200).json({
+      message: "User Enrolled successfully",
+      updatedExam: exam,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 // Get all the submitted exams
 
 const getExamSubmissions = async (req, res) => {
@@ -389,4 +409,5 @@ module.exports = {
   getExamById,
   getSubmissionById,
   saveScore,
+  enrollUser,
 };

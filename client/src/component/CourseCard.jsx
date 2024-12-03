@@ -71,9 +71,18 @@ const CourseCard = ({ course, isUser = false }) => {
           ) : (
             <>
               {course?.price ? (
-                <h5 className="text-emerald-500 font-semibold">
-                  ₹{course.price}{" "}
-                </h5>
+                <div className="flex gap-1 items-center">
+                  <h5 className="text-emerald-500 bg-green-100 rounded-xl px-2 font-semibold">
+                    ₹{course.price - course.discountAmount}{" "}
+                  </h5>
+                  {course.discountAmount > 0 && (
+                    <p>
+                      <span className="text-gray-600 line-through">
+                        ₹{course.price}{" "}
+                      </span>
+                    </p>
+                  )}
+                </div>
               ) : (
                 <h5 className="text-emerald-500 font-semibold">Free</h5>
               )}

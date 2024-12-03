@@ -97,7 +97,7 @@ const CourseIntro = () => {
   const handlePayment = async (address = "") => {
     const options = {
       key: import.meta.env.VITE_APP_RAZOR_API_KEY,
-      amount: Math.ceil(course.price) * 100,
+      amount: Math.ceil(course.price - course.discountAmount) * 100,
       currency: "INR",
       name: "PlacedIn",
       description: "Test Transaction",
@@ -109,7 +109,7 @@ const CourseIntro = () => {
           user: user.user.user._id,
           purchaseFor: "Course",
           paymentId: res.razorpay_payment_id,
-          amount: course.price,
+          amount: course.price - course.discountAmount,
           success: true,
         };
         await handlePurchase(payload);
@@ -132,7 +132,7 @@ const CourseIntro = () => {
         user: user.user.user._id,
         purchaseFor: "Course",
         paymentId: response.error.metadata.payment_id,
-        amount: course.price,
+        amount: course.price - course.discountAmount,
         success: false,
       };
       await handlePurchase(payload);
@@ -145,7 +145,7 @@ const CourseIntro = () => {
   const startLearning = async () => {
     if (user.user.user === null) {
       navigate("/register");
-    } else if (course.price > 0) {
+    } else if (!start && course.price > 0) {
       // If the course if paid -> Payments integration
       await handlePayment();
     } else {
@@ -166,15 +166,17 @@ const CourseIntro = () => {
 
   const handleEnroll = async () => {
     try {
-      const response = await API.post("/learn/startLearning", {
-        _id: id,
-        userId: user.user.user._id,
-      });
-      dispatch(
-        setCurrentCourse({
-          course: response.data.updatedUse,
-        })
-      );
+      if (!start) {
+        const response = await API.post("/learn/startLearning", {
+          _id: id,
+          userId: user.user.user._id,
+        });
+        dispatch(
+          setCurrentCourse({
+            course: response.data.updatedUse,
+          })
+        );
+      }
 
       navigate(`/courseDetail/${id}`);
     } catch (error) {
@@ -246,9 +248,27 @@ const CourseIntro = () => {
                 {/* Text Section */}
                 <div className="lg:w-5/6 w-full flex items-center justify-center py-5">
                   <div className="px-5 lg:px-36 flex flex-col gap-3">
-                    <p className="px-5 py-1 bg-green-100 text-green-500 rounded-2xl w-fit font-semibold">
-                      Free Course
-                    </p>
+                    <div className="flex items-center gap-1">
+                      <p className="px-5 py-1 bg-green-100 text-green-500 rounded-2xl w-fit font-semibold">
+                        {course.price > 0 ? (
+                          <p className="flex items-center justify-center gap-5">
+                            <span className="">
+                              ₹{course.price - course.discountAmount}{" "}
+                            </span>
+                          </p>
+                        ) : (
+                          "Free Course"
+                        )}
+                      </p>
+
+                      {course.discountAmount > 0 && (
+                        <p>
+                          <span className="text-gray-600 line-through">
+                            ₹{course.price}{" "}
+                          </span>
+                        </p>
+                      )}
+                    </div>
                     {/** Ratings */}
                     <div className="flex items-center space-y-4 justify-start    rounded-lg  w-full max-w-sm">
                       <div className="flex   justify-start space-x-1">

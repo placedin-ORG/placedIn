@@ -4,7 +4,7 @@ import SmallUnderline from "../../component/SmallUnderline";
 import Navbar from "../../component/Navbar";
 import ExamCard from "../../component/exams/ExamCard";
 import Xskeletonn from "../../component/loading/Xskeleton";
-import cannot from "../../assets/cannot.jpeg"
+import cannot from "../../assets/cannot.jpeg";
 const AllExams = () => {
   const [exams, setExams] = useState([]);
   const [filteredExams, setFilteredExams] = useState([]);
@@ -64,7 +64,7 @@ const AllExams = () => {
     : Array.from(new Set(exams.flatMap((exam) => exam.topics)));
 
   return (
-    <div className="grainy-light">
+    <div className="grainy-light min-h-screen">
       <Navbar />
       <div className="max-w-7xl mx-auto px-3 lg:px-8 py-10">
         <h1 className="text-center text-primary text-4xl font-bold relative">
@@ -105,18 +105,18 @@ const AllExams = () => {
           <Xskeletonn />
         ) : filteredExams.length === 0 ? (
           <div className="mt-16 flex flex-col items-center">
-              <img
-                src={cannot}
-                alt="No results"
-                className="mix-blend-darken w-72 h-72 mb-6"
-              />
-              <h2 className="text-2xl font-semibold text-gray-700">
-                No results found 
-              </h2>
-              <p className="mt-2 text-gray-500 text-center">
-                Try refining your category or explore other categories.
-              </p>
-            </div>
+            <img
+              src={cannot}
+              alt="No results"
+              className="mix-blend-darken w-72 h-72 mb-6"
+            />
+            <h2 className="text-2xl font-semibold text-gray-700">
+              No results found
+            </h2>
+            <p className="mt-2 text-gray-500 text-center">
+              Try refining your category or explore other categories.
+            </p>
+          </div>
         ) : (
           <div className="mt-16 grid grid-cols-1 place-items-center sm:grid-cols-2 lg:grid-cols-3 gap-10">
             {filteredExams.map((exam) => (

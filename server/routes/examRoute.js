@@ -14,6 +14,7 @@ const {
   getExamById,
   getSubmissionById,
   saveScore,
+  enrollUser,
 } = require("../controllers/examController");
 const { isAuth, authoriseRoles } = require("../middlewares/auth");
 
@@ -28,6 +29,7 @@ router.get("/completed-exams", isAuth, getUserCompletedExams);
 router.get("/submissions/:id", isAuth, getExamSubmissions);
 router.get("/submissions-detail/:id", isAuth, getSubmissionById);
 router.put("/save-score/:id", isAuth, saveScore);
+router.put("/enroll-user/:id", isAuth, enrollUser);
 
 router.get("/teacher/all", isAuth, getTeacherExams);
 

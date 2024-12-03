@@ -23,6 +23,8 @@ import "react-toastify/dist/ReactToastify.css";
 import Toast from "../../component/Toast";
 import axios from "axios";
 import ExamCard from "../../component/exams/ExamCard";
+import { useRazorpay } from "react-razorpay";
+import { tst } from "../../utils/utils";
 const CustomPrevArrow = ({ onClick }) => (
   <button
     onClick={onClick}
@@ -51,12 +53,14 @@ const ExamIntro = () => {
   const [relatedExam, setRelatedExam] = useState(null);
   const state = useSelector((state) => state.user.currentCourse);
   const [start, setStart] = useState(false);
+  const [enrolled, setEnrolled] = useState(false);
+
   const [loading, setLoading] = useState(true);
   const user = useSelector((state) => state);
+  const { error, isLoading, Razorpay } = useRazorpay();
+
   useEffect(() => {
     const call = async () => {
-      console.log(user.user.user);
-      console.log(state.user);
       if (user.user.user !== null) {
         const data = await API.post("/exam/fetchExam", {
           id,
@@ -67,23 +71,20 @@ const ExamIntro = () => {
           setLoading(false);
           console.log(new Date(data.data.exam.startDate));
           setExam(data.data.exam);
-          console.log(data.data.exam);
-          console.log(data.data.relatedExams);
-          if (data.data.relatedExams.length !== 0) {
-            setRelatedExam(data.data.relatedExams);
-          }
-          console.log(data.data.attempted);
-          if (data.data.attempted) {
-            setStart(true);
+          if (
+            data?.data?.exam?.enrolledStudents?.some(
+              (student) => student.userId === user.user.user._id
+            )
+          ) {
+            setEnrolled(true);
           }
         }
       } else {
-        console.log("sdj");
         const data = await API.post("/exam/fetchExam", {
           id,
           userId: null,
         });
-       
+
         if (data.data.status) {
           setLoading(false);
           setExam(data.data.exam);
@@ -100,11 +101,11 @@ const ExamIntro = () => {
     if (user.user.user === null) {
       navigate("/register");
     } else {
-      if (start) {
+      if (start || enrolled) {
         navigate(`/exam/${user.user.user._id}/${id}`);
       } else {
         if (exam.price > 0) {
-          toast.warning("this is a paid Exam");
+          await handlePayment();
         } else {
           navigate(`/examInstruction/${user.user.user._id}/${id}`);
         }
@@ -128,6 +129,65 @@ const ExamIntro = () => {
       // navigate(`/courseDetail/${id}`);
     }
   };
+
+  const handlePayment = async (address = "") => {
+    const options = {
+      key: import.meta.env.VITE_APP_RAZOR_API_KEY,
+      amount: Math.ceil(exam.price - exam.discountAmount) * 100,
+      currency: "INR",
+      name: "PlacedIn",
+      description: "Test Transaction",
+      image:
+        "https://s3.ap-south-1.amazonaws.com/assets.ynos.in/startup-logos/YNOS382149.jpg",
+      handler: async (res) => {
+        const payload = {
+          exam: exam._id,
+          user: user.user.user._id,
+          purchaseFor: "Exam",
+          paymentId: res.razorpay_payment_id,
+          amount: exam.price - exam.discountAmount,
+          success: true,
+        };
+        await handlePurchase(payload);
+        await API.put(`/exam/enroll-user/${exam._id}`);
+        setEnrolled(true);
+        toast.success("Payment successful");
+      },
+      prefill: {
+        name: user?.user?.name,
+        email: user?.user?.email,
+      },
+      theme: {
+        color: "#3399cc",
+      },
+    };
+
+    const handlePurchase = async (payload) => {
+      try {
+        const { data } = await API.post("/purchase/create", payload);
+        tst.success("Purchase info saved");
+      } catch (error) {
+        tst.error(error);
+      }
+    };
+
+    const rzpay = new Razorpay(options);
+    rzpay.on("payment.failed", async function (response) {
+      const payload = {
+        exam: exam._id,
+        user: user.user.user._id,
+        purchaseFor: "Exam",
+        paymentId: response.error.metadata.payment_id,
+        amount: exam.price - exam.discountAmount,
+        success: false,
+      };
+      await handlePurchase(payload);
+
+      toast.error("Payment falied \n Error Code: " + response.error.code);
+    });
+    rzpay.open();
+  };
+
   const settings = {
     dots: true, // Show pagination dots
     infinite: true, // Infinite loop scrolling
@@ -191,9 +251,26 @@ const ExamIntro = () => {
                 {/* Text Section */}
                 <div className="lg:w-5/6 w-full flex items-center justify-center py-5">
                   <div className="px-5 lg:px-36 flex flex-col gap-3">
-                    <p className="px-5 py-1 bg-green-100 text-green-500 rounded-2xl w-fit font-semibold">
-                      {exam.price > 0 ? ` ₹${exam.price}` : "Free"}
-                    </p>
+                    <div className="flex items-center gap-1">
+                      <p className="px-5 py-1 bg-green-100 text-green-500 rounded-2xl w-fit font-semibold">
+                        {exam.price > 0 ? (
+                          <p className="flex items-center justify-center gap-5">
+                            <span className="">
+                              ₹{exam.price - exam.discountAmount}{" "}
+                            </span>
+                          </p>
+                        ) : (
+                          "Free"
+                        )}
+                      </p>
+                      {exam.discountAmount > 0 && (
+                        <p>
+                          <span className="text-gray-600 line-through">
+                            ₹{exam.price}{" "}
+                          </span>
+                        </p>
+                      )}
+                    </div>
                     {/** Ratings */}
                     {/* <div className="flex items-center space-y-4 justify-start    rounded-lg  w-full max-w-sm">
      
@@ -236,7 +313,8 @@ const ExamIntro = () => {
                         className="text-base lg:text-xl text-white bg-primary-light w-fit px-8 lg:px-16 rounded-xl py-1.5 font-semibold"
                         onClick={() => startLearning()}
                       >
-                        {start ? "View Result" : "Start Your Exam"}
+                        {/* {start ? "View Result" : "Register for Exam"} */}
+                        {enrolled ? "Start Test Now" : "Register for Exam"}
                       </button>
                     ) : (
                       <button

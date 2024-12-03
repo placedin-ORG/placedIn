@@ -37,7 +37,7 @@ const ExamCard = ({ exam, isUser = false, completed = false }) => {
             "https://media.geeksforgeeks.org/wp-content/cdn-uploads/20220228124519/Artboard-6-min.png"
           }
           alt={exam.examTitle}
-          className="w-full h-full h-44 object-cover rounded-md mb-4"
+          className="w-full  h-44 object-cover rounded-md mb-4"
         />
 
         {/* Course Title */}
@@ -56,9 +56,18 @@ const ExamCard = ({ exam, isUser = false, completed = false }) => {
           ) : (
             <>
               {exam?.price ? (
-                <h5 className="text-emerald-500 font-semibold">
-                  ₹{exam.price}{" "}
-                </h5>
+                <div className="flex gap-1 items-center">
+                  <h5 className="text-emerald-500 bg-green-100 rounded-xl px-2 font-semibold">
+                    ₹{exam.price - exam.discountAmount}{" "}
+                  </h5>
+                  {exam.discountAmount > 0 && (
+                    <p>
+                      <span className="text-gray-600 line-through">
+                        ₹{exam.price}{" "}
+                      </span>
+                    </p>
+                  )}
+                </div>
               ) : (
                 <h5 className="text-emerald-500 font-semibold">Free</h5>
               )}

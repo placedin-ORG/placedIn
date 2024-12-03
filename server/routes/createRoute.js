@@ -16,11 +16,12 @@ router.post("/createCourse", async (req, res) => {
       examDuration,
       courseThumbnail,
       id,
+      discountAmount,
       courseCategory,
     } = req.body;
 
     let thumbnail = courseThumbnail;
-    const base64Data = courseThumbnail.split(";base64,").pop(); // Remove metadata
+    const base64Data = courseThumbnail?.split(";base64,").pop(); // Remove metadata
     if (base64Data) {
       const buffer = Buffer.from(base64Data, "base64");
 
@@ -36,6 +37,7 @@ router.post("/createCourse", async (req, res) => {
         description,
         chapters,
         questions,
+        discountAmount,
         examDuration,
         courseThumbnail: thumbnail,
         courseCategory,
@@ -50,6 +52,7 @@ router.post("/createCourse", async (req, res) => {
           price,
           title: courseTitle,
           description,
+          discountAmount,
           chapters,
           questions,
           examDuration,

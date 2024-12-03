@@ -12,7 +12,7 @@ const examSchema = new mongoose.Schema(
     acceptedResultDate: { type: Date, required: true }, // Date when results are accepted/published
     price: { type: Number, required: true },
     category: { type: String, required: true }, // Price for the exam
-    numberOfStudents: [
+    enrolledStudents: [
       {
         userId: {
           type: String,

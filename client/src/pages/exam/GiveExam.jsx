@@ -161,12 +161,12 @@ const GiveExam = () => {
     console.log(selectedOptions);
     try {
       const finalAnswers = {
-        objective: selectedOptions, // Object with question indices and selected options
-        subjective: subjectiveAnswers, // Object with question indices and subjective text answers
+        objective: selectedOptions,
+        subjective: subjectiveAnswers,
       };
       const response = await API.post("/exam/submit-exam", {
-        userId, // Replace with actual user ID
-        ExamId, // Replace with actual exam ID
+        userId,
+        ExamId,
         userAnswers: finalAnswers,
       });
       if (response.data.message === "Exam submitted successfully") {
