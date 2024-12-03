@@ -205,7 +205,7 @@ const SideBar = () => {
 
         {/* Progress */}
         <NavLink
-          to={"/progress"}
+          to={"/user/progress"}
           className={({ isActive }) =>
             `p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-emerald-100 text-gray-700 hover:text-primary ${
               isActive && "bg-emerald-100 text-primary"

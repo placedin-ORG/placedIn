@@ -117,6 +117,15 @@ const userSchema = new mongoose.Schema({
             type: Number,
           },
         },
+        certificate:{
+          name:{
+            type:String
+          },
+          downloaded:{
+            type:Boolean,
+            default:false
+          }
+        }
       },
     },
   ],

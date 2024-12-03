@@ -81,7 +81,8 @@ const FinalExam = () => {
             }
             else if(data.data.msg==='found'){
               setExamResult(data.data.updatedData);
-             console.log(data.data.updatedData)
+             console.log(data.data.updatedData);
+             setIsExamSubmitted(true);
             }
         }
         call()
@@ -100,7 +101,7 @@ const FinalExam = () => {
         console.log(selectedOptions)
     };
    
-    
+ 
     
     const selectedOptionsRef = useRef(selectedOptions); // Ref to track selectedOptions
 
@@ -118,13 +119,25 @@ const FinalExam = () => {
           handleSubmitExam();
         }
       };
-
+      const handleBeforeUnload = (e) => {
+        e.preventDefault();
+        toast.error("Reloading the page make the exam auto submit");
+        handleSubmitExam();
+        return ;
+      };
+      const handleWindowBlur = () => {
+        toast.error("Leaving the page make the exam auto submit")
+        handleSubmitExam();
+       };
       // Attach Event Listeners
       document.addEventListener("fullscreenchange", handleFullscreenChange);
-
+      window.addEventListener("beforeunload", handleBeforeUnload);
+      window.addEventListener("blur", handleWindowBlur);
       // Cleanup Event Listeners
       return () => {
         document.removeEventListener("fullscreenchange", handleFullscreenChange);
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+        window.removeEventListener("blur", handleWindowBlur);
       };
     }
   }, [isExamSubmitted]);
@@ -197,14 +210,14 @@ const canvasRef = useRef(null);
 
 const [generatedCertificate, setGeneratedCertificate] = useState(null);
 
-const handleGenerateCertificate = () => {
+const handleGenerateCertificate = async() => {
   const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
 
     // Load the template image
     const template = new Image();
     template.src = certificate; // Update the path to your template image
-    if(!username){
+    if(!username &&  !examResult.updatedcourse.finalExam.certificate.downloaded){
       toast.error("enter your name")
       return ;
     }
@@ -226,8 +239,12 @@ const handleGenerateCertificate = () => {
 
       // Name
       ctx.font = "28px Arial";
-      console.log(username)
-      ctx.fillText(`${username}`, canvas.width / 2, 300);
+     if( examResult.updatedcourse.finalExam.certificate.downloaded){
+       ctx.fillText(`${examResult.updatedcourse.finalExam.certificate.name}`, canvas.width / 2, 300);
+     }else{
+      ctx.fillText(`${name}`, canvas.width / 2, 300);
+     }
+     
 
       // Description
       ctx.font = "18px Arial";
@@ -245,6 +262,15 @@ const handleGenerateCertificate = () => {
       link.click();
       // handleDownload();
     }; // Save the generated certificate to state
+    if(!examResult.updatedcourse.finalExam.certificate.downloaded){
+        await API.post('/certificate/update-certificate',{
+      userId,
+      courseId
+    })
+    setCertificateModel(false)
+    window.location.reload();
+    }
+  
 };
 
 const handleDownload = () => {
@@ -255,11 +281,15 @@ const handleDownload = () => {
   link.download = "certificate.png";
   link.click();
 };
+
+
   return (
     <>
         
       {/* Display remaining time */}
-      <div className="bg-gray-50  flex flex-col">
+      {
+        examData && (
+         <div className="bg-gray-50  flex flex-col border">
       {/* Remaining Time */}
       <Toast/>
       {remainingTime !== null && (
@@ -359,7 +389,10 @@ const handleDownload = () => {
         )}
     </div>
 
-    </div>
+    </div> 
+        )
+      }
+      
  
 {
   examResult && (
@@ -441,7 +474,14 @@ const handleDownload = () => {
  <label htmlFor="nameInput" className="block text-lg font-medium text-gray-700 mb-2">
    Enter Your Name:
  </label>
- <input
+ {
+  examResult.updatedcourse.finalExam.certificate.downloaded ? <input
+  type="text"
+  id="nameInput"
+  placeholder="John Doe"
+  className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+  value={ examResult.updatedcourse.finalExam.certificate.name}
+/>: <input
    type="text"
    id="nameInput"
    placeholder="John Doe"
@@ -449,6 +489,8 @@ const handleDownload = () => {
    value={username}
    onChange={(e)=>setUsername(e.target.value)}
  />
+ }
+
  
  <button
    onClick={handleGenerateCertificate}

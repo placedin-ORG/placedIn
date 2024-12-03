@@ -201,6 +201,7 @@ const CourseDetail = () => {
       const updatedData = await API.post("/learn/openFinalExam", {
         userId: currentCourse._id,
         courseId: id,
+        chapterIndex
       });
       const course = updatedData.data.userAfterUpdate.ongoingCourses.find(
         (course) => course.courseId === id
@@ -241,9 +242,9 @@ const CourseDetail = () => {
 
     const completedItems = courseData.chapters.reduce((sum, chapter) => {
       const completedTopics = chapter.topics.filter(
-        (topic) => topic.isCurrent
+        (topic) => topic.isCompleted
       ).length;
-      const completedQuiz = chapter.quiz && chapter.quiz.isCurrent ? 1 : 0;
+      const completedQuiz = chapter.quiz && chapter.quiz.isCompleted ? 1 : 0;
       return sum + completedTopics + completedQuiz;
     }, 0);
 
