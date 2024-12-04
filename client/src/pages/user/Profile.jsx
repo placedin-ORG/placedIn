@@ -1,4 +1,4 @@
-import React,{useState,useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -12,8 +12,10 @@ const Profile = () => {
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
-        console.log(current.user.user._id)
-        const response = await API.get(`/ranking/site-leaderboard?userId=${current.user.user._id}`);
+        console.log(current.user.user._id);
+        const response = await API.get(
+          `/ranking/site-leaderboard?userId=${current.user.user._id}`
+        );
         if (response.data.status) {
           setLeaderboard(response.data.leaderboard);
           setCurrentUserRank(response.data.currentUserRank);
@@ -40,11 +42,11 @@ const Profile = () => {
   return (
     <div className="p-6 min-h-screen">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6 px-4">
+      <div className="flex justify-between items-start mb-6 px-4">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-800">
+          <h1 className="text-xl sm:text-2xl font-semibold text-gray-800">
             Welcome,{" "}
-            <span className="text-primary font-mono tracking-widest">
+            <span className="block sm:inline text-primary font-mono tracking-widest">
               {userData.name}
             </span>
           </h1>
@@ -54,7 +56,7 @@ const Profile = () => {
         </div>
         <Link
           to={"/user/settings"}
-          className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-light"
+          className="px-4 py-2 bg-primary whitespace-nowrap text-white rounded-md hover:bg-primary-light"
         >
           Edit Profile
         </Link>
@@ -206,68 +208,100 @@ const Profile = () => {
       </div>
       {/* Leaderboard (Placeholder) */}
       <div className="mt-8">
-  <h2 className="text-lg flex gap-2 font-semibold text-gray-700 items-center"> <FaTrophy className="text-yellow-400 text-3xl"/>Leaderboard</h2>
-  <div className="w-full max-w-3xl mx-auto mt-6 p-4 bg-gradient-to-br from-green-100 to-green-300 shadow-md rounded-md">
-    {currentUserRank && (
-      <motion.div
-        className={`flex items-center justify-between p-4 rounded-lg shadow transform transition-transform duration-300 ${getShieldStyle(
-          currentUserRank.shield
-        )}`}
-      >
-        <div className="text-lg font-semibold text-gray-800">
-          #{currentUserRank.position} (You)
-        </div>
-        <div className="text-sm text-gray-700">{currentUserRank.username}</div>
-        <div className="flex items-center gap-2">
-          {currentUserRank.shield === "Gold" && <span className="text-yellow-500 text-lg"><FaShieldAlt/></span>}
-          {currentUserRank.shield === "Silver" && <span className="text-gray-400 text-lg"><FaShieldAlt/></span>}
-          {currentUserRank.shield === "Bronze" && <span className="text-red-600 text-lg"><FaShieldAlt/></span>}
-          <div className="text-sm font-medium text-gray-800">
-            {currentUserRank.totalScore} pts
-          </div>
-        </div>
-      </motion.div>
-    )}
-
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.8 }}
-      className="grid grid-cols-1 gap-4 mt-4 overflow-y-auto h-80"
-    >
-      {leaderboard
-        .filter(student => student.position <= 100)  // Filter top 100 students
-        .map((student, index) => (
-          <motion.div
-            key={student.position}
-            className={`flex items-center justify-between p-4 rounded-lg shadow transform hover:scale-105 transition-transform duration-200 ${getShieldStyle(
-              student.shield
-            )}`}
-            initial={{ x: "-50vw" }}
-            animate={{ x: 0 }}
-            transition={{
-              type: "spring",
-              stiffness: 70,
-              delay: index * 0.05,
-            }}
-          >
-            <div className="text-lg font-semibold text-gray-800">#{student.position}</div>
-            <div className="text-sm text-gray-700">{student.username}</div>
-            <div className="flex items-center gap-2">
-              {student.shield === "Gold" && <span className="text-yellow-500 text-lg"><FaShieldAlt/></span>}
-              {student.shield === "Silver" && <span className="text-gray-500 text-lg"><FaShieldAlt/></span>}
-              {student.shield === "Bronze" && <span className="text-red-600 text-lg"><FaShieldAlt/></span>}
-              <div className="text-sm font-medium text-gray-800">
-                {student.totalScore} pts
+        <h2 className="text-lg flex gap-2 font-semibold text-gray-700 items-center">
+          {" "}
+          <FaTrophy className="text-yellow-400 text-3xl" />
+          Leaderboard
+        </h2>
+        <div className="w-full max-w-3xl mx-auto mt-6 p-4 bg-gradient-to-br from-green-100 to-green-300 shadow-md rounded-md">
+          {currentUserRank && (
+            <motion.div
+              className={`flex items-center justify-between p-4 rounded-lg shadow transform transition-transform duration-300 ${getShieldStyle(
+                currentUserRank.shield
+              )}`}
+            >
+              <div className="text-lg font-semibold text-gray-800">
+                #{currentUserRank.position} (You)
               </div>
-            </div>
+              <div className="text-sm text-gray-700">
+                {currentUserRank.username}
+              </div>
+              <div className="flex items-center gap-2">
+                {currentUserRank.shield === "Gold" && (
+                  <span className="text-yellow-500 text-lg">
+                    <FaShieldAlt />
+                  </span>
+                )}
+                {currentUserRank.shield === "Silver" && (
+                  <span className="text-gray-400 text-lg">
+                    <FaShieldAlt />
+                  </span>
+                )}
+                {currentUserRank.shield === "Bronze" && (
+                  <span className="text-red-600 text-lg">
+                    <FaShieldAlt />
+                  </span>
+                )}
+                <div className="text-sm font-medium text-gray-800">
+                  {currentUserRank.totalScore} pts
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8 }}
+            className="grid grid-cols-1 gap-4 mt-4 overflow-y-auto h-80"
+          >
+            {leaderboard
+              .filter((student) => student.position <= 100) // Filter top 100 students
+              .map((student, index) => (
+                <motion.div
+                  key={student.position}
+                  className={`flex items-center justify-between p-4 rounded-lg shadow transform hover:scale-105 transition-transform duration-200 ${getShieldStyle(
+                    student.shield
+                  )}`}
+                  initial={{ x: "-50vw" }}
+                  animate={{ x: 0 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 70,
+                    delay: index * 0.05,
+                  }}
+                >
+                  <div className="text-lg font-semibold text-gray-800">
+                    #{student.position}
+                  </div>
+                  <div className="text-sm text-gray-700">
+                    {student.username}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {student.shield === "Gold" && (
+                      <span className="text-yellow-500 text-lg">
+                        <FaShieldAlt />
+                      </span>
+                    )}
+                    {student.shield === "Silver" && (
+                      <span className="text-gray-500 text-lg">
+                        <FaShieldAlt />
+                      </span>
+                    )}
+                    {student.shield === "Bronze" && (
+                      <span className="text-red-600 text-lg">
+                        <FaShieldAlt />
+                      </span>
+                    )}
+                    <div className="text-sm font-medium text-gray-800">
+                      {student.totalScore} pts
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
           </motion.div>
-        ))}
-    </motion.div>
-  </div>
-</div>
-
-
+        </div>
+      </div>
     </div>
   );
 };

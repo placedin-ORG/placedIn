@@ -89,11 +89,8 @@ const Navbar = () => {
             </div>
 
             {user ? (
-              <Link
-                to={"/user/profile"}
-                className="bg-primary text-xs sm:text-sm text-white px-4 py-2 rounded-md hover:bg-green-600"
-              >
-                Profile
+              <Link to={"/user/profile"} className="rounded-full">
+                <img src="/images/avatar.png" className="h-10 w-10" alt="" />
               </Link>
             ) : (
               <Link

@@ -4,6 +4,11 @@ const courseSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  teacher: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Admin",
+    required: true,
+  },
   rating: [
     {
       userId: {
