@@ -207,12 +207,10 @@ const Profile = () => {
       {/* Leaderboard (Placeholder) */}
       <div className="mt-8">
   <h2 className="text-lg flex gap-2 font-semibold text-gray-700 items-center"> <FaTrophy className="text-yellow-400 text-3xl"/>Leaderboard</h2>
-  <div className="w-full max-w-3xl mx-auto mt-6 p-4 bg-gradient-to-br from-green-100 to-green-300 shadow-md rounded-md">
+  <div className="w-full max-w-3xl mx-auto mt-6 p-4 bg-gradient-to-br shadow-md rounded-md">
     {currentUserRank && (
       <motion.div
-        className={`flex items-center justify-between p-4 rounded-lg shadow transform transition-transform duration-300 ${getShieldStyle(
-          currentUserRank.shield
-        )}`}
+        className={`flex items-center justify-between p-4 rounded-lg shadow transform transition-transform duration-300 bg-green-300`}
       >
         <div className="text-lg font-semibold text-gray-800">
           #{currentUserRank.position} (You)
@@ -240,9 +238,9 @@ const Profile = () => {
         .map((student, index) => (
           <motion.div
             key={student.position}
-            className={`flex items-center justify-between p-4 rounded-lg shadow transform hover:scale-105 transition-transform duration-200 ${getShieldStyle(
-              student.shield
-            )}`}
+            className={`flex items-center justify-between p-4 rounded-lg shadow transform hover:scale-105 transition-transform duration-200 ${
+              student.position <= 3 ? "bg-yellow-400" : "bg-grey-100"
+            }`}
             initial={{ x: "-50vw" }}
             animate={{ x: 0 }}
             transition={{
