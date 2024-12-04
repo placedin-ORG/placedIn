@@ -31,6 +31,7 @@ import axios from "axios";
 import { useSelector } from "react-redux";
 import CoinModel from "./component/CoinModel";
 import UserProgress from "./pages/progress/UserProgress";
+import Transactions from "./pages/user/Transactions";
 function AppWrapper() {
   return (
     <BrowserRouter>
@@ -46,16 +47,16 @@ function App() {
     // if(user.user.user!==null){
     //    const checkDailyLogin = async () => {
     //   try {
-    //     const response = await axios.post('http://localhost:5000/api/v1/login/dailyLogin', { 
-    //     userId:user.user.user._id  
-    //     }); 
+    //     const response = await axios.post('http://localhost:5000/api/v1/login/dailyLogin', {
+    //     userId:user.user.user._id
+    //     });
     //     if(response.data.status){
     //       setIsModalOpen(true);
     //     }else{
     //       setIsModalOpen(false);
     //     }
-        // Backend API
-        // const data = await response.json();
+    // Backend API
+    // const data = await response.json();
     if (user.user.user !== null) {
       const checkDailyLogin = async () => {
         try {
@@ -146,6 +147,14 @@ function App() {
             }
           />
           <Route
+            path="transactions"
+            element={
+              <ProtectedRoutes>
+                <Transactions />
+              </ProtectedRoutes>
+            }
+          />
+          <Route
             path="enrolled/courses"
             element={
               <ProtectedRoutes>
@@ -162,12 +171,12 @@ function App() {
             }
           />
           <Route
-          path="progress"
-          element={
+            path="progress"
+            element={
               <ProtectedRoutes>
-                <UserProgress/>
+                <UserProgress />
               </ProtectedRoutes>
-          }
+            }
           />
         </Route>
 

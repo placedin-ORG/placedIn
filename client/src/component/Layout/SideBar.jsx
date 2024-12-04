@@ -13,6 +13,7 @@ import { setLogOut } from "../../redux/UserSlice";
 import { PiExam } from "react-icons/pi";
 import { FiBookOpen } from "react-icons/fi";
 import { GiProgression } from "react-icons/gi";
+import { LiaMoneyCheckSolid } from "react-icons/lia";
 
 const SideBar = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
@@ -158,7 +159,7 @@ const SideBar = () => {
         </div>
 
         {/* Tests */}
-        <div
+        {/* <div
           className="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-emerald-100 text-gray-700 hover:text-primary"
           onClick={() => toggleDropdown("tests")}
         >
@@ -201,7 +202,7 @@ const SideBar = () => {
               Mock Tests
             </NavLink>
           </div>
-        </div>
+        </div> */}
 
         {/* Progress */}
         <NavLink
@@ -214,6 +215,19 @@ const SideBar = () => {
         >
           <GiProgression className="text-xl" />
           <span className="text-[15px] ml-4 font-semibold">Progress</span>
+        </NavLink>
+
+        {/* Transactions */}
+        <NavLink
+          to={"/user/transactions"}
+          className={({ isActive }) =>
+            `p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-emerald-100 text-gray-700 hover:text-primary ${
+              isActive && "bg-emerald-100 text-primary"
+            }`
+          }
+        >
+          <LiaMoneyCheckSolid className="text-xl" />
+          <span className="text-[15px] ml-4 font-semibold">Transactions</span>
         </NavLink>
 
         {/* Settings */}

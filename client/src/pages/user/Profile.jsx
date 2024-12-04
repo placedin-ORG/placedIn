@@ -122,11 +122,22 @@ const Profile = () => {
               </div>
               <p className="text-sm font-normal text-gray-500">
                 Progress:{" "}
-                {(
-                  (course.chapters.filter((ch) => ch.isCurrent).length /
-                    course.chapters.length) *
-                  100
-                ).toFixed(0)}
+                {(() => {
+                  const totalTopics = course.chapters.reduce(
+                    (acc, chapter) => acc + chapter.topics.length,
+                    0
+                  );
+                  const completedTopics = course.chapters.reduce(
+                    (acc, chapter) =>
+                      acc +
+                      chapter.topics.filter((topic) => topic.isCompleted)
+                        .length,
+                    0
+                  );
+                  return totalTopics > 0
+                    ? ((completedTopics / totalTopics) * 100).toFixed(0)
+                    : 0;
+                })()}
                 %
               </p>
               {/* Progress Bar */}
@@ -134,11 +145,22 @@ const Profile = () => {
                 <div
                   className="bg-blue-500 h-2 rounded-full"
                   style={{
-                    width: `${
-                      (course.chapters.filter((ch) => ch.isCurrent).length /
-                        course.chapters.length) *
-                      100
-                    }%`,
+                    width: `${(() => {
+                      const totalTopics = course.chapters.reduce(
+                        (acc, chapter) => acc + chapter.topics.length,
+                        0
+                      );
+                      const completedTopics = course.chapters.reduce(
+                        (acc, chapter) =>
+                          acc +
+                          chapter.topics.filter((topic) => topic.isCompleted)
+                            .length,
+                        0
+                      );
+                      return totalTopics > 0
+                        ? (completedTopics / totalTopics) * 100
+                        : 0;
+                    })()}%`,
                   }}
                 ></div>
               </div>
@@ -160,22 +182,20 @@ const Profile = () => {
                             : "text-gray-400"
                         }`}
                       >
-                        {
-                          // chapter.isCompleted
-                          //   ? "✔️"
-                          //   :
-                          chapter.isCurrent ? "✔️" : "🎯"
-                        }
+                        {chapter.isCompleted
+                          ? "✔️"
+                          : chapter.isCurrent
+                          ? "🎯"
+                          : "🔄"}
                       </span>
                       {chapter.title}
                     </p>
                     <p>
-                      {
-                        // chapter.isCompleted
-                        //   ? "Completed"
-                        //   :
-                        chapter.isCurrent ? "Completed" : "In Progress"
-                      }
+                      {chapter.isCompleted
+                        ? "Completed"
+                        : chapter.isCurrent
+                        ? "In Progress"
+                        : "Remaining"}
                     </p>
                   </div>
                 ))}
