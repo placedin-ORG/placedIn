@@ -20,7 +20,7 @@ useEffect(()=>{
       
     }
     call()
-},[])
+},[query])
 return (
     <>
    <Navbar />
