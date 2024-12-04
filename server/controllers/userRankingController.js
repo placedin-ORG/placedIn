@@ -125,8 +125,34 @@ const leaderboard = async (req, res) => {
   }
 };
 
+const profileData=async(req,res)=>{
+  try{
+    const { userId } = req.body;
 
+    // Fetch the current student's data
+    const student = await User.findById(userId);
+    if (!student) {
+      return res.json({ status: false, message: "Student not found" });
+    }
+
+    // Calculate completed courses for the current student
+    const completedCoursesCount = student.ongoingCourses.filter(
+      (course) => course.finalExam.isCurrent
+    ).length;
+
+    // Fetch the current student's exam results
+    const results = await ExamResult.find({ userId: userId });
+    const resultCount = results.length;
+    const profileData={
+      completedCoursesCount,resultCount,username:student.name,email:student.email
+    }
+    res.json({status:true,profileData})
+  }catch(err){
+    console.log(err.message);
+  }
+}
 module.exports={
     ranking,
-    leaderboard
+    leaderboard,
+    profileData
 }

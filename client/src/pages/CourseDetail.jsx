@@ -30,7 +30,8 @@ const CourseDetail = () => {
   const [selectedOptions, setSelectedOptions] = useState({});
   const [isVideoWatched, setIsVideoWatched] = useState(false);
   const { id } = useParams();
-  const currentCourse = useSelector((state) => state.user.currentCourse);
+  const currentCourse = useSelector((state) => state.user.user);
+  console.log(currentCourse)
 
   useEffect(() => {
     const call = async () => {

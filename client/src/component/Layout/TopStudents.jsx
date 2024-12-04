@@ -3,11 +3,14 @@ import { useSelector } from "react-redux";
 import { motion } from "framer-motion";
 import API from "../../utils/API";
 import { FaShieldAlt, FaBook, FaFileAlt, FaTrophy } from "react-icons/fa";
+import ProfileModel from "../model/ProfileModel";
 const TopStudents=()=>{
 
     const current = useSelector((state) => state);
     const [leaderboard, setLeaderboard] = useState([]);
     const [currentUserRank, setCurrentUserRank] = useState(null);
+     const [showModel,setShowModal]=useState(false);
+     const [userId,setid]=useState(null);
     useEffect(() => {
       const fetchLeaderboard = async () => {
         try {
@@ -36,10 +39,16 @@ const TopStudents=()=>{
           return "bg-gray-200 text-gray-700";
       }
     };
+
+    const handleProfileClick=(_id)=>{
+      setShowModal(true);
+      setid(_id)
+    }
+   
     return (
         <>
-    <div className="grainy-light pb-5">
-  <h2 className="w-full text-2xl flex gap-3 font-semibold justify-center items-center bg-gradient-to-r from-green-300 to-green-500 text-white p-4 rounded-lg shadow-lg">
+    <div className="grainy-light pb-10">
+  <h2 className="w-full text-2xl flex gap-3 font-semibold justify-center items-center bg-gradient-to-r from-green-300 to-green-500 text-white p-4 rounded-lg ">
     <FaTrophy className="text-yellow-400 text-4xl animate-pulse" />
     <span className="text-2xl font-bold text-white">Top Students</span>
   </h2>
@@ -52,7 +61,8 @@ const TopStudents=()=>{
         .map((student, index) => (
           <motion.div
             key={student.position}
-            className="flex flex-col items-center p-6 rounded-lg shadow-lg hover:scale-105 transition-all duration-500 transform-gpu hover:rotate-2 hover:shadow-2xl hover:bg-gradient-to-r hover:from-blue-300 hover:to-blue-500"
+            onClick={()=>handleProfileClick(student.userId)}
+            className="flex flex-col items-center p-6 rounded-lg shadow hover:scale-105 transition-all duration-500 transform-gpu hover:rotate-2 hover:shadow-custom hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 border border-yellow-400"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{
@@ -76,6 +86,7 @@ const TopStudents=()=>{
               <div className="text-sm font-medium text-gray-800">
                 {student.totalScore} pts
               </div>
+        
             </div>
           </motion.div>
         ))}
@@ -83,7 +94,9 @@ const TopStudents=()=>{
   </div>
 </div>
 
-
+{
+  showModel && <ProfileModel setShowModal={setShowModal} userId={userId}/>
+}
 
         </>
     )
