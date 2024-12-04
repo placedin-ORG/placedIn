@@ -66,26 +66,6 @@ const Navbar = () => {
               >
                 Exams
               </NavLink>
-              <NavLink
-                to="/test-series"
-                className={({ isActive }) =>
-                  isActive
-                    ? "text-primary font-medium border-b-2 border-primary"
-                    : "text-gray-700 hover:text-primary font-medium"
-                }
-              >
-                Test Series
-              </NavLink>
-              <NavLink
-                to="/skill-academy"
-                className={({ isActive }) =>
-                  isActive
-                    ? "text-primary font-medium border-b-2 border-primary"
-                    : "text-gray-700 hover:text-primary font-medium"
-                }
-              >
-                Skill Academy
-              </NavLink>
             </div>
 
             {user ? (

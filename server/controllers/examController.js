@@ -292,6 +292,30 @@ const update = async (req, res) => {
   }
 };
 
+// Make the results live
+
+const liveResults = async (req, res) => {
+  try {
+    const exam = await Exam.findByIdAndUpdate(
+      req.params.id,
+      {
+        $set: { publishResult: true },
+      },
+      {
+        new: true,
+      }
+    );
+
+    if (!exam) return res.status(404).json({ message: "Exam data not found" });
+
+    res.status(200).json({ message: "Exam Are lve successfully", exam });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: error.message, message: "Failed to Live the Exams" });
+  }
+};
+
 // Enroll user in the course
 const enrollUser = async (req, res) => {
   try {
@@ -415,4 +439,5 @@ module.exports = {
   getSubmissionById,
   saveScore,
   enrollUser,
+  liveResults,
 };
