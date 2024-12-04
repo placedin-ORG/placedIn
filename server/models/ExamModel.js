@@ -17,6 +17,9 @@ const examSchema = new mongoose.Schema(
         userId: {
           type: String,
         },
+        enrolledAt: {
+          type: Date,
+        },
       },
     ],
     questions: [

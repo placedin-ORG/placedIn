@@ -1,4 +1,4 @@
-import React,{useState,useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -12,8 +12,10 @@ const Profile = () => {
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
-        console.log(current.user.user._id)
-        const response = await API.get(`/ranking/site-leaderboard?userId=${current.user.user._id}`);
+        console.log(current.user.user._id);
+        const response = await API.get(
+          `/ranking/site-leaderboard?userId=${current.user.user._id}`
+        );
         if (response.data.status) {
           setLeaderboard(response.data.leaderboard);
           setCurrentUserRank(response.data.currentUserRank);
@@ -40,11 +42,11 @@ const Profile = () => {
   return (
     <div className="p-6 min-h-screen">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6 px-4">
+      <div className="flex justify-between items-start mb-6 px-4">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-800">
+          <h1 className="text-xl sm:text-2xl font-semibold text-gray-800">
             Welcome,{" "}
-            <span className="text-primary font-mono tracking-widest">
+            <span className="block sm:inline text-primary font-mono tracking-widest">
               {userData.name}
             </span>
           </h1>
@@ -54,7 +56,7 @@ const Profile = () => {
         </div>
         <Link
           to={"/user/settings"}
-          className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-light"
+          className="px-4 py-2 bg-primary whitespace-nowrap text-white rounded-md hover:bg-primary-light"
         >
           Edit Profile
         </Link>

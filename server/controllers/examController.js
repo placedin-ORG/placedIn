@@ -300,7 +300,12 @@ const enrollUser = async (req, res) => {
     const exam = await Exam.findByIdAndUpdate(
       req.params.id,
       {
-        $push: { enrolledStudents: { userId } },
+        $push: {
+          enrolledStudents: {
+            userId: userId,
+            enrolledAt: new Date(),
+          },
+        },
       },
       { new: true }
     );

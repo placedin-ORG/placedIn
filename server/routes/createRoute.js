@@ -3,6 +3,7 @@ const Course = require("../models/courseModel");
 const User = require("../models/userModel");
 const bcrypt = require("bcryptjs");
 const { uploadFile } = require("../utils/cloudinary");
+const { isAuth } = require("../middlewares/auth");
 
 router.post("/createCourse", async (req, res) => {
   try {
@@ -31,6 +32,7 @@ router.post("/createCourse", async (req, res) => {
 
     if (id === null) {
       const newCourse = new Course({
+        teacher: req.user._id,
         paid,
         price,
         title: courseTitle,
@@ -75,6 +77,21 @@ router.post("/createCourse", async (req, res) => {
   }
 });
 
+router.get("/teacher-courses", isAuth, async (req, res) => {
+  try {
+    const courses = await Course.find({ teacher: req.user._id });
+
+    if (!courses || courses.length == 0) {
+      return res.json({ status: false, message: "No Courses Found" });
+    }
+
+    return res.status(200).json({ courses });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
 router.get("/getCourses", async (req, res) => {
   try {
     // console.log(await Course.find());
@@ -87,9 +104,10 @@ router.get("/getCourses", async (req, res) => {
       },
     ]);
 
-    return res.json({ courses });
+    return res.status(200).json({ courses });
   } catch (err) {
-    console.log(err);
+    console.log(error);
+    res.status(500).json({ message: error.message });
   }
 });
 
@@ -113,7 +131,8 @@ router.get("/topRatedCourses", async (req, res) => {
 
     res.status(200).json({ courses });
   } catch (err) {
-    console.log(err.message);
+    console.log(error);
+    res.status(500).json({ message: error.message });
   }
 });
 router.post("/register", async (req, res) => {
