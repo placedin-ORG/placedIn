@@ -11,6 +11,7 @@ import FAQ from "./FAQ";
 import Footer from "../../component/Layout/Footer";
 import Hero2 from "./Hero2";
 import TopRatedCourses from "./TopRatedCourses";
+import TopStudents from "../../component/Layout/TopStudents";
 const Hompage = () => {
   return (
     <>
@@ -24,6 +25,7 @@ const Hompage = () => {
       <Features />
       <PopularCourses />
       <TopRatedCourses/>
+      <TopStudents/>
       <FAQ />
       <Footer />
     </>
