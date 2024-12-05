@@ -68,6 +68,9 @@ function App() {
           );
           if (response.data.status) {
             setIsModalOpen(true);
+            setTimeout(() => {
+              setIsModalOpen(false);
+            }, 3000);
           } else {
             setIsModalOpen(false);
           }
