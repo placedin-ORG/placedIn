@@ -139,17 +139,23 @@ const getUpcomingExams = async (req, res) => {
   try {
     const userId = req.user._id;
 
+    const completedExams = await getCompletedExams(userId);
+
     const exams = await Exam.find({
-      "numberOfStudents.userId": userId,
-      startDate: { $gt: new Date() },
+      _id: { $nin: completedExams.map((exam) => exam.ExamId._id) },
+      startDate: { $lt: new Date() },
+      acceptedResultDate: { $gt: new Date() },
     });
 
     const upcomingExams = exams.filter((exam) =>
-      exam?.enrolledStudents?.some((student) => student.userId === userId)
+      exam.enrolledStudents?.some(
+        (student) => student.userId.toString() === userId.toString()
+      )
     );
 
     res.status(200).json({ exams: upcomingExams });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: "Failed to get upcoming exams data" });
   }
 };
@@ -178,6 +184,26 @@ const getTeacherExams = async (req, res) => {
     res.status(200).json({ exams, mesage: "Exams data fetched" });
   } catch (error) {
     res.status(500).json({ message: "Failed to get exams data" });
+  }
+};
+
+// Check that the user has given the exam
+
+const hasGivenExam = async (req, res) => {
+  try {
+    const exam = await ExamResult.findOne({
+      ExamId: req.params.id,
+      userId: req.user._id,
+    });
+    let examCompleted = false;
+    if (exam) examCompleted = true;
+    res.status(200).json({ examCompleted });
+  } catch (error) {
+    console.log(error);
+
+    res
+      .status(500)
+      .json({ error: error.message, message: "Failed to Live the Exams" });
   }
 };
 
@@ -289,6 +315,30 @@ const update = async (req, res) => {
     res.status(200).json({ message: "Exam updated successfully", exam });
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+};
+
+// Make the results live
+
+const liveResults = async (req, res) => {
+  try {
+    const exam = await Exam.findByIdAndUpdate(
+      req.params.id,
+      {
+        $set: { publishResult: true },
+      },
+      {
+        new: true,
+      }
+    );
+
+    if (!exam) return res.status(404).json({ message: "Exam data not found" });
+
+    res.status(200).json({ message: "Exam Are lve successfully", exam });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: error.message, message: "Failed to Live the Exams" });
   }
 };
 
@@ -413,6 +463,8 @@ module.exports = {
   getExamSubmissions,
   getExamById,
   getSubmissionById,
+  hasGivenExam,
   saveScore,
   enrollUser,
+  liveResults,
 };

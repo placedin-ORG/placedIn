@@ -142,14 +142,17 @@ const UserExams = () => {
           </div>
         ) : (
           <div className="mt-10 grid grid-cols-1 place-items-center sm:grid-cols-2 lg:grid-cols-3 gap-10">
-            {filteredExams.map((exam) => (
-              <ExamCard
-                isUser
-                completed
-                exam={examType === "upcoming" ? exam : exam.ExamId}
-                key={exam._id}
-              />
-            ))}
+            {filteredExams?.map(
+              (exam) =>
+                exam && (
+                  <ExamCard
+                    isUser
+                    completed={examType !== "upcoming"}
+                    exam={examType === "upcoming" ? exam : exam.ExamId}
+                    key={exam._id}
+                  />
+                )
+            )}
           </div>
         )}
       </div>

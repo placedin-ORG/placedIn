@@ -32,6 +32,8 @@ import { useSelector } from "react-redux";
 import CoinModel from "./component/CoinModel";
 import UserProgress from "./pages/progress/UserProgress";
 import Transactions from "./pages/user/Transactions";
+import "react-quill/dist/quill.snow.css";
+
 function AppWrapper() {
   return (
     <BrowserRouter>

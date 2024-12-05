@@ -53,6 +53,7 @@ const examSchema = new mongoose.Schema(
     description: {
       type: String,
     },
+    publishResult: { type: Boolean, default: false },
     topics: [
       {
         type: String,

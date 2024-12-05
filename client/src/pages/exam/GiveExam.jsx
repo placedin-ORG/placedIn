@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams, useLocation, Link } from "react-router-dom";
 import { FaCheckCircle, FaTimesCircle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -10,6 +10,10 @@ import Toast from "../../component/Toast";
 import Rating from "../../component/Rating";
 import Footer from "../../component/Layout/Footer";
 import API from "../../utils/API";
+import parse from "html-react-parser";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.bubble.css";
+
 const GiveExam = () => {
   const navigate = useNavigate();
   const { userId, ExamId } = useParams();
@@ -126,7 +130,7 @@ const GiveExam = () => {
             selectedOptionsRef.current
           );
           toast.error("Exiting fullscreen mode make the exam auto submit");
-          handleSubmitExam();
+          // handleSubmitExam();
         }
       };
 
@@ -196,7 +200,7 @@ const GiveExam = () => {
         <Toast />
 
         {remainingTime !== null && (
-          <div className="fixed top-0 left-0 right-0 bg-blue-600 text-white text-center py-2 z-50">
+          <div className="fixed top-0 left-0 right-0 h-full max-h-12 bg-blue-600 text-white text-center py-2 z-50">
             <span className="text-lg font-semibold">
               ⏱️ Remaining Time: {Math.floor(remainingTime / 60)}:
               {String(remainingTime % 60).padStart(2, "0")}
@@ -214,7 +218,7 @@ const GiveExam = () => {
             <>
               {/* Navigation Bar */}
               <div
-                className="fixed top-0 left-0 right-0 bg-white !mt-9 shadow-xl rounded-b-lg p-4 z-50 flex flex-col justify-start items-center max-w-4xl mx-auto overflow-y-auto"
+                className="fixed top-12 left-0 right-0 bg-white border rounded-b-lg p-4 z-50 flex flex-col justify-start items-center max-w-7xl overflow-x-auto mx-auto overflow-y-auto"
                 style={{ maxHeight: "80vh" }}
               >
                 <div className="grid grid-cols-6 gap-4 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12">
@@ -222,14 +226,18 @@ const GiveExam = () => {
                     <a
                       key={questionIndex}
                       href={`#${questionIndex}`}
-                      className={`w-full flex items-center justify-center p-4 rounded-lg text-white transition-all duration-300 transform ${
+                      className={`w-full max-h-10 flex items-center justify-center p-4 rounded-lg text-primary transition-all duration-300 transform ${
                         selectedOptions[questionIndex] ||
                         subjectiveAnswers[questionIndex]
-                          ? "bg-green-600 shadow-lg scale-110"
-                          : "bg-gray-400 hover:bg-gray-500 shadow-md hover:scale-105"
-                      } ${doItLater[questionIndex] ? "bg-orange-500" : ""} ${
+                          ? "bg-green-600 text-white shadow-lg scale-110"
+                          : "bg-gray-100 hover:bg-gray-200 shadow-md hover:scale-105"
+                      } ${
+                        doItLater[questionIndex]
+                          ? "bg-orange-500 text-white"
+                          : ""
+                      } ${
                         window.location.hash === `#${questionIndex}`
-                          ? "ring-4 ring-blue-300"
+                          ? "ring-4 ring-primary"
                           : ""
                       }`}
                       aria-label={`Question ${questionIndex + 1}`}
@@ -244,18 +252,18 @@ const GiveExam = () => {
               </div>
 
               {/* Questions Section */}
-              <div className="mt-32">
+              <div className="!mt-32 space-y-20 md:space-y-32">
                 {examData.questions.map((question, questionIndex) => (
                   <div
                     id={`${questionIndex}`}
                     key={questionIndex}
-                    className="bg-white shadow-md rounded-lg p-6 mb-6 transform transition-all duration-300 hover:shadow-lg scroll-mt-36"
+                    className="bg-white border border-gray-300 hover:shadow rounded-lg p-6 mb-6 transform transition-all duration-300  scroll-mt-36"
                   >
                     <p className="text-lg md:text-xl font-semibold text-gray-800 mb-4">
                       <span className="text-blue-500 font-bold">
                         Q{questionIndex + 1}:
                       </span>{" "}
-                      {question.questionText}
+                      {parse(question.questionText)}
                     </p>
                     {question.type === "objective" ? (
                       <div className="space-y-4">
@@ -281,15 +289,27 @@ const GiveExam = () => {
                         ))}
                       </div>
                     ) : (
-                      <textarea
-                        rows="4"
-                        value={subjectiveAnswers[questionIndex] || ""}
-                        onChange={(e) =>
-                          handleSubjectiveChange(questionIndex, e.target.value)
-                        }
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
-                        placeholder="Write your answer here..."
-                      ></textarea>
+                      <>
+                        <p className="text-base font-semibold text-primary mb-2">
+                          Answer:{" "}
+                        </p>
+                        <ReactQuill
+                          className="h-full text-xl"
+                          style={{
+                            height: "10rem",
+                            maxHeight: "15rem",
+                            border: "2px solid black",
+                            marginBottom: "2rem",
+                          }}
+                          value={subjectiveAnswers[questionIndex] || ""}
+                          onChange={(v) =>
+                            handleSubjectiveChange(questionIndex, v)
+                          }
+                          placeholder="Write your answer here..."
+                          readOnly={false}
+                          theme="bubble"
+                        />
+                      </>
                     )}
 
                     {/* "Do It Later" Button */}
@@ -307,7 +327,7 @@ const GiveExam = () => {
                 ))}
                 <button
                   onClick={() => setShowModal(true)}
-                  className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition duration-200"
+                  className="px-6 py-3 bg-primary text-white font-semibold rounded-lg shadow-md hover:bg-primary-dark hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition duration-200"
                 >
                   Submit Exam
                 </button>
@@ -323,6 +343,9 @@ const GiveExam = () => {
             Your Exam is Submited, please wait for the result announcement.
           </h1>
           <p className="text-gray-600 text-xl">Thank You!</p>
+          <Link to="/user/profile" className="underline text-primary">
+            Go Back
+          </Link>
         </div>
       )}
 
