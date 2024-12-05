@@ -13,7 +13,7 @@ import API from "../../utils/API";
 import parse from "html-react-parser";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.bubble.css";
-
+import ExamResult from "./ExamResult";
 const GiveExam = () => {
   const navigate = useNavigate();
   const { userId, ExamId } = useParams();
@@ -115,7 +115,12 @@ const GiveExam = () => {
   };
 
   const selectedOptionsRef = useRef(selectedOptions); // Ref to track selectedOptions
+  const subjectiveAnswersRef = useRef(subjectiveAnswers); // Ref for subjectiveAnswers
 
+  // Sync the ref whenever subjectiveAnswers changes
+  useEffect(() => {
+    subjectiveAnswersRef.current = subjectiveAnswers;
+  }, [subjectiveAnswers]);
   // Sync the ref whenever selectedOptions changes
   useEffect(() => {
     selectedOptionsRef.current = selectedOptions;
@@ -130,7 +135,7 @@ const GiveExam = () => {
             selectedOptionsRef.current
           );
           toast.error("Exiting fullscreen mode make the exam auto submit");
-          // handleSubmitExam();
+          handleSubmitExam('auto');
         }
       };
 
@@ -158,15 +163,18 @@ const GiveExam = () => {
     }
   };
 
-  const handleSubmitExam = async () => {
+  const handleSubmitExam = async (submitType) => {
     setShowModal(false);
     setIsExamSubmitted(true);
-    handleCloseFullscreen();
+    if(submitType==="submit"){
+        handleCloseFullscreen();
+    }
+  
     console.log(selectedOptions);
     try {
       const finalAnswers = {
-        objective: selectedOptions,
-        subjective: subjectiveAnswers,
+        objective: selectedOptionsRef.current,
+        subjective: subjectiveAnswersRef.current,
       };
       const response = await API.post("/exam/submit-exam", {
         userId,
@@ -336,136 +344,11 @@ const GiveExam = () => {
           )}
         </div>
       </div>
-      {isSubmit && (
-        <div className="flex flex-col gap-5 min-h-screen grainy-light font-semibold justify-center items-center w-full h-full">
-          <h1 className="text-center text-2xl text-primary capitalize">
-            {" "}
-            Your Exam is Submited, please wait for the result announcement.
-          </h1>
-          <p className="text-gray-600 text-xl">Thank You!</p>
-          <Link to="/user/profile" className="underline text-primary">
-            Go Back
-          </Link>
-        </div>
-      )}
+      {isSubmit && <ExamResult userId={userId} ExamId={ExamId}/>}
 
-      {
-        examResult && "your exam is submitted"
-        //      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex flex-col items-center justify-center p-6">
-        //   <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-2xl">
-        //     {/* Animated Title */}
-        //     <h1 className="text-3xl font-bold text-blue-600 text-center mb-6 animate-fade-in">
-        //       Exam Results
-        //     </h1>
-
-        //     {/* Result Details */}
-        //     {examResult && (
-        //       <div className="space-y-6">
-
-        //         <div>
-        //           <ResultChart data={examResult.dataPoints} currentUserAccuracy={examResult.accuracy}/>
-        //         </div>
-        //         {/* Correct Answers */}
-
-        //         <div className="flex items-center justify-between p-4 bg-green-100 border-l-4 border-green-500 rounded-lg animate-slide-in">
-        //           <p className="text-lg font-medium text-green-700">Correct Answers:</p>
-        //           <p className="text-2xl font-bold text-green-700">{examResult.correct}</p>
-        //         </div>
-
-        //         {/* Wrong Answers */}
-        //         <div className="flex items-center justify-between p-4 bg-red-100 border-l-4 border-red-500 rounded-lg animate-slide-in">
-        //           <p className="text-lg font-medium text-red-700">Wrong Answers:</p>
-        //           <p className="text-2xl font-bold text-red-700">{examResult.wrong}</p>
-        //         </div>
-
-        //         <div className="flex items-center justify-between p-4 bg-yellow-100 border-l-4 border-yellow-500 rounded-lg animate-slide-in">
-        //   <p className="text-lg font-medium text-yellow-700">Total Questions:</p>
-        //   <p className="text-2xl font-bold text-yellow-700">{examResult.totalQuestions}</p>
-        // </div>
-
-        //         <div className="flex items-center justify-between p-4 bg-blue-100 border-l-4 border-blue-500 rounded-lg animate-slide-in">
-        //           <p className="text-lg font-medium text-blue-700">Attempted:</p>
-        //           <p className="text-2xl font-bold text-blue-700">{examResult.attempted}</p>
-        //         </div>
-
-        //         {/* Accuracy */}
-        //         <div className="flex items-center justify-between p-4 bg-blue-100 border-l-4 border-blue-500 rounded-lg animate-slide-in">
-        //           <p className="text-lg font-medium text-blue-700">Accuracy:</p>
-        //           <p className="text-2xl font-bold text-blue-700">{examResult.accuracy}%</p>
-        //         </div>
-        //       </div>
-        //     )}
-
-        //     {/* Animated Button */}
-        //     <div className="mt-8 text-center animate-fade-in">
-        //       <button
-        //         onClick={() => navigate("/")}
-        //         className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 transform hover:scale-105"
-        //       >
-        //         Back to Dashboard
-        //       </button>
-        //     </div>
-        //   </div>
-
-        // {
-        //   examResult && (
-        //     <div className="bg-white w-[70%] mt-5 p-4 rounded shadow-md mb-6 max-h-[400px] overflow-y-auto">
-        //     <h2 className="text-xl font-bold mb-4">Final Exam Results</h2>
-        //     {examResult.updatedcourse.finalExam.questions.map((question, index) => {
-        //       const studentAnswer = examResult.updatedcourse.finalExam.result.answers[0][index.toString()];
-        //       const correctAnswer = question.correctAnswer;
-        //       const isCorrect = studentAnswer === correctAnswer;
-
-        //       return (
-        //         <div
-        //           key={index}
-        //           className={`p-4 border rounded mb-4 ${
-        //             isCorrect ? "border-green-500" : "border-red-500"
-        //           }`}
-        //         >
-        //           <h3 className="font-semibold">{index + 1}. {question.questionText}</h3>
-        //           <div className="space-y-2 mt-2">
-        //             {question.options.map((option) => (
-        //               <div
-        //                 key={option}
-        //                 className={`p-2 rounded ${
-        //                   option === correctAnswer
-        //                     ? "bg-green-100"
-        //                     : option === studentAnswer
-        //                     ? "bg-red-100"
-        //                     : ""
-        //                 }`}
-        //               >
-        //                 {option}
-        //                 {option === correctAnswer && <FaCheckCircle className="inline ml-2 text-green-500" />}
-        //                 {option === studentAnswer && option !== correctAnswer && <FaTimesCircle className="inline ml-2 text-red-500" />}
-        //               </div>
-        //             ))}
-        //           </div>
-        //         </div>
-        //       );
-        //     })}
-        //   </div>
-
-        //   )
-        // }
-
-        // <div className='flex flex-col gap-3 w-[50%] h-72 mb-24'>
-        // <h1 className='text-3xl font-semibold font-mono'>Certificate</h1>
-        // <img className='w-full h-full' src='https://th.bing.com/th/id/OIP.rxDrB65ZGXpz6L5nE22ecAHaFP?w=249&h=180&c=7&r=0&o=5&dpr=1.4&pid=1.7'/>
-        // <button className="text-base lg:text-xl text-white bg-red-500 w-fit px-8 lg:px-16 rounded-xl py-1.5 font-semibold" >
-        //      Download Certificate
-        //       </button>
-        // </div>
-
-        // <div className="p-6 bg-white shadow-lg rounded-lg mt-10 max-w-md w-full">
-        //     <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">Rate this Course</h2>
-        //     <div className="flex items-center justify-center">
-        //       <Rating courseId={courseId} userId={userId} />
-        //     </div>
-        //   </div>
-        // </div>
-      }
+      {/* {
+        examResult && <ExamResult userId={userId} ExamId={ExamId}/>
+      } */}
 
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -490,7 +373,7 @@ const GiveExam = () => {
               </button>
               <button
                 className="px-4 py-2 bg-orange-400 text-white rounded-md hover:bg-orange-500"
-                onClick={handleSubmitExam}
+                onClick={handleSubmitExam('submit')}
               >
                 Confirm
               </button>

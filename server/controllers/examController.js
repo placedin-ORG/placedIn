@@ -282,16 +282,29 @@ const fetchExam = async (req, res) => {
 const getSpeceficExam = async (req, res) => {
   try {
     const { ExamId, userId } = req.body;
-    console.log(ExamId, userId);
     const exam = await Exam.findById(ExamId);
-    const user = await ExamResult.findOne({ userId, ExamId });
+    const user = await ExamResult.findOne({ userId, ExamId })
+    console.log(exam);
+    console.log(user);
     if (user) {
-      return res.json({ msg: "user found" });
+      user.userAnswers = user.userAnswers.map((answer) => ({
+        ...answer,
+        answer: answer.answer.replace(/<\/?p>/g, ""), // Remove <p> tags
+      }));
+      const allResults = await ExamResult.find({ ExamId });
+
+      // Sort results by total score in descending order
+      const sortedResults = allResults.sort((a, b) => b.score - a.score);
+  
+      // Get rank of the current user
+      const userRank = sortedResults.findIndex((result) => result.userId.toString() === userId) + 1;
+      return res.json({ msg: "user found",user,exam,rank:userRank });
     }
     if (!exam) return res.status(404).json({ msg: "Exam not found" });
 
     res.status(200).json({ exam, msg: "exam found" });
   } catch (error) {
+    console.log(error.message);
     res.status(500).json({ error: error.message });
   }
 };
@@ -419,7 +432,7 @@ const saveScore = async (req, res) => {
   try {
     const { totalScore, individualScores } = req.body;
     const examId = req.params.id;
-
+   
     await ExamResult.findByIdAndUpdate(examId, { score: totalScore });
 
     // Update individual question scores

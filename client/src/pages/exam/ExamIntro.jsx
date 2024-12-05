@@ -110,10 +110,11 @@ const ExamIntro = () => {
   }, []);
   // --> here <--
   const startLearning = async () => {
+    console.log(exam)
     if (user.user.user === null) {
       navigate("/register");
     } else {
-      if (start || enrolled) {
+      if (start || enrolled ) {
         navigate(`/exam/${user.user.user._id}/${id}`);
       } else {
         if (exam.price > 0) {
@@ -324,7 +325,7 @@ const ExamIntro = () => {
                       <button
                         className="text-base lg:text-xl text-white bg-primary-light w-fit px-8 lg:px-16 rounded-xl py-1.5 font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
                         onClick={() => startLearning()}
-                        disabled={!exam.publishResult && examGiven}
+                        disabled={!exam.publishResult && examGiven || exam.publishResult && !examGiven}
                       >
                         {exam.publishResult
                           ? "View Results"

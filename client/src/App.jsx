@@ -33,6 +33,7 @@ import CoinModel from "./component/CoinModel";
 import UserProgress from "./pages/progress/UserProgress";
 import Transactions from "./pages/user/Transactions";
 import "react-quill/dist/quill.snow.css";
+import ExamResult from "./pages/exam/ExamResult";
 
 function AppWrapper() {
   return (
@@ -111,7 +112,7 @@ function App() {
         <Route path="/auth/email-sent" element={<EmailSentPage />} />
         <Route path="/auth/forgot-password" element={<ForgotPassword />} />
         <Route path="/auth/reset-password/:token" element={<ResetPassword />} />
-
+        <Route path="/resultExam" element={<ExamResult/>}/>
         <Route
           path="/finalExam/:userId/:courseId"
           element={
