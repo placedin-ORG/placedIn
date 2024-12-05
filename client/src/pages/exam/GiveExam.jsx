@@ -135,7 +135,7 @@ const GiveExam = () => {
             selectedOptionsRef.current
           );
           toast.error("Exiting fullscreen mode make the exam auto submit");
-          handleSubmitExam('auto');
+          handleSubmitExam("auto");
         }
       };
 
@@ -166,10 +166,10 @@ const GiveExam = () => {
   const handleSubmitExam = async (submitType) => {
     setShowModal(false);
     setIsExamSubmitted(true);
-    if(submitType==="submit"){
-        handleCloseFullscreen();
+    if (submitType === "submit") {
+      handleCloseFullscreen();
     }
-  
+
     console.log(selectedOptions);
     try {
       const finalAnswers = {
@@ -344,11 +344,7 @@ const GiveExam = () => {
           )}
         </div>
       </div>
-      {isSubmit && <ExamResult userId={userId} ExamId={ExamId}/>}
-
-      {/* {
-        examResult && <ExamResult userId={userId} ExamId={ExamId}/>
-      } */}
+      {isSubmit && <ExamResult userId={userId} ExamId={ExamId} />}
 
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -373,7 +369,7 @@ const GiveExam = () => {
               </button>
               <button
                 className="px-4 py-2 bg-orange-400 text-white rounded-md hover:bg-orange-500"
-                onClick={handleSubmitExam('submit')}
+                onClick={handleSubmitExam("submit")}
               >
                 Confirm
               </button>

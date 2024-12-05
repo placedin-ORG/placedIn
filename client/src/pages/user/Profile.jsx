@@ -10,8 +10,8 @@ const Profile = () => {
   const current = useSelector((state) => state);
   const [leaderboard, setLeaderboard] = useState([]);
   const [currentUserRank, setCurrentUserRank] = useState(null);
-  const [showModel,setShowModal]=useState(false);
-  const [userId,setid]=useState(null);
+  const [showModel, setShowModal] = useState(false);
+  const [userId, setid] = useState(null);
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
@@ -30,11 +30,10 @@ const Profile = () => {
     fetchLeaderboard();
   }, [current]);
 
-
-  const handleProfileClick=(_id)=>{
+  const handleProfileClick = (_id) => {
     setShowModal(true);
-    setid(_id)
-  }
+    setid(_id);
+  };
 
   const getShieldStyle = (shield) => {
     switch (shield) {
@@ -134,15 +133,20 @@ const Profile = () => {
               <p className="text-sm font-normal text-gray-500">
                 Progress:{" "}
                 {(() => {
-                  const totalTopics = course.chapters.reduce(
-                    (acc, chapter) => acc + chapter.topics.length,
-                    0
-                  );
+                  const totalTopics = course.chapters.reduce((sum, chapter) => {
+                    const topicsCount = chapter.topics.length;
+                    const quizCount = chapter.quiz ? 1 : 0;
+                    return sum + topicsCount + quizCount;
+                  }, 0);
                   const completedTopics = course.chapters.reduce(
-                    (acc, chapter) =>
-                      acc +
-                      chapter.topics.filter((topic) => topic.isCompleted)
-                        .length,
+                    (sum, chapter) => {
+                      const completedTopics = chapter.topics.filter(
+                        (topic) => topic.isCompleted
+                      ).length;
+                      const completedQuiz =
+                        chapter.quiz && chapter.quiz.isCompleted ? 1 : 0;
+                      return sum + completedTopics + completedQuiz;
+                    },
                     0
                   );
                   return totalTopics > 0
@@ -158,14 +162,22 @@ const Profile = () => {
                   style={{
                     width: `${(() => {
                       const totalTopics = course.chapters.reduce(
-                        (acc, chapter) => acc + chapter.topics.length,
+                        (sum, chapter) => {
+                          const topicsCount = chapter.topics.length;
+                          const quizCount = chapter.quiz ? 1 : 0;
+                          return sum + topicsCount + quizCount;
+                        },
                         0
                       );
                       const completedTopics = course.chapters.reduce(
-                        (acc, chapter) =>
-                          acc +
-                          chapter.topics.filter((topic) => topic.isCompleted)
-                            .length,
+                        (sum, chapter) => {
+                          const completedTopics = chapter.topics.filter(
+                            (topic) => topic.isCompleted
+                          ).length;
+                          const completedQuiz =
+                            chapter.quiz && chapter.quiz.isCompleted ? 1 : 0;
+                          return sum + completedTopics + completedQuiz;
+                        },
                         0
                       );
                       return totalTopics > 0
@@ -217,70 +229,103 @@ const Profile = () => {
       </div>
       {/* Leaderboard (Placeholder) */}
       <div className="mt-8">
-  <h2 className="text-lg flex gap-2 font-semibold text-gray-700 items-center"> <FaTrophy className="text-yellow-400 text-3xl"/>Leaderboard</h2>
-  <div className="w-full max-w-7xl mx-auto mt-6 p-4 bg-gradient-to-br  rounded-md">
-    {currentUserRank && (
-      <motion.div
-        className={`flex items-center justify-between p-4 rounded-lg shadow transform transition-transform duration-300 bg-green-300`}
-      >
-        <div className="text-lg font-semibold text-gray-800">
-          #{currentUserRank.position} (You)
-        </div>
-        <div className="text-sm text-gray-700">{currentUserRank.username}</div>
-        <div className="flex items-center gap-2">
-          {currentUserRank.shield === "Gold" && <span className="text-yellow-500 text-lg"><FaShieldAlt/></span>}
-          {currentUserRank.shield === "Silver" && <span className="text-gray-400 text-lg"><FaShieldAlt/></span>}
-          {currentUserRank.shield === "Bronze" && <span className="text-red-600 text-lg"><FaShieldAlt/></span>}
-          <div className="text-sm font-medium text-gray-800">
-            {currentUserRank.totalScore} pts
-          </div>
-        </div>
-      </motion.div>
-    )}
-
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.8 }}
-      className="grid grid-cols-1 gap-4 mt-4 overflow-y-auto h-80"
-      
-    >
-      {leaderboard
-        .filter(student => student.position <= 100)  // Filter top 100 students
-        .map((student, index) => (
-          <motion.div
-            key={student.position}
-            onClick={()=>handleProfileClick(student.userId)}
-            className={`flex cursor-pointer hover:opacity-90 items-center justify-between p-4 rounded-lg shadow transform hover:scale-105 transition-transform duration-200 ${
-              student.position <= 3 ? "bg-yellow-400" : "bg-grey-100"
-            }`}
-            initial={{ x: "-50vw" }}
-            animate={{ x: 0 }}
-            transition={{
-              type: "spring",
-              stiffness: 70,
-              delay: index * 0.05,
-            }}
-          >
-            <div className="text-lg font-semibold text-gray-800">#{student.position}</div>
-            <div className="text-sm text-gray-700">{student.username}</div>
-            <div className="flex items-center gap-2">
-              {student.shield === "Gold" && <span className="text-yellow-500 text-lg"><FaShieldAlt/></span>}
-              {student.shield === "Silver" && <span className="text-gray-500 text-lg"><FaShieldAlt/></span>}
-              {student.shield === "Bronze" && <span className="text-red-600 text-lg"><FaShieldAlt/></span>}
-              <div className="text-sm font-medium text-gray-800">
-                {student.totalScore} pts
+        <h2 className="text-lg flex gap-2 font-semibold text-gray-700 items-center">
+          {" "}
+          <FaTrophy className="text-yellow-400 text-3xl" />
+          Leaderboard
+        </h2>
+        <div className="w-full max-w-7xl mx-auto mt-6 p-4 bg-gradient-to-br  rounded-md">
+          {currentUserRank && (
+            <motion.div
+              className={`flex items-center justify-between p-4 rounded-lg shadow transform transition-transform duration-300 bg-green-300`}
+            >
+              <div className="text-lg font-semibold text-gray-800">
+                #{currentUserRank.position} (You)
               </div>
-            </div>
-          </motion.div>
-        ))}
-    </motion.div>
-  </div>
-</div>
+              <div className="text-sm text-gray-700">
+                {currentUserRank.username}
+              </div>
+              <div className="flex items-center gap-2">
+                {currentUserRank.shield === "Gold" && (
+                  <span className="text-yellow-500 text-lg">
+                    <FaShieldAlt />
+                  </span>
+                )}
+                {currentUserRank.shield === "Silver" && (
+                  <span className="text-gray-400 text-lg">
+                    <FaShieldAlt />
+                  </span>
+                )}
+                {currentUserRank.shield === "Bronze" && (
+                  <span className="text-red-600 text-lg">
+                    <FaShieldAlt />
+                  </span>
+                )}
+                <div className="text-sm font-medium text-gray-800">
+                  {currentUserRank.totalScore} pts
+                </div>
+              </div>
+            </motion.div>
+          )}
 
-{
-  showModel && <ProfileModel setShowModal={setShowModal} userId={userId}/>
-}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8 }}
+            className="grid grid-cols-1 gap-4 mt-4 overflow-y-auto h-80"
+          >
+            {leaderboard
+              .filter((student) => student.position <= 100) // Filter top 100 students
+              .map((student, index) => (
+                <motion.div
+                  key={student.position}
+                  onClick={() => handleProfileClick(student.userId)}
+                  className={`flex cursor-pointer hover:opacity-90 items-center justify-between p-4 rounded-lg shadow transform hover:scale-105 transition-transform duration-200 ${
+                    student.position <= 3 ? "bg-yellow-400" : "bg-grey-100"
+                  }`}
+                  initial={{ x: "-50vw" }}
+                  animate={{ x: 0 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 70,
+                    delay: index * 0.05,
+                  }}
+                >
+                  <div className="text-lg font-semibold text-gray-800">
+                    #{student.position}
+                  </div>
+                  <div className="text-sm text-gray-700">
+                    {student.username}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {student.shield === "Gold" && (
+                      <span className="text-yellow-500 text-lg">
+                        <FaShieldAlt />
+                      </span>
+                    )}
+                    {student.shield === "Silver" && (
+                      <span className="text-gray-500 text-lg">
+                        <FaShieldAlt />
+                      </span>
+                    )}
+                    {student.shield === "Bronze" && (
+                      <span className="text-red-600 text-lg">
+                        <FaShieldAlt />
+                      </span>
+                    )}
+                    <div className="text-sm font-medium text-gray-800">
+                      {student.totalScore} pts
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+          </motion.div>
+        </div>
+      </div>
+
+      {showModel && (
+        <ProfileModel setShowModal={setShowModal} userId={userId} />
+      )}
     </div>
   );
 };

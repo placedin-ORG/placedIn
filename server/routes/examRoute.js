@@ -17,6 +17,7 @@ const {
   enrollUser,
   liveResults,
   hasGivenExam,
+  getOngoingExams,
 } = require("../controllers/examController");
 const { isAuth, authoriseRoles } = require("../middlewares/auth");
 
@@ -27,6 +28,8 @@ router.post("/speceficExam", getSpeceficExam);
 
 router.post("/submit-exam", isAuth, submitExam);
 router.get("/upcoming-exams", isAuth, getUpcomingExams);
+router.get("/ongoing-exams", isAuth, getOngoingExams);
+
 router.get("/completed-exams", isAuth, getUserCompletedExams);
 router.get("/submissions/:id", isAuth, getExamSubmissions);
 router.get("/submissions-detail/:id", isAuth, getSubmissionById);

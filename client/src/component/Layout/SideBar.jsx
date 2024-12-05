@@ -16,7 +16,7 @@ import { GiProgression } from "react-icons/gi";
 import { LiaMoneyCheckSolid } from "react-icons/lia";
 
 const SideBar = () => {
-  const [isSidebarOpen, setSidebarOpen] = useState(true);
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
   const dispatch = useDispatch();
   const navigate = useNavigate();

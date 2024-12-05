@@ -31,7 +31,7 @@ const CourseDetail = () => {
   const [isVideoWatched, setIsVideoWatched] = useState(false);
   const { id } = useParams();
   const currentCourse = useSelector((state) => state.user.user);
-  console.log(currentCourse)
+  console.log(currentCourse);
 
   useEffect(() => {
     const call = async () => {
@@ -202,7 +202,7 @@ const CourseDetail = () => {
       const updatedData = await API.post("/learn/openFinalExam", {
         userId: currentCourse._id,
         courseId: id,
-        chapterIndex
+        chapterIndex,
       });
       const course = updatedData.data.userAfterUpdate.ongoingCourses.find(
         (course) => course.courseId === id

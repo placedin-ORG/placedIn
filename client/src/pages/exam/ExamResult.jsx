@@ -6,6 +6,7 @@ import API from "../../utils/API";
 import Navbar from "../../component/Navbar";
 import Footer from "../../component/Layout/Footer";
 import parse from "html-react-parser";
+import { Link } from "react-router-dom";
 const ExamResult = ({ ExamId, userId }) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -47,10 +48,10 @@ const ExamResult = ({ ExamId, userId }) => {
   const { user, exam, rank } = data;
 
   return (
-    <>
+    <div className="min-h-screen grainy-light">
       <Navbar />
 
-      {user.publishResult ? (
+      {exam.publishResult ? (
         <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-gray-100 p-6 flex items-center justify-center">
           <motion.div
             className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-7xl"
@@ -134,11 +135,22 @@ const ExamResult = ({ ExamId, userId }) => {
           </motion.div>
         </div>
       ) : (
-        ""
+        <div className="h-full text-base min-h-screen  flex flex-col gap-5 justify-center items-center">
+          <h1 className="text-xl sm:text-2xl text-primary">
+            Your Exam has Submitted, Please wait for the result declaration
+          </h1>
+          <p>Thank You!</p>
+          <Link
+            to={`/intro/exam/${exam._id}`}
+            className="underline text-primary"
+          >
+            Go Back
+          </Link>
+        </div>
       )}
 
       <Footer />
-    </>
+    </div>
   );
 };
 

@@ -24,8 +24,8 @@ const Hompage = () => {
       {/* <Hero2 /> */}
       <Features />
       <PopularCourses />
-      <TopRatedCourses/>
-      <TopStudents/>
+      <TopRatedCourses />
+      <TopStudents />
       <FAQ />
       <Footer />
     </>

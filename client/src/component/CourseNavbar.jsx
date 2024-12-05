@@ -4,253 +4,135 @@ import {
   FaRobot,
   FaBriefcase,
   FaDatabase,
-  FaChevronDown,
-  FaChevronUp,
 } from "react-icons/fa";
+import { FiChevronDown, FiChevronUp, FiMenu } from "react-icons/fi";
+
+// Navbar data
+const navbarData = [
+  {
+    key: "doctorate",
+    icon: FaGraduationCap,
+    label: "Doctorate",
+    items: ["PhD Programs", "Doctoral Research"],
+  },
+  {
+    key: "aiml",
+    icon: FaRobot,
+    label: "AIML",
+    items: ["AI Courses", "Machine Learning"],
+  },
+  {
+    key: "mba",
+    icon: FaBriefcase,
+    label: "MBA",
+    items: ["Business Administration", "Executive MBA"],
+  },
+  {
+    key: "dataScience",
+    icon: FaDatabase,
+    label: "Data Science",
+    items: ["Data Analysis", "Data Engineering"],
+  },
+  {
+    key: "marketing",
+    icon: FaDatabase,
+    label: "Marketing",
+    items: ["Marketing Basics", "Advanced Marketing"],
+  },
+  {
+    key: "software",
+    icon: FaDatabase,
+    label: "Software & Tech",
+    items: ["Software Development", "Tech Trends"],
+  },
+  {
+    key: "management",
+    icon: FaDatabase,
+    label: "Management",
+    items: ["Leadership", "Operations"],
+  },
+  {
+    key: "law",
+    icon: FaDatabase,
+    label: "Law",
+    items: ["Corporate Law", "Criminal Law"],
+  },
+];
 
 const CourseNavbar = () => {
-  const [openDropdown, setOpenDropdown] = useState(null);
+  const [openKey, setOpenKey] = useState(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const toggleDropdown = (key) => {
-    setOpenDropdown((prev) => (prev === key ? null : key));
+  const handleToggle = (key) => {
+    setOpenKey((prevKey) => (prevKey === key ? null : key));
   };
 
   return (
-    <>
-      <nav className="relative max-w-7xl mx-auto flex text-black py-4 justify-center items-center">
-        <div className="container flex flex-wrap justify-center gap-4 items-center text-sm">
-          <ul className="h-full z-10 sticky top-0 flex gap-10 w-full overflow-y-hidden overflow-x-auto justify-center sm:space-x-8 sm:gap-4 pb-2 px-6">
-            {/* Doctorate Dropdown */}
-            <li className="relative group hover:text-red-700 w-full sm:w-auto">
+    <nav className="grainy-dark">
+      {/* Mobile Hamburger Menu */}
+      <div className="md:hidden px-4 py-3 flex items-center justify-between">
+        <h1 className="text-lg font-semibold text-gray-800">Courses</h1>
+        <button
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          className="focus:outline-none text-gray-800 hover:text-primary"
+        >
+          <FiMenu className="text-2xl" />
+        </button>
+      </div>
+
+      {/* Navbar Items */}
+      <div
+        className={`${
+          isMenuOpen ? "block" : "hidden"
+        } md:block w-full px-4 py-2`}
+      >
+        <div className="flex flex-col md:flex-row md:flex-wrap justify-center space-y-4 md:space-y-0 md:space-x-4">
+          {navbarData.map((menu) => (
+            <div key={menu.key} className="relative group">
+              {/* Button */}
               <button
-                className="flex items-center space-x-2 focus:outline-none w-full sm:w-auto"
-                onClick={() => toggleDropdown("doctorate")}
+                className="flex items-center justify-between md:justify-start space-x-2 px-4 py-2 w-full md:w-auto text-gray-800 hover:text-primary focus:outline-none"
+                onClick={() => handleToggle(menu.key)}
               >
-                <FaGraduationCap />
-                <span className="text-sm">Doctorate</span>
-                <span className="ml-2">
-                  {openDropdown === "doctorate" ? (
-                    <FaChevronUp />
+                <menu.icon className="text-lg" />
+                <span
+                  className={`${
+                    isMenuOpen &&
+                    openKey === menu.key &&
+                    "text-primary font-semibold"
+                  }`}
+                >
+                  {menu.label}
+                </span>
+                <span>
+                  {isMenuOpen && openKey === menu.key ? (
+                    <FiChevronUp />
                   ) : (
-                    <FaChevronDown />
+                    <FiChevronDown />
                   )}
                 </span>
               </button>
-              <div
-                className={`absolute z-10 left-0 w-full sm:w-40 ${
-                  openDropdown === "doctorate" ? "block" : "hidden"
-                } bg-white text-gray-800 shadow-lg py-2 mt-1 sm:mt-0 sm:top-full`}
-              >
-                <a href="#" className="block px-4 py-2 hover:bg-gray-100">
-                  PhD Programs
-                </a>
-                <a href="#" className="block px-4 py-2 hover:bg-gray-100">
-                  Doctoral Research
-                </a>
-              </div>
-            </li>
 
-            {/* AIML Dropdown */}
-            <li className="relative group hover:text-red-700 w-full sm:w-auto">
-              <button
-                className="flex items-center space-x-2 focus:outline-none w-full sm:w-auto"
-                onClick={() => toggleDropdown("aiml")}
-              >
-                <FaRobot />
-                <span className="text-sm">AIML</span>
-                <span className="ml-2">
-                  {openDropdown === "aiml" ? (
-                    <FaChevronUp />
-                  ) : (
-                    <FaChevronDown />
-                  )}
-                </span>
-              </button>
-              <div
-                className={`absolute left-0 w-full sm:w-40 ${
-                  openDropdown === "aiml" ? "block" : "hidden"
-                } bg-white text-gray-800 shadow-lg py-2 mt-1 sm:mt-0 sm:top-full z-10`}
-              >
-                <a href="#" className="block px-4 py-2 hover:bg-gray-100">
-                  AI Courses
-                </a>
-                <a href="#" className="block px-4 py-2 hover:bg-gray-100">
-                  Machine Learning
-                </a>
-              </div>
-            </li>
-
-            {/* MBA Dropdown */}
-            <li className="relative group hover:text-red-700 w-full sm:w-auto">
-              <button
-                className="flex items-center space-x-2 focus:outline-none w-full sm:w-auto"
-                onClick={() => toggleDropdown("mba")}
-              >
-                <FaBriefcase />
-                <span className="text-sm">MBA</span>
-                <span className="ml-2">
-                  {openDropdown === "mba" ? <FaChevronUp /> : <FaChevronDown />}
-                </span>
-              </button>
-              <div
-                className={`absolute left-0 w-full sm:w-40 ${
-                  openDropdown === "mba" ? "block" : "hidden"
-                } bg-white text-gray-800 shadow-lg py-2 mt-1 sm:mt-0 sm:top-full z-10`}
-              >
-                <a href="#" className="block px-4 py-2 hover:bg-gray-100">
-                  Business Administration
-                </a>
-                <a href="#" className="block px-4 py-2 hover:bg-gray-100">
-                  Executive MBA
-                </a>
-              </div>
-            </li>
-
-            {/* Data Science Dropdown */}
-            <li className="relative group hover:text-red-700 w-full sm:w-auto">
-              <button
-                className="flex items-center space-x-2 focus:outline-none w-full sm:w-auto"
-                onClick={() => toggleDropdown("dataScience")}
-              >
-                <FaDatabase />
-                <span className="text-sm text-nowrap">Data Science</span>
-                <span className="ml-2">
-                  {openDropdown === "dataScience" ? (
-                    <FaChevronUp />
-                  ) : (
-                    <FaChevronDown />
-                  )}
-                </span>
-              </button>
-              <div
-                className={`absolute left-0 w-full sm:w-40 ${
-                  openDropdown === "dataScience" ? "block" : "hidden"
-                } bg-white text-gray-800 shadow-lg py-2 mt-1 sm:mt-0 sm:top-full z-10`}
-              >
-                <a href="#" className="block px-4 py-2 hover:bg-gray-100">
-                  Data Analysis
-                </a>
-                <a href="#" className="block px-4 py-2 hover:bg-gray-100">
-                  Data Engineering
-                </a>
-              </div>
-            </li>
-
-            <li className="relative group hover:text-red-700 w-full sm:w-auto">
-              <button
-                className="flex items-center space-x-2 focus:outline-none w-full sm:w-auto"
-                onClick={() => toggleDropdown("Marketing")}
-              >
-                <FaDatabase />
-                <span className="text-sm">Marketing</span>
-                <span className="ml-2">
-                  {openDropdown === "Marketing" ? (
-                    <FaChevronUp />
-                  ) : (
-                    <FaChevronDown />
-                  )}
-                </span>
-              </button>
-              <div
-                className={`absolute left-0 w-full sm:w-40 ${
-                  openDropdown === "Marketing" ? "block" : "hidden"
-                } bg-white text-gray-800 shadow-lg py-2 mt-1 sm:mt-0 sm:top-full z-10`}
-              >
-                <a href="#" className="block px-4 py-2 hover:bg-gray-100">
-                  Data Analysis
-                </a>
-                <a href="#" className="block px-4 py-2 hover:bg-gray-100">
-                  Data Engineering
-                </a>
-              </div>
-            </li>
-
-            <li className="relative group hover:text-red-700 w-full sm:w-auto">
-              <button
-                className="flex items-center space-x-2 focus:outline-none w-full sm:w-auto"
-                onClick={() => toggleDropdown("Software & tech")}
-              >
-                <FaDatabase />
-                <span className="text-sm">Software </span>
-                <span className="ml-2">
-                  {openDropdown === "Software & tech" ? (
-                    <FaChevronUp />
-                  ) : (
-                    <FaChevronDown />
-                  )}
-                </span>
-              </button>
-              <div
-                className={`absolute left-0 w-full sm:w-40 ${
-                  openDropdown === "Software & tech" ? "block" : "hidden"
-                } bg-white text-gray-800 shadow-lg py-2 mt-1 sm:mt-0 sm:top-full z-10`}
-              >
-                <a href="#" className="block px-4 py-2 hover:bg-gray-100">
-                  Data Analysis
-                </a>
-                <a href="#" className="block px-4 py-2 hover:bg-gray-100">
-                  Data Engineering
-                </a>
-              </div>
-            </li>
-
-            <li className="relative group hover:text-red-700 w-full sm:w-auto">
-              <button
-                className="flex items-center space-x-2 focus:outline-none w-full sm:w-auto"
-                onClick={() => toggleDropdown("Management")}
-              >
-                <FaDatabase />
-                <span className="text-sm">Management</span>
-                <span className="ml-2">
-                  {openDropdown === "Management" ? (
-                    <FaChevronUp />
-                  ) : (
-                    <FaChevronDown />
-                  )}
-                </span>
-              </button>
-              <div
-                className={`absolute left-0 w-full sm:w-40 ${
-                  openDropdown === "Management" ? "block" : "hidden"
-                } bg-white text-gray-800 shadow-lg py-2 mt-1 sm:mt-0 sm:top-full z-10`}
-              >
-                <a href="#" className="block px-4 py-2 hover:bg-gray-100">
-                  Data Analysis
-                </a>
-                <a href="#" className="block px-4 py-2 hover:bg-gray-100">
-                  Data Engineering
-                </a>
-              </div>
-            </li>
-
-            <li className="relative group hover:text-red-700 w-full sm:w-auto">
-              <button
-                className="flex items-center space-x-2 focus:outline-none w-full sm:w-auto"
-                onClick={() => toggleDropdown("Law")}
-              >
-                <FaDatabase />
-                <span className="text-sm">Law</span>
-                <span className="ml-2">
-                  {openDropdown === "Law" ? <FaChevronUp /> : <FaChevronDown />}
-                </span>
-              </button>
-              <div
-                className={`absolute left-0 w-full sm:w-40 ${
-                  openDropdown === "Law" ? "block" : "hidden"
-                } bg-white text-gray-800 shadow-lg py-2 mt-1 sm:mt-0 sm:top-full z-10`}
-              >
-                <a href="#" className="block px-4 py-2 hover:bg-gray-100">
-                  Data Analysis
-                </a>
-                <a href="#" className="block px-4 py-2 hover:bg-gray-100">
-                  Data Engineering
-                </a>
-              </div>
-            </li>
-          </ul>
+              {/* Dropdown */}
+              {openKey === menu.key && (
+                <div className="absolute left-0 md:left-auto md:right-0 mt-2 w-48 bg-white border border-gray-300 shadow-md rounded-md z-50">
+                  {menu.items.map((item, index) => (
+                    <a
+                      key={index}
+                      onClick={() => setIsMenuOpen(false)}
+                      href="#"
+                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    >
+                      {item}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
-      </nav>
-    </>
+      </div>
+    </nav>
   );
 };
 

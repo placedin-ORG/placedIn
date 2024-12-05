@@ -143,8 +143,7 @@ const getUpcomingExams = async (req, res) => {
 
     const exams = await Exam.find({
       _id: { $nin: completedExams.map((exam) => exam.ExamId._id) },
-      startDate: { $lt: new Date() },
-      acceptedResultDate: { $gt: new Date() },
+      startDate: { $gt: new Date() },
     });
 
     const upcomingExams = exams.filter((exam) =>
@@ -154,6 +153,32 @@ const getUpcomingExams = async (req, res) => {
     );
 
     res.status(200).json({ exams: upcomingExams });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to get upcoming exams data" });
+  }
+};
+
+// GEt Ongoing exams
+
+const getOngoingExams = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const completedExams = await getCompletedExams(userId);
+
+    const exams = await Exam.find({
+      _id: { $nin: completedExams.map((exam) => exam.ExamId._id) },
+      startDate: { $lt: new Date() },
+    });
+
+    const ongoingExams = exams.filter((exam) =>
+      exam.enrolledStudents?.some(
+        (student) => student.userId.toString() === userId.toString()
+      )
+    );
+
+    res.status(200).json({ exams: ongoingExams });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to get upcoming exams data" });
@@ -283,7 +308,7 @@ const getSpeceficExam = async (req, res) => {
   try {
     const { ExamId, userId } = req.body;
     const exam = await Exam.findById(ExamId);
-    const user = await ExamResult.findOne({ userId, ExamId })
+    const user = await ExamResult.findOne({ userId, ExamId });
     console.log(exam);
     console.log(user);
     if (user) {
@@ -295,10 +320,13 @@ const getSpeceficExam = async (req, res) => {
 
       // Sort results by total score in descending order
       const sortedResults = allResults.sort((a, b) => b.score - a.score);
-  
+
       // Get rank of the current user
-      const userRank = sortedResults.findIndex((result) => result.userId.toString() === userId) + 1;
-      return res.json({ msg: "user found",user,exam,rank:userRank });
+      const userRank =
+        sortedResults.findIndex(
+          (result) => result.userId.toString() === userId
+        ) + 1;
+      return res.json({ msg: "user found", user, exam, rank: userRank });
     }
     if (!exam) return res.status(404).json({ msg: "Exam not found" });
 
@@ -432,7 +460,7 @@ const saveScore = async (req, res) => {
   try {
     const { totalScore, individualScores } = req.body;
     const examId = req.params.id;
-   
+
     await ExamResult.findByIdAndUpdate(examId, { score: totalScore });
 
     // Update individual question scores
@@ -472,6 +500,7 @@ module.exports = {
   fetchExam,
   getUserCompletedExams,
   getUpcomingExams,
+  getOngoingExams,
   getTeacherExams,
   getExamSubmissions,
   getExamById,

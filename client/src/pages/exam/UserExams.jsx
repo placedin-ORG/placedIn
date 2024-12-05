@@ -34,7 +34,10 @@ const UserExams = () => {
         const endpoint =
           examType === "upcoming"
             ? "/exam/upcoming-exams"
-            : "/exam/completed-exams";
+            : examType === "completed"
+            ? "/exam/completed-exams"
+            : "/exam/ongoing-exams";
+
         const { data } = await API.get(endpoint);
         setExams(data.exams);
         setFilteredExams(data.exams);
@@ -89,6 +92,16 @@ const UserExams = () => {
               onClick={() => setSearchParams({ examType: "upcoming" })}
             >
               Upcoming Exams
+            </button>
+            <button
+              className={`px-4 py-2 border-b-2 ${
+                examType === "ongoing"
+                  ? "border-orange-500 font-bold"
+                  : "border-gray-300"
+              }`}
+              onClick={() => setSearchParams({ examType: "ongoing" })}
+            >
+              Ongoing Exams
             </button>
             <button
               className={`px-4 py-2 border-b-2 ${
@@ -147,8 +160,8 @@ const UserExams = () => {
                 exam && (
                   <ExamCard
                     isUser
-                    completed={examType !== "upcoming"}
-                    exam={examType === "upcoming" ? exam : exam.ExamId}
+                    completed={examType === "completed"}
+                    exam={examType !== "completed" ? exam : exam.ExamId}
                     key={exam._id}
                   />
                 )
