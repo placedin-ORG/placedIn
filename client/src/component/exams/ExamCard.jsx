@@ -27,22 +27,22 @@ const ExamCard = ({ exam, isUser = false, completed = false }) => {
   return (
     <>
       <div
-        key={exam._id}
+        key={exam?._id}
         className="bg-white border border-gray-300 w-full max-w-[22rem] transition-all duration-500 ease-in-out hover:shadow-custom rounded-lg p-4 flex flex-col justify-between"
       >
         {/* Thumbnail */}
         <img
           src={
-            exam.examThumbnail ||
+            exam?.examThumbnail ||
             "https://media.geeksforgeeks.org/wp-content/cdn-uploads/20220228124519/Artboard-6-min.png"
           }
-          alt={exam.examTitle}
+          alt={exam?.examTitle}
           className="w-full  h-44 object-cover rounded-md mb-4"
         />
 
         {/* Course Title */}
         <h3 className="text-lg font-semibold text-gray-800 truncate capitalize">
-          {exam.examTitle || exam?.examTitle}
+          {exam?.examTitle || exam?.examTitle}
         </h3>
 
         {/* Edit Button */}
@@ -76,12 +76,13 @@ const ExamCard = ({ exam, isUser = false, completed = false }) => {
 
           {isUser ? (
             <>
-              {completed ? (
+              {completed || exam?.publishResult ? (
                 <button
                   className={
-                    "px-4 py-1 bg-primary text-white rounded-md hover:bg-primary-light"
+                    "px-4 py-1 bg-primary text-white rounded-md hover:bg-primary-light disabled:opacity-60 disabled:cursor-not-allowed"
                   }
                   onClick={() => startLearning(exam._id)}
+                  disabled={!exam?.publishResult}
                 >
                   View Results
                 </button>

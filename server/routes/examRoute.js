@@ -16,6 +16,7 @@ const {
   saveScore,
   enrollUser,
   liveResults,
+  hasGivenExam,
 } = require("../controllers/examController");
 const { isAuth, authoriseRoles } = require("../middlewares/auth");
 
@@ -36,6 +37,8 @@ router.put("/enroll-user/:id", isAuth, enrollUser);
 router.get("/teacher/all", isAuth, getTeacherExams);
 
 router.get("/get/:id", getExamById);
+router.get("/given/:id", isAuth, hasGivenExam);
+
 router.put("/update/:id", update);
 
 router.get("/get", get);

@@ -48,16 +48,28 @@ const ExamIntro = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { id } = useParams();
-  console.log(id);
   const [exam, setExam] = useState(null);
   const [relatedExam, setRelatedExam] = useState(null);
   const state = useSelector((state) => state.user.currentCourse);
   const [start, setStart] = useState(false);
   const [enrolled, setEnrolled] = useState(false);
-
+  const [examGiven, setExamGiven] = useState(false);
   const [loading, setLoading] = useState(true);
   const user = useSelector((state) => state);
   const { error, isLoading, Razorpay } = useRazorpay();
+
+  const getExamStatus = async () => {
+    try {
+      const { data } = await API.get(`/exam/given/${id}`);
+      setExamGiven(data.examCompleted);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    getExamStatus();
+  }, []);
 
   useEffect(() => {
     const call = async () => {
@@ -310,11 +322,17 @@ const ExamIntro = () => {
                     {new Date(new Date(exam.startDate).toDateString()) <=
                     new Date(new Date().toDateString()) ? (
                       <button
-                        className="text-base lg:text-xl text-white bg-primary-light w-fit px-8 lg:px-16 rounded-xl py-1.5 font-semibold"
+                        className="text-base lg:text-xl text-white bg-primary-light w-fit px-8 lg:px-16 rounded-xl py-1.5 font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
                         onClick={() => startLearning()}
+                        disabled={!exam.publishResult && examGiven}
                       >
-                        {/* {start ? "View Result" : "Register for Exam"} */}
-                        {enrolled ? "Start Test Now" : "Register for Exam"}
+                        {exam.publishResult
+                          ? "View Results"
+                          : examGiven
+                          ? "Please Wait for Results"
+                          : enrolled
+                          ? "Start Test Now"
+                          : "Register for Exam"}
                       </button>
                     ) : (
                       <button
