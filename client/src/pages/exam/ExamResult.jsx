@@ -37,7 +37,9 @@ console.log(userId,ExamId)
   return (
     <>
     <Navbar/>
-     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-gray-100 p-6 flex items-center justify-center">
+
+    {
+      user.publishResult ?  <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-gray-100 p-6 flex items-center justify-center">
     <motion.div
       className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-4xl"
       initial={{ opacity: 0, y: -50 }}
@@ -111,7 +113,9 @@ console.log(userId,ExamId)
         </p>
       )}
     </motion.div>
-  </div>
+  </div>:""
+    }
+    
 
 
   <Footer/>
