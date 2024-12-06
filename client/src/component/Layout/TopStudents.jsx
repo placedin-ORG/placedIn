@@ -20,6 +20,7 @@ const TopStudents = () => {
         if (response.data.status) {
           setLeaderboard(response.data.leaderboard);
           setCurrentUserRank(response.data.currentUserRank);
+          console.log(response.data)
         }
       } catch (error) {
         console.error("Error fetching leaderboard:", error);
@@ -74,7 +75,7 @@ const TopStudents = () => {
                 >
                   {/* Profile Image */}
                   <img
-                    src="https://static.vecteezy.com/system/resources/previews/000/439/863/original/vector-users-icon.jpg" // Fallback if no image
+                    src={student.avatar} // Fallback if no image
                     alt={`${student.username}'s Profile`}
                     className="w-24 h-24 rounded-full border-4 border-yellow-500 mb-4 transform transition-all duration-300 hover:scale-125"
                   />

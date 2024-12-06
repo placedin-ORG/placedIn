@@ -89,13 +89,14 @@ const leaderboard = async (req, res) => {
       } else if (totalScore > 70 && totalScore <= 100) {
         shield = "Gold";
       }
-
+    console.log(s.avatar  )
       // Push student data with score and shield
       allRanks.push({
         userId: s._id,
         username: s.name, // Assuming 'username' is a field in User schema
         totalScore,
         shield,
+        avatar:s.avatar
       });
     }
 
@@ -109,6 +110,7 @@ const leaderboard = async (req, res) => {
       username: student.username,
       shield: student.shield,
       totalScore: student.totalScore,
+      avatar:student.avatar
     }));
 
     // Find current user's rank
