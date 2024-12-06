@@ -12,7 +12,7 @@ const Setting = () => {
   const [errors, setErrors] = useState({});
 
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
-
+  const [image, setImage] = useState();
   const [passwords, setPasswords] = useState({
     currentPassword: "",
     newPassword: "",
@@ -32,7 +32,10 @@ const Setting = () => {
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
-      const updateProfilePromise = API.post("/auth/update-profile", { name });
+      const updateProfilePromise = API.post("/auth/update-profile", {
+        name,
+        image,
+      });
 
       toast.promise(updateProfilePromise, {
         loading: "Updating Profile...",
@@ -96,6 +99,17 @@ const Setting = () => {
     }
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <div className="p-2 sm:p-6 min-h-[90vh] flex flex-col items-center">
       {/* Title */}
@@ -106,6 +120,52 @@ const Setting = () => {
 
       {/* Form */}
       <div className="w-full bg-white max-w-lg p-6 rounded-lg border mt-10">
+        <div className="w-full h-full flex items-center justify-center">
+          <div className="relative w-28 h-28 mb-6 border border-gray-300 rounded-full">
+            <label htmlFor="profileImage" className="cursor-pointer">
+              <div className="w-full h-full rounded-full overflow-hidden shadow border relative">
+                {image ? (
+                  <img
+                    src={image}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                    <img
+                      src={user?.avatar || "/images/avatar.png"}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="white"
+                    className="w-8 h-8"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15 10l4.553 6.797c.667.995.194 2.203-.853 2.203H5.3c-1.047 0-1.52-1.208-.853-2.203L9 10m3-3.5v4m-3.5-.5h7m-5.5 8h4"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                id="profileImage"
+                onChange={handleImageChange}
+                className="hidden"
+              />
+            </label>
+          </div>
+        </div>
         <div className="mb-4">
           <label className="block text-gray-700 text-sm font-semibold mb-2">
             Name

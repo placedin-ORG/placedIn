@@ -70,7 +70,11 @@ const Navbar = () => {
 
             {user ? (
               <Link to={"/user/profile"} className="rounded-full">
-                <img src="/images/avatar.png" className="h-10 w-10" alt="" />
+                <img
+                  src={user?.avatar || "/images/avatar.png"}
+                  className="h-10 w-10 rounded-full object-cover"
+                  alt=""
+                />
               </Link>
             ) : (
               <Link

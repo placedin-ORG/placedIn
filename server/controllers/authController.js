@@ -5,6 +5,7 @@ const ejs = require("ejs");
 const path = require("path");
 const { sendEmail } = require("../utils/sendMail.js");
 const crypto = require("crypto");
+const { uploadFile } = require("../utils/cloudinary.js");
 
 const createActivationToken = (user) => {
   const token = jwt.sign(user, process.env.ACTIVATION_SECRET, {
@@ -157,11 +158,19 @@ const updateProfile = async (req, res) => {
   try {
     const id = req.user._id;
 
+    // Decode Base64 string to buffer
+    if (req.body.image) {
+      const base64Data = req.body.image.split(";base64,").pop();
+      const buffer = Buffer.from(base64Data, "base64");
+
+      const image = await uploadFile(buffer, "placedIn/teacher/exam");
+      req.body.avatar = image.url;
+    }
+
     const user = await User.findById(id);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    console.log(req.body);
 
     await User.findByIdAndUpdate(id, req.body, {
       new: true,
