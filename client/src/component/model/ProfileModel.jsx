@@ -78,7 +78,7 @@ const ProfileModel = ({setShowModal,userId}) => {
             <span className="text-blue-500 text-4xl">📘</span>
             <div>
               <p className="text-base font-semibold text-gray-500">
-                Ongoing Courses
+                Completed Courses
               </p>
               <h3 className="text-lg font-bold text-primary-light">
                 {userData.completedCoursesCount}
