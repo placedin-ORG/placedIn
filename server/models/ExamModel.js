@@ -30,6 +30,11 @@ const examSchema = new mongoose.Schema(
           required: true,
           default: 1,
         },
+        level: {
+          type: String,
+          required: true,
+          default: "Easy",
+        },
 
         type: {
           type: String,
