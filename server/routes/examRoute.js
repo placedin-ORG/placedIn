@@ -18,6 +18,7 @@ const {
   liveResults,
   hasGivenExam,
   getOngoingExams,
+  calculateResults,
 } = require("../controllers/examController");
 const { isAuth, authoriseRoles } = require("../middlewares/auth");
 
@@ -31,7 +32,11 @@ router.get("/upcoming-exams", isAuth, getUpcomingExams);
 router.get("/ongoing-exams", isAuth, getOngoingExams);
 
 router.get("/completed-exams", isAuth, getUserCompletedExams);
+
 router.get("/submissions/:id", isAuth, getExamSubmissions);
+
+router.get("/calculate-results/:id", isAuth, calculateResults);
+
 router.get("/submissions-detail/:id", isAuth, getSubmissionById);
 router.put("/save-score/:id", isAuth, saveScore);
 router.put("/live-results/:id", isAuth, liveResults);

@@ -1,6 +1,12 @@
+const e = require("express");
 const { Exam } = require("../models/ExamModel"); // Assuming Exam model is in the models folder
 const { ExamResult } = require("../models/ExamModel");
 const { uploadFile } = require("../utils/cloudinary");
+
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+const genAI = new GoogleGenerativeAI("AIzaSyClxpijlw0iXbcOKRm624HU8jH7caeGJPI");
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
 // Create a new exam
 const create = async (req, res) => {
   try {
@@ -456,6 +462,83 @@ const getSubmissionById = async (req, res) => {
 
 // Save the score
 
+const calculateResults = async (req, res) => {
+  try {
+    const ExamId = req.params.id;
+    const examData = await Exam.findById(ExamId);
+    const submissions = await ExamResult.find({
+      ExamId: req.params.id,
+    });
+
+    // Iterate through each submission to calculate scores
+    for (const submission of submissions) {
+      let totalScore = 0;
+      const individualScores = [];
+
+      // Process each answer in the user's submission
+      for (const userAnswer of submission.userAnswers) {
+        const question = examData.questions.find(
+          (q) => q._id.toString() === userAnswer.questionId.toString()
+        );
+
+        if (!question) {
+          console.error(`Question not found for ID: ${userAnswer.questionId}`);
+          continue;
+        }
+
+        let score = 0;
+
+        if (question.type === "objective") {
+          // Objective question: compare user answer with correct answer
+          if (userAnswer.answer === question.correctAnswer) {
+            score = question.weightage || 1;
+          }
+        } else if (question.type === "subjective") {
+          // Subjective question: use generative AI to evaluate the answer
+          const prompt = `
+            Evaluate the following answer based on the question:
+            Question: ${question.questionText}
+            Answer: ${userAnswer.answer}
+            Score out of ${question.weightage}.
+            Only return the score as a number.`;
+
+          const modelResponse = await model.generateContent(prompt);
+
+          // Extract the score from the AI's response
+          const parsedScore = parseFloat(modelResponse.response.text());
+          console.log("Parsed Score", parsedScore);
+
+          score = isNaN(parsedScore) ? 0 : parsedScore;
+        }
+
+        individualScores.push({
+          questionId: userAnswer.questionId,
+          score,
+        });
+
+        totalScore += score;
+      }
+
+      console.log(totalScore);
+      console.log(individualScores);
+
+      // Save the scores in the database
+      await ExamResult.findByIdAndUpdate(
+        submission._id,
+        { score: totalScore, userAnswers: individualScores },
+        { new: true }
+      );
+    }
+
+    res
+      .status(200)
+      .json({ message: "Scores calculated and saved successfully!" });
+  } catch (error) {
+    console.error("Error calculating scores:", error);
+    res.status(500).json({ message: "Failed to calculate scores" });
+  }
+};
+
 const saveScore = async (req, res) => {
   try {
     const { totalScore, individualScores } = req.body;
@@ -509,4 +592,5 @@ module.exports = {
   saveScore,
   enrollUser,
   liveResults,
+  calculateResults,
 };

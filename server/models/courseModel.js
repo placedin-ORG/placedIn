@@ -88,6 +88,8 @@ const courseSchema = new mongoose.Schema({
     {
       questionText: { type: String },
       options: [{ type: String }],
+      level: { type: String, default: "Easy" },
+      weightage: { type: Number, default: 0 },
       correctAnswer: { type: String },
       image: { type: String }, // Optional for image-based questions
     },

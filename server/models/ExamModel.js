@@ -42,6 +42,7 @@ const examSchema = new mongoose.Schema(
           required: true,
         }, // Type of question
         options: [String], // Array of options for objective questions (optional for subjective)
+        correctAnswer: { type: String },
       },
     ],
     examThumbnail: {
