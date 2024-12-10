@@ -19,7 +19,7 @@ const purchaseRoutes = require("./routes/purchaseRoutes");
 const certificateRoute = require("./routes/certificateRoute");
 const rankingRoute = require("./routes/userRankingRoutes");
 const teacherRoute = require("./routes/teacherRoutes");
-const axios =require("axios")
+const axios = require("axios");
 require("dotenv").config();
 const cloudinary = require("cloudinary");
 
@@ -71,91 +71,97 @@ connectDb()
     console.log("Error Connecting to databse");
   });
 
-
 // Function to parse the quiz into a structured format
 function parseQuizToQuestionsArray(quizString) {
-    if (typeof quizString !== 'string') {
-        throw new TypeError('Expected a string input for parsing questions');
+  if (typeof quizString !== "string") {
+    throw new TypeError("Expected a string input for parsing questions");
+  }
+
+  // Split quiz into question blocks
+  const questionBlocks = quizString.split(/\n\n+/);
+  const questionsArray = [];
+
+  questionBlocks.forEach((block) => {
+    const lines = block.split("\n").filter((line) => line.trim() !== "");
+
+    if (lines.length > 0) {
+      const questionText = lines[0].trim();
+      const options = lines.slice(1, 5).map((opt) => opt.trim()); // Next 4 lines are options
+
+      // Extract the correct answer
+      const correctAnswerLine = lines.find((line) =>
+        line.trim().startsWith("correctAnswer:")
+      );
+      const correctAnswer = correctAnswerLine
+        ? correctAnswerLine.split(":").slice(1).join(":").trim()
+        : null;
+
+      if (options.length === 4 && correctAnswer) {
+        questionsArray.push({
+          question: questionText,
+          options,
+          correctAnswer,
+        });
+      }
     }
+  });
 
-    // Split quiz into question blocks
-    const questionBlocks = quizString.split(/\n\n+/);
-    const questionsArray = [];
-
-    questionBlocks.forEach((block) => {
-        const lines = block.split('\n').filter((line) => line.trim() !== '');
-
-        if (lines.length > 0) {
-            const questionText = lines[0].trim();
-            const options = lines.slice(1, 5).map((opt) => opt.trim()); // Next 4 lines are options
-
-            // Extract the correct answer
-            const correctAnswerLine = lines.find((line) => line.trim().startsWith('correctAnswer:'));
-            const correctAnswer = correctAnswerLine ? correctAnswerLine.split(':').slice(1).join(':').trim() : null;
-
-            if (options.length === 4 && correctAnswer) {
-                questionsArray.push({
-                    question: questionText,
-                    options,
-                    correctAnswer
-                });
-            }
-        }
-    });
-
-    return questionsArray;
+  return questionsArray;
 }
 
-app.use("/api/v1/dailyQuestion",async(req,res)=>{
-     try {
-        // Fetch all users
-        const {userId}=req.body;
-        const users = await User.find();
+app.use("/api/v1/dailyQuestion", async (req, res) => {
+  try {
+    // Fetch all users
+    const { userId } = req.body;
+    const users = await User.find();
     //  const {userId}=req.body;
-        for (const user of users) {
-          const currentQuestion = user.dailyLogin?.dailyQAndA?.question;
-  
-          // Add current question to the `questions` array if it exists
-          if (currentQuestion) {
-            user.dailyLogin.questions.push(currentQuestion);
-          }
-  
+    for (const user of users) {
+      const currentQuestion = user.dailyLogin?.dailyQAndA?.question;
 
-        }
-        const user = await User.findById(userId);
-          if(user.dailyLogin.dailyQAndA.completed){
-            return res.json({status:false , daily:user.dailyLogin.dailyQAndA})
-          }
-          if(user.dailyLogin.dailyQAndA.categories.length===0){
-            return res.json({status:false , daily:user.dailyLogin.dailyQAndA});
-          }
-          user.dailyLogin.questions.push(user.dailyLogin.dailyQAndA.question);
-          await user.save();
-        const generatedContent =  await axios.post('http://localhost:5000/api/v1/generate',{
-          content:user.dailyLogin.dailyQAndA.categories,
-          already:user.dailyLogin.questions
-        })
-       console.log(generatedContent.data.questions[0].options )
-        user.dailyLogin.dailyQAndA.question = generatedContent.data.questions[0].question; // Assuming the first question is the daily Q&A
-        user.dailyLogin.dailyQAndA.options =generatedContent.data.questions[0].options;
-        user.dailyLogin.dailyQAndA.correct = generatedContent.data.questions[0].correctAnswer;
-        await user.save();
-        console.log(generatedContent.data.questions);
-      res.json({status:true,daily:user.dailyLogin.dailyQAndA});
-        console.log("Daily login updated for all users.");
-      } catch (error) {
-        console.error("Error resetting daily login:", error);
+      // Add current question to the `questions` array if it exists
+      if (currentQuestion) {
+        user.dailyLogin.questions.push(currentQuestion);
       }
-})
+    }
+    const user = await User.findById(userId);
+    if (user.dailyLogin.dailyQAndA.completed) {
+      return res.json({ status: false, daily: user.dailyLogin.dailyQAndA });
+    }
+    if (user.dailyLogin.dailyQAndA.categories.length === 0) {
+      return res.json({ status: false, daily: user.dailyLogin.dailyQAndA });
+    }
+    user.dailyLogin.questions.push(user.dailyLogin.dailyQAndA.question);
+    await user.save();
+    const generatedContent = await axios.post(
+      `${process.env.SERVER_URL}/api/v1/generate`,
+      {
+        content: user.dailyLogin.dailyQAndA.categories,
+        already: user.dailyLogin.questions,
+      }
+    );
+    console.log(generatedContent.data.questions[0].options);
+    user.dailyLogin.dailyQAndA.question =
+      generatedContent.data.questions[0].question; // Assuming the first question is the daily Q&A
+    user.dailyLogin.dailyQAndA.options =
+      generatedContent.data.questions[0].options;
+    user.dailyLogin.dailyQAndA.correct =
+      generatedContent.data.questions[0].correctAnswer;
+    await user.save();
+    console.log(generatedContent.data.questions);
+    res.json({ status: true, daily: user.dailyLogin.dailyQAndA });
+    console.log("Daily login updated for all users.");
+  } catch (error) {
+    console.error("Error resetting daily login:", error);
+  }
+});
 
-  const resetDailyLogin = async() => {
-    schedule.scheduleJob("0 0 * * *", async () => {
-      await User.updateMany(
-        { "dailyLogin.dailyQAndA.completed": true },
-        { $set: { "dailyLogin.dailyQAndA.completed": false } }
-      );
-    });
-  };
-  
+const resetDailyLogin = async () => {
+  schedule.scheduleJob("0 0 * * *", async () => {
+    await User.updateMany(
+      { "dailyLogin.dailyQAndA.completed": true },
+      { $set: { "dailyLogin.dailyQAndA.completed": false } }
+    );
+  });
+};
 
 resetDailyLogin();

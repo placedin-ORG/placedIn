@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import "./App.css";
-import ContentCreator from "./pages/ContentCreator";
 import CourseDetail from "./pages/CourseDetail";
 import Hompage from "./pages/Home/Hompage";
 import Register from "./pages/Register";
@@ -9,7 +8,6 @@ import Login from "./pages/Login";
 import FinalExam from "./pages/FinalExam";
 import ExamInfoPage from "./component/ExamInfoPage";
 import CourseIntro from "./pages/CourseIntro";
-import TeacherPanel from "./pages/TeacherPanel";
 import EmailSentPage from "./pages/auth/email-sent/page";
 import Profile from "./pages/user/Profile";
 import UserLayout from "./component/Layout/UserLayout";
@@ -44,55 +42,8 @@ function AppWrapper() {
   );
 }
 function App() {
-  // const user = useSelector((state) => state);
-  // const [isModalOpen, setIsModalOpen] = useState(false);
   const location = useLocation();
-  // useEffect(() => {
-  //   // if(user.user.user!==null){
-  //   //    const checkDailyLogin = async () => {
-  //   //   try {
-  //   //     const response = await axios.post('http://localhost:5000/api/v1/login/dailyLogin', {
-  //   //     userId:user.user.user._id
-  //   //     });
-  //   //     if(response.data.status){
-  //   //       setIsModalOpen(true);
-  //   //     }else{
-  //   //       setIsModalOpen(false);
-  //   //     }
-  //   // Backend API
-  //   // const data = await response.json();
-  //   if (user.user.user !== null) {
-  //     const checkDailyLogin = async () => {
-  //       try {
-  //         const response = await axios.post(
-  //           "http://localhost:5000/api/v1/login/dailyLogin",
-  //           {
-  //             userId: user.user.user._id,
-  //           }
-  //         );
-  //         if (response.data.status) {
-  //           setIsModalOpen(true);
-  //           setTimeout(() => {
-  //             setIsModalOpen(false);
-  //           }, 3000);
-  //         } else {
-  //           setIsModalOpen(false);
-  //         }
-  //         // Backend API
-  //         // const data = await response.json();
 
-  //         // // Show modal if the user hasn't logged in for the day
-  //         // if (!data.dailyLogin) {
-  //         //   setIsModalOpen(true);
-  //         // }
-  //       } catch (error) {
-  //         console.error("Error checking daily login status:", error);
-  //       }
-  //     };
-
-  //     checkDailyLogin();
-  //   }
-  // }, [location, user]);
   return (
     <>
       <ScrollToTop />
@@ -105,14 +56,13 @@ function App() {
             </ProtectedRoutes>
           }
         />
-        <Route path="/create" element={<ContentCreator />} />
         <Route path="/" element={<Hompage />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/auth/email-sent" element={<EmailSentPage />} />
         <Route path="/auth/forgot-password" element={<ForgotPassword />} />
         <Route path="/auth/reset-password/:token" element={<ResetPassword />} />
-        <Route path="/resultExam" element={<ExamResult/>}/>
+        <Route path="/resultExam" element={<ExamResult />} />
         <Route
           path="/finalExam/:userId/:courseId"
           element={
@@ -131,8 +81,6 @@ function App() {
         />
         <Route path="/intro/course/:id" element={<CourseIntro />} />
         <Route path="/courses" element={<AllCourses />} />
-
-        <Route path="/teacher-panel" element={<TeacherPanel />} />
 
         {/* User Profile Routes */}
         <Route path="/user" element={<UserLayout />}>
@@ -208,7 +156,7 @@ function App() {
         </Route>
         <Route path="/intro/exam/:id" element={<ExamIntro />} />
         <Route path="/search/:query" element={<SearchResult />} />
-        <Route path="/add-interest" element={<Interest/>}/>
+        <Route path="/add-interest" element={<Interest />} />
       </Routes>
     </>
   );

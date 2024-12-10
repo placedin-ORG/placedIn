@@ -110,11 +110,11 @@ const ExamIntro = () => {
   }, []);
   // --> here <--
   const startLearning = async () => {
-    console.log(exam)
+    console.log(exam);
     if (user.user.user === null) {
       navigate("/register");
     } else {
-      if (start || enrolled ) {
+      if (start || enrolled) {
         navigate(`/exam/${user.user.user._id}/${id}`);
       } else {
         if (exam.price > 0) {
@@ -123,23 +123,6 @@ const ExamIntro = () => {
           navigate(`/examInstruction/${user.user.user._id}/${id}`);
         }
       }
-      // const response = await axios.post("http://localhost:5000/api/v1/exam/startLearning", {
-      //   _id:id,
-      //   userId: user.user.user._id,
-      // });
-      // if (response.data.status) {
-      //   dispatch(
-      //     setCurrentCourse({
-      //       course: response.data.updatedUse,
-      //     })
-      //   );
-      //   // console.log(_id);
-      //   // navigate(`/courseDetail/${_id}`)
-      // } else {
-      //   alert("error");
-
-      // }
-      // navigate(`/courseDetail/${id}`);
     }
   };
 
@@ -325,7 +308,10 @@ const ExamIntro = () => {
                       <button
                         className="text-base lg:text-xl text-white bg-primary-light w-fit px-8 lg:px-16 rounded-xl py-1.5 font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
                         onClick={() => startLearning()}
-                        disabled={!exam.publishResult && examGiven || exam.publishResult && !examGiven}
+                        disabled={
+                          (!exam.publishResult && examGiven) ||
+                          (exam.publishResult && !examGiven)
+                        }
                       >
                         {exam.publishResult
                           ? "View Results"

@@ -1,29 +1,29 @@
-import {useState,useEffect} from 'react';
-import {useParams} from 'react-router-dom';
-import axios from 'axios';
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import axios from "axios";
 import CourseCard from "../../component/CourseCard";
 import SmallUnderline from "../../component/SmallUnderline";
-import Navbar from '../../component/Navbar';
-import Footer from '../../component/Layout/Footer';
-import noresult from "../../assets/noresult3.jpg"
-const SearchResult=()=>{
-const {query}=useParams();
- const [courses,setCourses]=useState(null);
-useEffect(()=>{
-    const call=async()=>{
-      const data=await axios.post('http://localhost:5000/api/v1/search/getSearch',{
-        query
-      })
-      if(data.data.status){
+import Navbar from "../../component/Navbar";
+import Footer from "../../component/Layout/Footer";
+import noresult from "../../assets/noresult3.jpg";
+import API from "../../utils/API";
+const SearchResult = () => {
+  const { query } = useParams();
+  const [courses, setCourses] = useState(null);
+  useEffect(() => {
+    const call = async () => {
+      const data = await API.post("/search/getSearch", {
+        query,
+      });
+      if (data.data.status) {
         setCourses(data.data.courses);
       }
-      
-    }
-    call()
-},[query])
-return (
+    };
+    call();
+  }, [query]);
+  return (
     <>
-   <Navbar />
+      <Navbar />
       <div className="resultPage min-h-screen">
         <div className="max-w-7xl mx-auto px-4 lg:px-8 py-16">
           {/* Page Heading */}
@@ -33,7 +33,8 @@ return (
             </h1>
             <SmallUnderline />
             <p className="mt-4 text-lg text-gray-600">
-              Explore the courses that match your query. Learn something new today!
+              Explore the courses that match your query. Learn something new
+              today!
             </p>
           </div>
 
@@ -41,11 +42,7 @@ return (
           {courses?.length === 0 ? (
             // Empty State
             <div className="mt-16 flex flex-col items-center">
-              <img
-                src={noresult}
-                alt="No results"
-                className="w-72 h-72 mb-6"
-              />
+              <img src={noresult} alt="No results" className="w-72 h-72 mb-6" />
               <h2 className="text-2xl font-semibold text-gray-700">
                 No results found for "{query}"
               </h2>
@@ -65,7 +62,7 @@ return (
       </div>
       <Footer />
     </>
-)
-}
+  );
+};
 
 export default SearchResult;

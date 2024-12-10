@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Toast from "../../component/Toast";
+import API from "../../utils/API";
 
 const category = [
   { key: "doctorate", icon: FaGraduationCap, label: "Doctorate" },
@@ -30,7 +31,7 @@ const Interest = () => {
 
   useEffect(() => {
     const call = async () => {
-      const data = await axios.post("http://localhost:5000/api/v1/getCategories", {
+      const data = await API.post("/getCategories", {
         userId: current.user.user._id,
       });
       if (data.data.status) {
@@ -54,7 +55,7 @@ const Interest = () => {
     if (amenities.length === 0) {
       toast.error("Choose at least one interest");
     } else {
-      const data = await axios.post("http://localhost:5000/api/v1/putCategories", {
+      const data = await API.post("/putCategories", {
         userId: current.user.user._id,
         amenities,
       });
