@@ -84,7 +84,7 @@ router.get("/teacher-courses", isAuth, async (req, res) => {
     if (!courses || courses.length == 0) {
       return res.json({ status: false, message: "No Courses Found" });
     }
-
+   console.log(courses[0])
     return res.status(200).json({ courses });
   } catch (error) {
     console.log(error);

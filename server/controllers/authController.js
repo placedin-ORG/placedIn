@@ -53,7 +53,7 @@ const login = async (req, res) => {
   try {
     /* Take the infomation from the form */
     const { email, password } = req.body;
-
+   console.log(email)
     /* Check if user exists */
     const user = await User.findOne({ email });
     if (!user) {

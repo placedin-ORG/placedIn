@@ -25,6 +25,7 @@ const FinalExam = () => {
     const [remainingTime, setRemainingTime] = useState(null);
     const [cond,setcond]=useState(false);
     const [username,setUsername]=useState("");
+    
   const finalConfirmation = () => {
     setShowModal(true); // Show the confirmation modal
   };
@@ -50,25 +51,25 @@ const FinalExam = () => {
     }
     setStart(false);
   }
-  // useEffect(() => {
-  //   if (examData && !isExamSubmitted && !start ) {
-  //     const durationInMs = examData.examDuration * 60 * 1000;
-  //     console.log(examData) // Convert duration to milliseconds
-  //     const endTime = Date.now() + durationInMs; // Calculate end time
+  useEffect(() => {
+    if (examData && !isExamSubmitted && !start ) {
+      const durationInMs = examData.examDuration * 60 * 1000;
+      console.log(examData) // Convert duration to milliseconds
+      const endTime = Date.now() + durationInMs; // Calculate end time
   
-  //     const timer = setInterval(() => {
-  //       const timeLeft = endTime - Date.now();
-  //       if (timeLeft <= 0) {
-  //         clearInterval(timer);
-  //         setRemainingTime(0);
-  //         handleSubmitExam(); // Automatically submit the exam
-  //       } else {
-  //         setRemainingTime(Math.ceil(timeLeft / 1000)); // Update remaining time in seconds
-  //       }
-  //     }, 1000);
+      const timer = setInterval(() => {
+        const timeLeft = endTime - Date.now();
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          setRemainingTime(0);
+          handleSubmitExam(); // Automatically submit the exam
+        } else {
+          setRemainingTime(Math.ceil(timeLeft / 1000)); // Update remaining time in seconds
+        }
+      }, 1000);
   
-  //     return () => clearInterval(timer); // Cleanup interval on unmount or examData changes
-  //   }}, [examData,start]);
+      return () => clearInterval(timer); // Cleanup interval on unmount or examData changes
+    }}, [examData,start]);
     useEffect(()=>{
         const call=async()=>{
            const data=await axios.post('http://localhost:5000/api/v1/learn/examData',{
@@ -116,18 +117,18 @@ const FinalExam = () => {
         if (!document.fullscreenElement) {
           console.log("Exiting fullscreen. Current options:", selectedOptionsRef.current);
           toast.error("Exiting fullscreen mode make the exam auto submit");
-          handleSubmitExam();
+          handleSubmitExam(true);
         }
       };
       const handleBeforeUnload = (e) => {
         e.preventDefault();
         toast.error("Reloading the page make the exam auto submit");
-        handleSubmitExam();
+        handleSubmitExam(true);
         return ;
       };
       const handleWindowBlur = () => {
         toast.error("Leaving the page make the exam auto submit")
-        handleSubmitExam();
+        handleSubmitExam(true);
        };
       // Attach Event Listeners
       document.addEventListener("fullscreenchange", handleFullscreenChange);
@@ -155,10 +156,13 @@ const FinalExam = () => {
       };
 
 
-      const handleSubmitExam = async() => {
+      const handleSubmitExam = async(autoSubmit) => {
         setShowModal(false);
         setIsExamSubmitted(true);
-        handleCloseFullscreen();
+        if(!autoSubmit){
+           handleCloseFullscreen();
+        }
+       
                 console.log(selectedOptions)
         try{
   const data=await axios.post('http://localhost:5000/api/v1/learn/examresult',{
@@ -282,121 +286,221 @@ const handleDownload = () => {
   link.click();
 };
 
-
+const handleContextMenu = (event) => {
+  event.preventDefault();
+  toast.warning('right click is prevented')
+};
   return (
     <>
         
       {/* Display remaining time */}
       {
-        examData && (
-         <div className="bg-gray-50  flex flex-col border">
-      {/* Remaining Time */}
-      <Toast/>
-      {remainingTime !== null && (
-        <div className="fixed top-0 left-0 right-0 bg-blue-600 text-white text-center py-2 z-50">
-          <span className="text-lg font-semibold">
-            ⏱️ Remaining Time: {Math.floor(remainingTime / 60)}:{String(remainingTime % 60).padStart(2, "0")}
-          </span>
-        </div>
-      )}
+//         examData && (
+//          <div className="bg-gray-50  flex flex-col border">
+//       {/* Remaining Time */}
+//       <Toast/>
+//       {remainingTime !== null && (
+//         <div className="fixed top-0 left-0 right-0 bg-blue-600 text-white text-center py-2 z-50">
+//           <span className="text-lg font-semibold">
+//             ⏱️ Remaining Time: {Math.floor(remainingTime / 60)}:{String(remainingTime % 60).padStart(2, "0")}
+//           </span>
+//         </div>
+//       )}
 
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-16 flex-grow " >
-      {examData && (
-          <>
-            {/* Navigation Bar */}
-            <div
-              className="fixed top-0 left-0 right-0 bg-white !mt-9 shadow-xl rounded-b-lg p-4 z-50 flex flex-col justify-start items-center max-w-4xl mx-auto overflow-y-auto"
-              style={{ maxHeight: "80vh" }}
-            >
-              <div className="grid grid-cols-6 gap-4 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12">
-                {examData.finalExam.questions.map((_, questionIndex) => (
-                  <a
+//       {/* Main Content */}
+//       <div className="container mx-auto px-4 py-16 flex-grow " >
+//       {examData && (
+//           <>
+//             {/* Navigation Bar */}
+//             <div
+//               className="fixed top-0 left-0 right-0 bg-white !mt-9 shadow-xl rounded-b-lg p-4 z-50 flex flex-col justify-start items-center max-w-4xl mx-auto overflow-y-auto"
+//               style={{ maxHeight: "80vh" }}
+//             >
+//               <div className="grid grid-cols-6 gap-4 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12">
+//                 {examData.finalExam.questions.map((_, questionIndex) => (
+//                   <a
+//                     key={questionIndex}
+//                     href={`#${questionIndex}`}
+//                     className={`w-full flex items-center justify-center p-4 rounded-lg text-white transition-all duration-300 transform ${
+//                       selectedOptions[questionIndex]
+//                         ? "bg-green-600 shadow-lg scale-110"
+//                         : "bg-gray-400 hover:bg-gray-500 shadow-md hover:scale-105"
+//                     } ${
+//                       doItLater[questionIndex] ? "bg-orange-500" : "" // Ensure orange color is applied correctly
+//                     } ${
+//                       window.location.hash === `#${questionIndex}` ? "ring-4 ring-blue-300" : ""
+//                     }`}
+//                     aria-label={`Question ${questionIndex + 1}`}
+//                     title={`Go to Question ${questionIndex + 1}`}
+//                   >
+//                     <span className="text-lg font-semibold">{questionIndex + 1}</span>
+//                   </a>
+//                 ))}
+//               </div>
+//             </div>
+
+//             {/* Questions Section */}
+
+//             <div className="mt-32">
+//               {examData.finalExam.questions.map((question, questionIndex) => (
+//                 <div
+//                   id={`${questionIndex}`}
+//                   key={questionIndex}
+//                   className="bg-white shadow-md rounded-lg p-6 mb-6 transform transition-all duration-300 hover:shadow-lg scroll-mt-36"
+//                 >
+//                   <p className="text-lg md:text-xl font-semibold text-gray-800 mb-4">
+//                     <span className="text-blue-500 font-bold">Q{questionIndex + 1}:</span>{" "}
+//                     {question.questionText}
+//                   </p>
+//                   <div className="space-y-4">
+//                     {question.options.map((option, optionIndex) => (
+//                       <label
+//                         key={optionIndex}
+//                         className="flex items-center gap-3 p-3 border border-gray-300 rounded-lg hover:shadow-md transition-all"
+//                       >
+//                         <input
+//                           type="radio"
+//                           name={`question-${questionIndex}`}
+//                           value={option}
+//                           checked={selectedOptions[questionIndex] === option}
+//                           onChange={() => handleOptionChange(questionIndex, option)}
+//                           className="form-radio w-5 h-5 text-blue-600 border-gray-300 focus:ring focus:ring-blue-400"
+//                         />
+//                         <span className="text-gray-700">{option}</span>
+//                       </label>
+//                     ))}
+//                   </div>
+
+//                   {/* "Do It Later" Button */}
+//                   <button
+//                     onClick={() => handleDoItLaterClick(questionIndex)}
+//                     className={`mt-4 px-4 py-2 rounded-lg transition-all ${
+//                       doItLater[questionIndex]
+//                         ? "bg-orange-500 text-white hover:bg-orange-600"
+//                         : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+//                     }`}
+//                   >
+//                     {doItLater[questionIndex] ? "Unmark" : "Mark For Later"}
+//                   </button>
+//                 </div>
+//               ))}
+//              <button
+//   onClick={() => setShowModal(true)}
+//   className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition duration-200"
+// >
+//   Submit Exam
+// </button>
+
+//             </div>
+//           </>
+//         )}
+//     </div>
+
+//     </div> 
+//         )
+      } 
+     
+      {
+        examData && (
+          <div className="bg-gray-50 flex flex-col min-h-screen" onContextMenu={handleContextMenu}>
+            {/* Remaining Time */}
+            <Toast />
+            {remainingTime !== null && (
+              <div className="fixed top-0 left-0 right-0 bg-blue-600 text-white text-center py-2 z-50">
+                <span className="text-lg font-semibold">
+                  ⏱️ Remaining Time: {Math.floor(remainingTime / 60)}:{String(remainingTime % 60).padStart(2, "0")}
+                </span>
+              </div>
+            )}
+      
+            {/* Main Content */}
+            <div className="flex-grow container mx-auto px-4 py-16 flex gap-6">
+              {/* Navigation Bar */}
+              <div
+                className="w-full md:w-1/4 bg-white shadow-lg rounded-lg p-4 overflow-y-auto sticky top-20 max-h-[calc(100vh-80px)]"
+              >
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                  {examData.finalExam.questions.map((_, questionIndex) => (
+                    <a
+                      key={questionIndex}
+                      href={`#${questionIndex}`}
+                      className={`flex items-center justify-center p-3 rounded-lg text-white font-semibold transition-all duration-300 transform ${
+                        selectedOptions[questionIndex]
+                          ? "bg-green-600 shadow-lg scale-110"
+                          : "bg-gray-400 hover:bg-gray-500 shadow-md hover:scale-105"
+                      } ${
+                        doItLater[questionIndex] ? "bg-orange-500" : ""
+                      } ${
+                        window.location.hash === `#${questionIndex}` ? "ring-4 ring-blue-300" : ""
+                      }`}
+                      aria-label={`Question ${questionIndex + 1}`}
+                      title={`Go to Question ${questionIndex + 1}`}
+                    >
+                      {questionIndex + 1}
+                    </a>
+                  ))}
+                </div>
+              </div>
+      
+              {/* Questions Section */}
+              <div className="w-full md:w-3/4 flex flex-col gap-6">
+                {examData.finalExam.questions.map((question, questionIndex) => (
+                  <div
+                    id={`${questionIndex}`}
                     key={questionIndex}
-                    href={`#${questionIndex}`}
-                    className={`w-full flex items-center justify-center p-4 rounded-lg text-white transition-all duration-300 transform ${
-                      selectedOptions[questionIndex]
-                        ? "bg-green-600 shadow-lg scale-110"
-                        : "bg-gray-400 hover:bg-gray-500 shadow-md hover:scale-105"
-                    } ${
-                      doItLater[questionIndex] ? "bg-orange-500" : "" // Ensure orange color is applied correctly
-                    } ${
-                      window.location.hash === `#${questionIndex}` ? "ring-4 ring-blue-300" : ""
-                    }`}
-                    aria-label={`Question ${questionIndex + 1}`}
-                    title={`Go to Question ${questionIndex + 1}`}
+                    className="bg-white shadow-md rounded-lg p-6 transform transition-all duration-300 hover:shadow-lg scroll-mt-36"
                   >
-                    <span className="text-lg font-semibold">{questionIndex + 1}</span>
-                  </a>
+                    <p className="text-lg md:text-xl font-semibold text-gray-800 mb-4">
+                      <span className="text-blue-500 font-bold">Q{questionIndex + 1}:</span> {question.questionText}
+                    </p>
+                    <div className="space-y-4">
+                      {question.options.map((option, optionIndex) => (
+                        <label
+                          key={optionIndex}
+                          className="flex items-center gap-3 p-3 border border-gray-300 rounded-lg hover:shadow-md transition-all"
+                        >
+                          <input
+                            type="radio"
+                            name={`question-${questionIndex}`}
+                            value={option}
+                            checked={selectedOptions[questionIndex] === option}
+                            onChange={() => handleOptionChange(questionIndex, option)}
+                            className="form-radio w-5 h-5 text-blue-600 border-gray-300 focus:ring focus:ring-blue-400"
+                          />
+                          <span className="text-gray-700">{option}</span>
+                        </label>
+                      ))}
+                    </div>
+      
+                    {/* "Do It Later" Button */}
+                    <button
+                      onClick={() => handleDoItLaterClick(questionIndex)}
+                      className={`mt-4 px-4 py-2 rounded-lg transition-all ${
+                        doItLater[questionIndex]
+                          ? "bg-orange-500 text-white hover:bg-orange-600"
+                          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      }`}
+                    >
+                      {doItLater[questionIndex] ? "Unmark" : "Mark For Later"}
+                    </button>
+                  </div>
                 ))}
+                <button
+                  onClick={() => setShowModal(true)}
+                  className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition duration-200"
+                >
+                  Submit Exam
+                </button>
               </div>
             </div>
-
-            {/* Questions Section */}
-
-            <div className="mt-32">
-              {examData.finalExam.questions.map((question, questionIndex) => (
-                <div
-                  id={`${questionIndex}`}
-                  key={questionIndex}
-                  className="bg-white shadow-md rounded-lg p-6 mb-6 transform transition-all duration-300 hover:shadow-lg scroll-mt-36"
-                >
-                  <p className="text-lg md:text-xl font-semibold text-gray-800 mb-4">
-                    <span className="text-blue-500 font-bold">Q{questionIndex + 1}:</span>{" "}
-                    {question.questionText}
-                  </p>
-                  <div className="space-y-4">
-                    {question.options.map((option, optionIndex) => (
-                      <label
-                        key={optionIndex}
-                        className="flex items-center gap-3 p-3 border border-gray-300 rounded-lg hover:shadow-md transition-all"
-                      >
-                        <input
-                          type="radio"
-                          name={`question-${questionIndex}`}
-                          value={option}
-                          checked={selectedOptions[questionIndex] === option}
-                          onChange={() => handleOptionChange(questionIndex, option)}
-                          className="form-radio w-5 h-5 text-blue-600 border-gray-300 focus:ring focus:ring-blue-400"
-                        />
-                        <span className="text-gray-700">{option}</span>
-                      </label>
-                    ))}
-                  </div>
-
-                  {/* "Do It Later" Button */}
-                  <button
-                    onClick={() => handleDoItLaterClick(questionIndex)}
-                    className={`mt-4 px-4 py-2 rounded-lg transition-all ${
-                      doItLater[questionIndex]
-                        ? "bg-orange-500 text-white hover:bg-orange-600"
-                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                    }`}
-                  >
-                    {doItLater[questionIndex] ? "Unmark" : "Mark For Later"}
-                  </button>
-                </div>
-              ))}
-             <button
-  onClick={() => setShowModal(true)}
-  className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition duration-200"
->
-  Submit Exam
-</button>
-
-            </div>
-          </>
-        )}
-    </div>
-
-    </div> 
+          </div>
         )
       }
       
  
 {
   examResult && (
-     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex flex-col items-center justify-center p-6">
+     <div onContextMenu={handleContextMenu} className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex flex-col items-center justify-center p-6">
   <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-2xl">
     {/* Animated Title */}
     <h1 className="text-3xl font-bold text-blue-600 text-center mb-6 animate-fade-in">
@@ -458,8 +562,8 @@ const handleDownload = () => {
   </div> 
 {/*certificate model*/}
 {certificteModel && (
-       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-       <div className="bg-white rounded-lg p-6 w-[95%] relative shadow-xl">
+       <div className="fixed inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center z-50">
+       <div className="bg-white rounded-lg p-6 w-[95%] relative shadow-xl flex items-center justify-center gap-3 flex-col">
          {/* Close Button */}
          <button
            className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
@@ -563,6 +667,8 @@ const handleDownload = () => {
         </div>
       );
     })}
+
+    
   </div>
   
   )
@@ -582,13 +688,14 @@ const handleDownload = () => {
       <Rating courseId={courseId} userId={userId} />
     </div>
   </div>
+  
 </div>
   )
 }
 
    
 {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onContextMenu={handleContextMenu}>
           <div className="bg-white rounded-lg p-6 w-[95%] relative shadow-xl">
             {/* Close Button */}
             <button
@@ -610,7 +717,7 @@ const handleDownload = () => {
               </button>
               <button
                 className="px-4 py-2 bg-orange-400 text-white rounded-md hover:bg-orange-500"
-                onClick={handleSubmitExam}
+                onClick={()=>handleSubmitExam(false )}
               >
                 Confirm
               </button>
@@ -620,7 +727,7 @@ const handleDownload = () => {
       )}   
       {start && (
        
-          <div className="fixed inset-0 bg-black bg-opacity-100 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black bg-opacity-100 flex items-center justify-center z-50" onContextMenu={handleContextMenu}>
           <div className="bg-white rounded-lg p-6 w-[95%] relative shadow-xl">
             {/* Close Button */}
           
@@ -644,9 +751,6 @@ const handleDownload = () => {
       )}   
     
         
-   
-
-   <Footer/>
     </>
   );
 }

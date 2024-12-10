@@ -146,7 +146,7 @@ const profileData=async(req,res)=>{
     const results = await ExamResult.find({ userId: userId });
     const resultCount = results.length;
     const profileData={
-      completedCoursesCount,resultCount,username:student.name,email:student.email
+      completedCoursesCount,resultCount,username:student.name,email:student.email,avatar:student.avatar
     }
     res.json({status:true,profileData})
   }catch(err){

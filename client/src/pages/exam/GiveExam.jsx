@@ -12,7 +12,8 @@ import Footer from "../../component/Layout/Footer";
 import API from "../../utils/API";
 import parse from "html-react-parser";
 import ReactQuill from "react-quill";
-import "react-quill/dist/quill.bubble.css";
+import "react-quill/dist/quill.snow.css";
+// import "react-quill/dist/quill.bubble.css";
 import ExamResult from "./ExamResult";
 const GiveExam = () => {
   const navigate = useNavigate();
@@ -200,154 +201,168 @@ const GiveExam = () => {
       [questionIndex]: !prevState[questionIndex] || false, // Properly toggles "Do It Later"
     }));
   };
+
+  const handleContextMenu = (event) => {
+    event.preventDefault();
+    toast.warning('right click is prevented')
+  };
   return (
     <>
       {/* Display remaining time */}
-      <div className="flex flex-col">
-        {/* Remaining Time */}
-        <Toast />
-
-        {remainingTime !== null && (
-          <div className="fixed top-0 left-0 right-0 h-full max-h-12 bg-blue-600 text-white text-center py-2 z-50">
-            <span className="text-lg font-semibold">
-              ⏱️ Remaining Time: {Math.floor(remainingTime / 60)}:
-              {String(remainingTime % 60).padStart(2, "0")}
-            </span>
-          </div>
-        )}
-
-        {/* Main Content */}
-        <div
-          className={`container mx-auto px-4 py-16 flex-grow ${
+      <div className={`flex flex-col h-screen${
             isSubmit && "hidden"
-          }`}
+          }`} onContextMenu={handleContextMenu}>
+  {/* Remaining Time */}
+  <Toast />
+  {remainingTime !== null && (
+    <div className="fixed top-0 left-0 right-0 h-12 bg-blue-600 text-white text-center py-2 z-50">
+      <span className="text-lg font-semibold">
+        ⏱️ Remaining Time: {Math.floor(remainingTime / 60)}:
+        {String(remainingTime % 60).padStart(2, "0")}
+      </span>
+    </div>
+  )}
+{
+  examData && (
+    <>
+    <div className="flex flex-grow overflow-hidden pt-12">
+    {/* Navigation Bar */}
+    <div className="w-1/4 bg-white border-r p-4 overflow-y-auto hidden sm:block">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+        {examData.questions.map((_, questionIndex) => (
+          <a
+            key={questionIndex}
+            href={`#${questionIndex}`}
+            className={`flex items-center justify-center p-4 rounded-lg text-primary transition-all duration-300 transform ${
+              selectedOptions[questionIndex] ||
+              subjectiveAnswers[questionIndex]
+                ? "bg-green-600 text-white shadow-lg scale-110"
+                : "bg-gray-100 hover:bg-gray-200 shadow-md hover:scale-105"
+            } ${
+              doItLater[questionIndex]
+                ? "bg-orange-500 text-white"
+                : ""
+            } ${
+              window.location.hash === `#${questionIndex}`
+                ? "ring-4 ring-primary"
+                : ""
+            }`}
+            aria-label={`Question ${questionIndex + 1}`}
+            title={`Go to Question ${questionIndex + 1}`}
+          >
+            <span className="text-lg font-semibold">
+              {questionIndex + 1}
+            </span>
+          </a>
+        ))}
+      </div>
+    </div>
+
+    {/* Questions Section */}
+    <div className="flex-grow p-4 overflow-y-auto">
+      {examData.questions.map((question, questionIndex) => (
+        <div
+          id={`${questionIndex}`}
+          key={questionIndex}
+          className="bg-white border border-gray-300 hover:shadow rounded-lg p-6 mb-6 transform transition-all duration-300 scroll-mt-12"
         >
-          {examData && (
-            <>
-              {/* Navigation Bar */}
-              <div
-                className="fixed top-12 left-0 right-0 bg-white border rounded-b-lg p-4 z-50 flex flex-col justify-start items-center max-w-7xl overflow-x-auto mx-auto overflow-y-auto"
-                style={{ maxHeight: "80vh" }}
-              >
-                <div className="grid grid-cols-6 gap-4 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12">
-                  {examData.questions.map((_, questionIndex) => (
-                    <a
-                      key={questionIndex}
-                      href={`#${questionIndex}`}
-                      className={`w-full max-h-10 flex items-center justify-center p-4 rounded-lg text-primary transition-all duration-300 transform ${
-                        selectedOptions[questionIndex] ||
-                        subjectiveAnswers[questionIndex]
-                          ? "bg-green-600 text-white shadow-lg scale-110"
-                          : "bg-gray-100 hover:bg-gray-200 shadow-md hover:scale-105"
-                      } ${
-                        doItLater[questionIndex]
-                          ? "bg-orange-500 text-white"
-                          : ""
-                      } ${
-                        window.location.hash === `#${questionIndex}`
-                          ? "ring-4 ring-primary"
-                          : ""
-                      }`}
-                      aria-label={`Question ${questionIndex + 1}`}
-                      title={`Go to Question ${questionIndex + 1}`}
-                    >
-                      <span className="text-lg font-semibold">
-                        {questionIndex + 1}
-                      </span>
-                    </a>
-                  ))}
-                </div>
-              </div>
-
-              {/* Questions Section */}
-              <div className="!mt-32 space-y-20 md:space-y-32">
-                {examData.questions.map((question, questionIndex) => (
-                  <div
-                    id={`${questionIndex}`}
-                    key={questionIndex}
-                    className="bg-white border border-gray-300 hover:shadow rounded-lg p-6 mb-6 transform transition-all duration-300  scroll-mt-36"
-                  >
-                    <p className="text-lg md:text-xl font-semibold text-gray-800 mb-4">
-                      <span className="text-blue-500 font-bold">
-                        Q{questionIndex + 1}:
-                      </span>{" "}
-                      {parse(question.questionText)}
-                    </p>
-                    {question.type === "objective" ? (
-                      <div className="space-y-4">
-                        {question.options.map((option, optionIndex) => (
-                          <label
-                            key={optionIndex}
-                            className="flex items-center gap-3 p-3 border border-gray-300 rounded-lg hover:shadow-md transition-all"
-                          >
-                            <input
-                              type="radio"
-                              name={`question-${questionIndex}`}
-                              value={option}
-                              checked={
-                                selectedOptions[questionIndex] === option
-                              }
-                              onChange={() =>
-                                handleOptionChange(questionIndex, option)
-                              }
-                              className="form-radio w-5 h-5 text-blue-600 border-gray-300 focus:ring focus:ring-blue-400"
-                            />
-                            <span className="text-gray-700">{option}</span>
-                          </label>
-                        ))}
-                      </div>
-                    ) : (
-                      <>
-                        <p className="text-base font-semibold text-primary mb-2">
-                          Answer:{" "}
-                        </p>
-                        <ReactQuill
-                          className="h-full text-xl"
-                          style={{
-                            height: "10rem",
-                            maxHeight: "15rem",
-                            border: "2px solid black",
-                            marginBottom: "2rem",
-                          }}
-                          value={subjectiveAnswers[questionIndex] || ""}
-                          onChange={(v) =>
-                            handleSubjectiveChange(questionIndex, v)
-                          }
-                          placeholder="Write your answer here..."
-                          readOnly={false}
-                          theme="bubble"
-                        />
-                      </>
-                    )}
-
-                    {/* "Do It Later" Button */}
-                    <button
-                      onClick={() => handleDoItLaterClick(questionIndex)}
-                      className={`mt-4 px-4 py-2 rounded-lg transition-all ${
-                        doItLater[questionIndex]
-                          ? "bg-orange-500 text-white hover:bg-orange-600"
-                          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                      }`}
-                    >
-                      {doItLater[questionIndex] ? "Unmark" : "Mark For Later"}
-                    </button>
-                  </div>
-                ))}
-                <button
-                  onClick={() => setShowModal(true)}
-                  className="px-6 py-3 bg-primary text-white font-semibold rounded-lg shadow-md hover:bg-primary-dark hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition duration-200"
+          <p className="text-lg md:text-xl font-semibold text-gray-800 mb-4">
+            <span className="text-blue-500 font-bold">
+              Q{questionIndex + 1}:
+            </span>{" "}
+            {parse(question.questionText)}
+          </p>
+          {question.type === "objective" ? (
+            <div className="space-y-4">
+              {question.options.map((option, optionIndex) => (
+                <label
+                  key={optionIndex}
+                  className="flex items-center gap-3 p-3 border border-gray-300 rounded-lg hover:shadow-md transition-all"
                 >
-                  Submit Exam
-                </button>
-              </div>
+                  <input
+                    type="radio"
+                    name={`question-${questionIndex}`}
+                    value={option}
+                    checked={
+                      selectedOptions[questionIndex] === option
+                    }
+                    onChange={() =>
+                      handleOptionChange(questionIndex, option)
+                    }
+                    className="form-radio w-5 h-5 text-blue-600 border-gray-300 focus:ring focus:ring-blue-400"
+                  />
+                  <span className="text-gray-700">{option}</span>
+                </label>
+              ))}
+            </div>
+          ) : (
+            <>
+              <p className="text-base font-semibold text-primary mb-2">
+                Answer:{" "}
+              </p>
+              <ReactQuill
+    className="h-full text-xl"
+    style={{ height: "10rem", maxHeight: "15rem" }}
+    value={subjectiveAnswers[questionIndex] || ""}
+    onChange={(v) => handleSubjectiveChange(questionIndex, v)}
+    placeholder="Enter your Answer"
+    modules={{
+      toolbar: [
+        [{ header: [1, 2, 3, 4, 5, 6, false] }],
+        ["bold", "italic", "underline", "strike"],
+        [{ list: "ordered" }, { list: "bullet" }],
+        ["link", "blockquote", "code-block"],
+        ["clean"],
+      ],
+    }}
+    formats={[
+      "header",
+      "bold",
+      "italic",
+      "underline",
+      "strike",
+      "list",
+      "bullet",
+      "link",
+      "blockquote",
+      "code-block",
+    ]}
+    readOnly={false}
+  />
             </>
           )}
+
+          {/* "Do It Later" Button */}
+          <button
+            onClick={() => handleDoItLaterClick(questionIndex)}
+            className={`mt-14 px-4 py-2 rounded-lg transition-all ${
+              doItLater[questionIndex]
+                ? "bg-orange-500 text-white hover:bg-orange-600"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            {doItLater[questionIndex] ? "Unmark" : "Mark For Later"}
+          </button>
         </div>
-      </div>
-      {isSubmit && <ExamResult userId={userId} ExamId={ExamId} />}
+      ))}
+      <button
+        onClick={() => setShowModal(true)}
+        className="px-6 py-3 bg-primary text-white font-semibold rounded-lg shadow-md hover:bg-primary-dark hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition duration-200"
+      >
+        Submit Exam
+      </button>
+    </div>
+  </div>
+    </>
+  )
+}
+  
+</div>
+
+      {isSubmit && <ExamResult userId={userId} ExamId={ExamId} onContextMenu={handleContextMenu}/>}
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onContextMenu={handleContextMenu}>
           <div className="bg-white rounded-lg p-6 w-[95%] relative shadow-xl">
             {/* Close Button */}
             <button
@@ -378,7 +393,7 @@ const GiveExam = () => {
         </div>
       )}
       {start && (
-        <div className="fixed inset-0 bg-black bg-opacity-100 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-100 flex items-center justify-center z-50" onContextMenu={handleContextMenu}>
           <div className="bg-white rounded-lg p-6 w-[95%] relative shadow-xl">
             {/* Close Button */}
 

@@ -11,6 +11,7 @@ const ProfileModel = ({setShowModal,userId}) => {
        const data=await API.post("/ranking/profileData",{
         userId
        })
+       console.log(data.data.profileData)
         if(data.data.status){
             const total = data.data.profileData.completedCoursesCount + data.data.profileData.resultCount;
             setUserData(data.data.profileData);
@@ -31,6 +32,7 @@ const ProfileModel = ({setShowModal,userId}) => {
         if (league === "Gold") return "text-yellow-500 border-yellow-700";
         return "text-gray-300 border-gray-300";
       };
+      
   return (
     <>{
         userData &&  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -43,9 +45,14 @@ const ProfileModel = ({setShowModal,userId}) => {
               ✖
             </button>
             <div className="flex justify-between items-start mb-6 px-4">
-        <div>
+        <div >           
+        <img
+                    src={userData.avatar} // Fallback if no image
+                    alt={`${userData.username}'s Profile`}
+                    className="w-24 h-24 rounded-full border-4 border-yellow-500 mb-4 transform transition-all duration-300 hover:scale-125"
+                  />
           <h1 className="text-xl sm:text-2xl font-semibold text-gray-800">
-            Welcome,{" "}
+          
             <span className="block sm:inline text-primary font-mono tracking-widest">
               {userData.username}
             </span>

@@ -15,8 +15,25 @@ const userSchema = new mongoose.Schema({
     default: "/images/avatar.png",
   },
   dailyLogin: {
-    type: Boolean,
-    default: false,
+    
+    questions:[String],
+    dailyQAndA:{
+      categories:[String],
+      question:{
+        type:String
+      },
+      options:[String],
+      completed:{
+        type:Boolean,
+        default:false,
+      },
+      correct:{
+        type:String
+      },
+      yourAnswer:{
+        type:String
+      }
+    }
   },
   // achievements: [
   //   {
@@ -133,7 +150,7 @@ const userSchema = new mongoose.Schema({
       },
     },
   ],
-
+ 
   examsAttempted: [
     {
       examId: { type: mongoose.Schema.Types.ObjectId, ref: "Exam" },
