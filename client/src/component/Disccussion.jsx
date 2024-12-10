@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom"; // For getting courseId and userId from URL
-import API from "../../../../teacher/src/utils/API";
+import API from "../utils/API";
 
 const Disccussion = ({ courseId, userId, username }) => {
   //   const { courseId, userId, username } = useParams(); // Get courseId and userId from URL
