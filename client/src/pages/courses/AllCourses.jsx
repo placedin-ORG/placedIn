@@ -5,7 +5,16 @@ import SmallUnderline from "../../component/SmallUnderline";
 import Navbar from "../../component/Navbar";
 import Xskeletonn from "../../component/loading/Xskeleton";
 import cannot from "../../assets/cannot.jpeg";
+import {useLocation} from 'react-router-dom';
+
 const AllCourses = () => {
+  const location=useLocation();
+ console.log(typeof(location.state.category))
+   useEffect(()=>{
+     if(location.state!==null){
+      setFilters((prev) => ({ ...prev, ["category"]: location.state.category }));
+  }
+   },[])
   const [courses, setCourses] = useState([]);
   const [filteredCourses, setFilteredCourses] = useState([]);
   const [filters, setFilters] = useState({
@@ -99,6 +108,7 @@ const AllCourses = () => {
             <option value="Technology">Technology</option>
             <option value="Business">Business</option>
             <option value="Art">Art</option>
+            <option value="software">Software</option>
             {/* Add more categories as needed */}
           </select>
 

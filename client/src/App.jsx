@@ -34,6 +34,7 @@ import UserProgress from "./pages/progress/UserProgress";
 import Transactions from "./pages/user/Transactions";
 import "react-quill/dist/quill.snow.css";
 import ExamResult from "./pages/exam/ExamResult";
+import Interest from "./pages/user/Interest";
 
 function AppWrapper() {
   return (
@@ -43,59 +44,58 @@ function AppWrapper() {
   );
 }
 function App() {
-  const user = useSelector((state) => state);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // const user = useSelector((state) => state);
+  // const [isModalOpen, setIsModalOpen] = useState(false);
   const location = useLocation();
-  useEffect(() => {
-    // if(user.user.user!==null){
-    //    const checkDailyLogin = async () => {
-    //   try {
-    //     const response = await axios.post('http://localhost:5000/api/v1/login/dailyLogin', {
-    //     userId:user.user.user._id
-    //     });
-    //     if(response.data.status){
-    //       setIsModalOpen(true);
-    //     }else{
-    //       setIsModalOpen(false);
-    //     }
-    // Backend API
-    // const data = await response.json();
-    if (user.user.user !== null) {
-      const checkDailyLogin = async () => {
-        try {
-          const response = await axios.post(
-            "http://localhost:5000/api/v1/login/dailyLogin",
-            {
-              userId: user.user.user._id,
-            }
-          );
-          if (response.data.status) {
-            setIsModalOpen(true);
-            setTimeout(() => {
-              setIsModalOpen(false);
-            }, 3000);
-          } else {
-            setIsModalOpen(false);
-          }
-          // Backend API
-          // const data = await response.json();
+  // useEffect(() => {
+  //   // if(user.user.user!==null){
+  //   //    const checkDailyLogin = async () => {
+  //   //   try {
+  //   //     const response = await axios.post('http://localhost:5000/api/v1/login/dailyLogin', {
+  //   //     userId:user.user.user._id
+  //   //     });
+  //   //     if(response.data.status){
+  //   //       setIsModalOpen(true);
+  //   //     }else{
+  //   //       setIsModalOpen(false);
+  //   //     }
+  //   // Backend API
+  //   // const data = await response.json();
+  //   if (user.user.user !== null) {
+  //     const checkDailyLogin = async () => {
+  //       try {
+  //         const response = await axios.post(
+  //           "http://localhost:5000/api/v1/login/dailyLogin",
+  //           {
+  //             userId: user.user.user._id,
+  //           }
+  //         );
+  //         if (response.data.status) {
+  //           setIsModalOpen(true);
+  //           setTimeout(() => {
+  //             setIsModalOpen(false);
+  //           }, 3000);
+  //         } else {
+  //           setIsModalOpen(false);
+  //         }
+  //         // Backend API
+  //         // const data = await response.json();
 
-          // // Show modal if the user hasn't logged in for the day
-          // if (!data.dailyLogin) {
-          //   setIsModalOpen(true);
-          // }
-        } catch (error) {
-          console.error("Error checking daily login status:", error);
-        }
-      };
+  //         // // Show modal if the user hasn't logged in for the day
+  //         // if (!data.dailyLogin) {
+  //         //   setIsModalOpen(true);
+  //         // }
+  //       } catch (error) {
+  //         console.error("Error checking daily login status:", error);
+  //       }
+  //     };
 
-      checkDailyLogin();
-    }
-  }, [location, user]);
+  //     checkDailyLogin();
+  //   }
+  // }, [location, user]);
   return (
     <>
       <ScrollToTop />
-      {isModalOpen && <CoinModel setIsModalOpen={setIsModalOpen} type="all" />}
       <Routes>
         <Route
           path="/courseDetail/:id"
@@ -208,6 +208,7 @@ function App() {
         </Route>
         <Route path="/intro/exam/:id" element={<ExamIntro />} />
         <Route path="/search/:query" element={<SearchResult />} />
+        <Route path="/add-interest" element={<Interest/>}/>
       </Routes>
     </>
   );

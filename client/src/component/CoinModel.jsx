@@ -1,6 +1,6 @@
 import {useState} from 'react'
 
-const CoinModel=({setIsModalOpen,type})=>{
+const CoinModel=({setIsModalOpen,type,coin})=>{
     
 return (
     <>
@@ -18,7 +18,7 @@ return (
     {/* Modal Header */}
     <h2 className="text-2xl font-semibold text-gray-800 mb-4">
       {
-        type ==='all'?" Daily Reward +5 coins": `you earned 100 coins on this  
+        type ==='all'?` Daily Reward +${coin} coins`: `you earned 100 coins on this  
         course complition`
       }
      

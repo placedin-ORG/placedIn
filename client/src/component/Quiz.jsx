@@ -14,7 +14,8 @@ const Quiz = ({ selectedQuiz,chapterIndex,openNextChapter }) => {
     };
     console.log(selectedQuiz)
     const handleSubmit = () => {
-      console.log(selectedOptions[1].split(' ')[0])
+      console.log(selectedQuiz)
+      console.log(selectedOptions[1].charAt(0))
         console.log(selectedOptions[0])
         if (selectedQuiz.length === Object.keys(selectedOptions).length) {
             setCondition(true);
@@ -59,7 +60,7 @@ const Quiz = ({ selectedQuiz,chapterIndex,openNextChapter }) => {
 
 {condition && (
   <div className="text-sm mt-4">
-    {selectedOptions[questionIndex].split(' ')[0] === question.correctAnswer ? (
+    {selectedOptions[questionIndex].charAt(0) === question.correctAnswer ? (
       <p className="text-green-600 font-medium">
         <span className="font-bold">Your Answer:</span>{" "}
         {selectedOptions[questionIndex]} ✔ Correct
@@ -72,7 +73,7 @@ const Quiz = ({ selectedQuiz,chapterIndex,openNextChapter }) => {
         </p>
         <p className="text-green-700 font-medium mt-2">
           <span className="font-bold">Correct Answer:</span>{" "}
-          {question.options.find(opt => opt.split(' ')[0] === question.correctAnswer)}
+          {question.options.find(opt => opt.charAt(0) === question.correctAnswer)}
         </p>
       </div>
     )}

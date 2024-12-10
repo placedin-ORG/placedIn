@@ -5,13 +5,35 @@ import { motion } from "framer-motion";
 import API from "../../utils/API";
 import { FaShieldAlt, FaBook, FaFileAlt, FaTrophy } from "react-icons/fa";
 import ProfileModel from "../../component/model/ProfileModel";
+import axios from 'axios'
+import CoinModel from "../../component/CoinModel";
+import {useNavigate} from 'react-router-dom';
 const Profile = () => {
+  const navigate=useNavigate();
   const { user: userData } = useSelector((state) => state.user);
   const current = useSelector((state) => state);
   const [leaderboard, setLeaderboard] = useState([]);
   const [currentUserRank, setCurrentUserRank] = useState(null);
   const [showModel, setShowModal] = useState(false);
   const [userId, setid] = useState(null);
+  const [daily,setDaily]=useState(null);
+  const [selectedOption,setSelectedOption]=useState("");
+  const [todayCoin,setTodayCoin]=useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  useEffect(()=>{
+    const call=async()=>{
+      const data=await axios.post("http://localhost:5000/api/v1/dailyQuestion",{
+        content:["business","software"],
+        userId:current.user.user._id
+      })
+      if(data.data.status){
+        setDaily(data.data.daily);
+      }else{
+        setDaily(data.data.daily)
+      }
+    }
+    call();
+  },[])
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
@@ -47,8 +69,49 @@ const Profile = () => {
         return "bg-gray-200 text-gray-700";
     }
   };
+
+  const handleSubmit=async()=>{
+       try{
+      const data=await axios.post('http://localhost:5000/api/v1/submit-daily',{
+        userId:current.user.user._id,
+        selectedOption
+      })
+      if(data.data.status){
+        setDaily(data.data.daily);
+        if(data.data.daily.yourAnswer[0]===data.data.daily.correct[0]){
+          setTodayCoin(5)
+          await axios.post(
+            "http://localhost:5000/api/v1/login/dailyLogin",
+            {
+              userId: current.user.user._id,
+              coin:5
+            }
+          );
+          setIsModalOpen(true);
+          setTimeout(() => {
+            setIsModalOpen(false);
+          }, 3000);
+        }else{
+          setTodayCoin(3)
+          await axios.post(
+            "http://localhost:5000/api/v1/login/dailyLogin",
+            {
+              userId: current.user.user._id,
+              coin:3
+            }
+          );
+          setIsModalOpen(true);
+          setTimeout(() => {
+            setIsModalOpen(false);
+          }, 3000);
+        }
+      }
+       }catch(err){
+        console.log(err.message)
+       }  }
   return (
     <div className="p-6 min-h-screen">
+      {isModalOpen && <CoinModel setIsModalOpen={setIsModalOpen} coin={todayCoin} type="all" />}
       {/* Header */}
       <div className="flex justify-between items-start mb-6 px-4">
         <div>
@@ -69,6 +132,79 @@ const Profile = () => {
           Edit Profile
         </Link>
       </div>
+      {/*Daily Question*/ }
+      <div className="p-4 md:p-8 bg-gray-50 ">
+        {
+          daily && (
+            Array.isArray(daily.categories) && daily.categories.length===0 ? <p onClick={()=>navigate('/add-interest')}>add interest to earn maximum 5 coin  daily</p>: <div className="max-w-3xl mx-auto bg-white shadow-lg rounded-lg p-6">
+            {!daily.completed ? (
+              <div>
+                <h2 className="text-xl md:text-2xl font-semibold text-gray-800 mb-4">{daily.question}</h2>
+                <div className="space-y-4">
+                  {daily.options.map((option, optionIndex) => (
+                    <label
+                      key={optionIndex}
+                      className="flex items-center gap-3 p-4 border border-gray-300 rounded-lg hover:shadow-md transition-all cursor-pointer hover:bg-gray-100"
+                    >
+                      <input
+                        type="radio"
+                        name="dailyOptions"
+                        value={option}
+                        onChange={(e) => setSelectedOption(e.target.value)}
+                        className="form-radio w-5 h-5 text-blue-600 border-gray-300 focus:ring focus:ring-blue-400"
+                      />
+                      <span className="text-gray-700">{option}</span>
+                    </label>
+                  ))}
+                  <button
+                    onClick={() => handleSubmit()}
+                    className="w-full bg-green-600 text-white py-2 px-4 rounded-lg mt-4 hover:bg-green-700 transition-all focus:outline-none focus:ring focus:ring-green-400"
+                  >
+                    Submit
+                  </button>
+                  <button   className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg mt-4 hover:bg-blue-700 transition-all focus:outline-none focus:ring focus:ring-blue-400" onClick={()=>navigate('/add-interest')}>
+                    Edit Interest
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <h2 className="text-xl md:text-2xl font-semibold text-gray-800 mb-4">{daily.question}</h2>
+                {daily.yourAnswer[0] === daily.correct[0] ? (
+                  <div className="flex items-center gap-3 p-4 bg-green-100 border border-green-400 text-green-800 rounded-lg">
+                    <span className="text-lg">🎉</span>
+                    <p>
+                      Your answer is correct! <strong>{daily.yourAnswer}</strong>
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 p-4 bg-red-100 border border-red-400 text-red-800 rounded-lg">
+                      <span className="text-lg">😞</span>
+                      <p>
+                        Wrong answer: <strong>{daily.yourAnswer}</strong>
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3 p-4 bg-green-100 border border-green-400 text-green-800 rounded-lg">
+                      <span className="text-lg">💡</span>
+                      <p>
+                        Correct answer:{" "}
+                        <strong>{daily.options.find((opt) => opt.charAt(0) === daily.correct[0])}</strong>
+                      </p>
+                    </div>
+                  </div>
+                )}
+                 <button   className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg mt-4 hover:bg-blue-700 transition-all focus:outline-none focus:ring focus:ring-blue-400" onClick={()=>navigate('/add-interest')}>
+                    Edit Interest
+                  </button>
+              </div>
+            )}
+          </div>
+          )
+        }
+
+</div>
+
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
