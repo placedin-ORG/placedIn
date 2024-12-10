@@ -500,13 +500,13 @@ const calculateResults = async (req, res) => {
             Question: ${question.questionText}
             Answer: ${userAnswer.answer}
             Score out of ${question.weightage}.
-            Only return the score as a number.`;
+            Level: ${question.level}
+            Only return the score as a number and don not give 0 for any kind of answer keep it minimum 1`;
 
           const modelResponse = await model.generateContent(prompt);
 
           // Extract the score from the AI's response
           const parsedScore = parseFloat(modelResponse.response.text());
-          console.log("Parsed Score", parsedScore);
 
           score = isNaN(parsedScore) ? 0 : parsedScore;
         }
@@ -518,9 +518,6 @@ const calculateResults = async (req, res) => {
 
         totalScore += score;
       }
-
-      console.log(totalScore);
-      console.log(individualScores);
 
       // Save the scores in the database
       await ExamResult.findByIdAndUpdate(
