@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import Button from "../../component/Button";
-
+import {useNavigate} from 'react-router-dom'
 const Hero = () => {
   const [courseCount, setCourseCount] = useState(0);
-
+  const navigate=useNavigate();
   // Dynamic course ticker effect
   useEffect(() => {
     let count = 0;
@@ -50,10 +50,12 @@ const Hero = () => {
             <Button
               title={"Explore Courses"}
               className="bg-primary text-sky-100"
+              onClick={()=>navigate('/courses')}
             />
             <Button
-              title={"Take Test Now!"}
+              title={"Take Exam Now!"}
               className="!text-primary !bg-blue-50 !border-2 !border-primary"
+              onClick={()=>navigate('/allExams')}
             />
           </div>
 
