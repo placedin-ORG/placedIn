@@ -6,7 +6,7 @@ import Navbar from "../../component/Navbar";
 import Xskeletonn from "../../component/loading/Xskeleton";
 import cannot from "../../assets/cannot.jpeg";
 import { useLocation } from "react-router-dom";
-
+const ITEMS_PER_PAGE = 10;
 const AllCourses = () => {
   const location = useLocation();
   useEffect(() => {
@@ -33,6 +33,7 @@ const AllCourses = () => {
         const { data } = await API.get("/create/courses/all");
 
         setCourses(data.courses);
+        console.log(data.courses);
         setFilteredCourses(data.courses);
         setLoading(false); // Initialize filtered courses
       } catch (error) {
@@ -59,12 +60,11 @@ const AllCourses = () => {
     }
 
     // Filter by price range
-    filtered = filtered.filter(
-      (course) =>
-        course.price >= filters.priceRange[0] &&
-        course.price <= filters.priceRange[1]
-    );
-    console.log(filtered);
+    // filtered = filtered.filter(
+    //   (course) =>
+    //     course.price >= filters.priceRange[0] &&
+    //     course.price <= filters.priceRange[1]
+    // );
 
     // Filter by rating
     if (filters.rating > 0) {
@@ -84,13 +84,27 @@ const AllCourses = () => {
     // Filter by paid/free
     if (filters.paid !== "") {
       filtered = filtered.filter(
-        (course) => course.paid > 0 && filters.paid === "true"
+        (course) => course.price > 0 && filters.paid === "true"
       );
     }
 
     setFilteredCourses(filtered);
   }, [filters, courses]);
 
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Calculate total pages
+  const totalPages = Math.ceil(filteredCourses.length / ITEMS_PER_PAGE);
+
+  // Get courses for the current page
+  const paginatedCourses = filteredCourses.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+  };
   return (
     <div className="grainy-light min-h-screen">
       <Navbar />
@@ -109,11 +123,14 @@ const AllCourses = () => {
             onChange={(e) => handleFilterChange("category", e.target.value)}
           >
             <option value="">All Categories</option>
-            <option value="Technology">Technology</option>
-            <option value="Business">Business</option>
-            <option value="Art">Art</option>
+            <option value="doctorate">Doctorate</option>
+            <option value="aiml">AIML</option>
+            <option value="mba">MBA</option>
             <option value="software">Software</option>
-            {/* Add more categories as needed */}
+            <option value="dataScience">Data Science</option>
+            <option value="marketing">Marketing</option>
+            <option value="management">Management</option>
+            <option value="law">Law</option>
           </select>
 
           <select
@@ -139,7 +156,7 @@ const AllCourses = () => {
               No Course found
             </h2>
             <p className="mt-2 text-gray-500 text-center">
-              explore other Courses.
+              Explore other Courses.
             </p>
           </div>
         ) : (
@@ -148,11 +165,40 @@ const AllCourses = () => {
               <Xskeletonn />
             ) : (
               <div className="mt-16 grid grid-cols-1 place-items-center sm:grid-cols-2 lg:grid-cols-3 gap-10">
-                {filteredCourses?.map((course, index) => (
+                {paginatedCourses.map((course, index) => (
                   <CourseCard course={course} key={index} />
                 ))}
               </div>
-            )}{" "}
+            )}
+
+            {/* Pagination Controls */}
+            <div className="flex justify-center mt-8">
+              <button
+                className="px-4 py-2 mx-1 border rounded"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </button>
+              {Array.from({ length: totalPages }, (_, idx) => (
+                <button
+                  key={idx}
+                  className={`px-4 py-2 mx-1 border rounded ${
+                    currentPage === idx + 1 ? "bg-primary text-white" : ""
+                  }`}
+                  onClick={() => handlePageChange(idx + 1)}
+                >
+                  {idx + 1}
+                </button>
+              ))}
+              <button
+                className="px-4 py-2 mx-1 border rounded"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </button>
+            </div>
           </div>
         )}
       </div>

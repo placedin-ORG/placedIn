@@ -301,6 +301,12 @@ const FinalExam = () => {
     event.preventDefault();
     toast.warning("right click is prevented");
   };
+  const handleMouseDown = (e) => {
+    if (e.button === 0) {
+      e.preventDefault(); // Prevents left-click actions
+      toast.warning('left click is prevented')
+    }
+  };
   return (
     <>
       {/* Display remaining time */}
@@ -408,6 +414,7 @@ const FinalExam = () => {
         <div
           className="bg-gray-50 flex flex-col min-h-screen"
           onContextMenu={handleContextMenu}
+          onMouseDown={handleMouseDown}
         >
           {/* Remaining Time */}
           <Toast />

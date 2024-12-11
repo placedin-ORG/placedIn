@@ -137,9 +137,12 @@ const Profile = () => {
       <div className="p-4 md:p-8 bg-gray-50 ">
         {daily &&
           (Array.isArray(daily.categories) && daily.categories.length === 0 ? (
-            <p onClick={() => navigate("/add-interest")}>
-              add interest to earn maximum 5 coin daily
-            </p>
+            <p 
+            onClick={() => navigate("/add-interest")}
+            className="text-green-500 hover:text-green-700 font-medium cursor-pointer underline hover:underline-offset-2 transition duration-300"
+          >
+            Add interest to earn maximum 5 coins daily
+          </p>
           ) : (
             <div className="max-w-3xl mx-auto bg-white shadow-lg rounded-lg p-6">
               {!daily.completed ? (

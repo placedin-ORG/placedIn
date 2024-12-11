@@ -4,7 +4,7 @@ import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Toast from "./Toast";
-import API from "../../../../teacher/src/utils/API";
+import API from "../utils/API";
 const Rating = ({ courseId, userId }) => {
   const [rating, setRating] = useState(0);
   // Replace with actual state logic

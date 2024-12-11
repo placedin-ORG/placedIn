@@ -139,16 +139,27 @@ const GiveExam = () => {
           handleSubmitExam("auto");
         }
       };
-
+      const handleBeforeUnload = (e) => {
+        e.preventDefault();
+        toast.error("Reloading the page make the exam auto submit");
+        handleSubmitExam("auto");
+        return;
+      };
+      const handleWindowBlur = () => {
+        toast.error("Leaving the page make the exam auto submit");
+        handleSubmitExam("auto");
+      };
       // Attach Event Listeners
       document.addEventListener("fullscreenchange", handleFullscreenChange);
-
-      // Cleanup Event Listeners
+ window.addEventListener("beforeunload", handleBeforeUnload);
+ window.addEventListener("blur", handleWindowBlur);
       return () => {
         document.removeEventListener(
           "fullscreenchange",
           handleFullscreenChange
         );
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+        window.removeEventListener("blur", handleWindowBlur);
       };
     }
   }, [isExamSubmitted]);
@@ -206,12 +217,21 @@ const GiveExam = () => {
     event.preventDefault();
     toast.warning('right click is prevented')
   };
+  const handleMouseDown = (e) => {
+    if (e.button === 0) {
+      e.preventDefault(); // Prevents left-click actions
+      toast.warning('left click is prevented')
+    }
+  };
   return (
     <>
       {/* Display remaining time */}
       <div className={`flex flex-col h-screen${
             isSubmit && "hidden"
-          }`} onContextMenu={handleContextMenu}>
+          }`} onContextMenu={handleContextMenu}
+          onMouseDown={handleMouseDown}
+          >
+
   {/* Remaining Time */}
   <Toast />
   {remainingTime !== null && (
