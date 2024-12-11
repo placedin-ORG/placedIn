@@ -174,7 +174,7 @@ const AllCourses = () => {
             {/* Pagination Controls */}
             <div className="flex justify-center mt-8">
               <button
-                className="px-4 py-2 mx-1 border rounded"
+                className="px-4 py-2 mx-1 border rounded disabled:cursor-not-allowed disabled:opacity-60"
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
               >
@@ -192,7 +192,7 @@ const AllCourses = () => {
                 </button>
               ))}
               <button
-                className="px-4 py-2 mx-1 border rounded"
+                className="px-4 py-2 mx-1 border rounded disabled:cursor-not-allowed disabled:opacity-60"
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
               >
