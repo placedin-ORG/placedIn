@@ -12,6 +12,7 @@ import Footer from "../component/Layout/Footer";
 import CoinModel from "../component/CoinModel";
 import API from "../utils/API";
 import certificate from "../assets/placedIn.png";
+import parse from "html-react-parser";
 const FinalExam = () => {
   const navigate = useNavigate();
   const { userId, courseId } = useParams();
@@ -458,7 +459,7 @@ const FinalExam = () => {
                     <span className="text-blue-500 font-bold">
                       Q{questionIndex + 1}:
                     </span>{" "}
-                    {question.questionText}
+                    {parse(question.questionText || "")}
                   </p>
                   <div className="space-y-4">
                     {question.options.map((option, optionIndex) => (
@@ -680,7 +681,7 @@ const FinalExam = () => {
                       }`}
                     >
                       <h3 className="font-semibold">
-                        {index + 1}. {question.questionText}
+                        {index + 1}. {parse(question.questionText || "")}
                       </h3>
                       <div className="space-y-2 mt-2">
                         {question.options.map((option) => (

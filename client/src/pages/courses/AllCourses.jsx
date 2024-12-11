@@ -5,16 +5,18 @@ import SmallUnderline from "../../component/SmallUnderline";
 import Navbar from "../../component/Navbar";
 import Xskeletonn from "../../component/loading/Xskeleton";
 import cannot from "../../assets/cannot.jpeg";
-import {useLocation} from 'react-router-dom';
+import { useLocation } from "react-router-dom";
 
 const AllCourses = () => {
-  const location=useLocation();
- console.log(typeof(location.state.category))
-   useEffect(()=>{
-     if(location.state!==null){
-      setFilters((prev) => ({ ...prev, ["category"]: location.state.category }));
-  }
-   },[])
+  const location = useLocation();
+  useEffect(() => {
+    if (location.state !== null) {
+      setFilters((prev) => ({
+        ...prev,
+        ["category"]: location.state.category,
+      }));
+    }
+  }, []);
   const [courses, setCourses] = useState([]);
   const [filteredCourses, setFilteredCourses] = useState([]);
   const [filters, setFilters] = useState({
@@ -28,7 +30,8 @@ const AllCourses = () => {
   useEffect(() => {
     const getCourses = async () => {
       try {
-        const { data } = await API.get("/create/getCourses");
+        const { data } = await API.get("/create/courses/all");
+
         setCourses(data.courses);
         setFilteredCourses(data.courses);
         setLoading(false); // Initialize filtered courses
@@ -49,7 +52,7 @@ const AllCourses = () => {
     let filtered = courses;
 
     // Filter by category
-    if (filters.category) {
+    if (filters?.category) {
       filtered = filtered.filter(
         (course) => course.courseCategory === filters.category
       );
@@ -61,6 +64,7 @@ const AllCourses = () => {
         course.price >= filters.priceRange[0] &&
         course.price <= filters.priceRange[1]
     );
+    console.log(filtered);
 
     // Filter by rating
     if (filters.rating > 0) {
@@ -73,14 +77,14 @@ const AllCourses = () => {
     }
 
     // Filter by status
-    if (filters.status) {
+    if (filters?.status) {
       filtered = filtered.filter((course) => course.status === filters.status);
     }
 
     // Filter by paid/free
     if (filters.paid !== "") {
       filtered = filtered.filter(
-        (course) => course.paid === (filters.paid === "true")
+        (course) => course.paid > 0 && filters.paid === "true"
       );
     }
 
@@ -101,7 +105,7 @@ const AllCourses = () => {
         <div className="my-6 flex flex-wrap gap-4 justify-center">
           <select
             className="border px-3 py-2 rounded"
-            value={filters.category}
+            value={filters?.category || ""}
             onChange={(e) => handleFilterChange("category", e.target.value)}
           >
             <option value="">All Categories</option>

@@ -84,7 +84,7 @@ router.get("/teacher-courses", isAuth, async (req, res) => {
     if (!courses || courses.length == 0) {
       return res.json({ status: false, message: "No Courses Found" });
     }
-   console.log(courses[0])
+    console.log(courses[0]);
     return res.status(200).json({ courses });
   } catch (error) {
     console.log(error);
@@ -103,6 +103,19 @@ router.get("/getCourses", async (req, res) => {
         $limit: 3, // Limit the result to the top 3
       },
     ]);
+
+    return res.status(200).json({ courses });
+  } catch (err) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+router.get("/courses/all", async (req, res) => {
+  try {
+    const courses = await Course.find({ setLive: true }).sort({
+      createdAt: -1,
+    });
 
     return res.status(200).json({ courses });
   } catch (err) {
