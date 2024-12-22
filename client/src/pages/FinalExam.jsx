@@ -12,6 +12,7 @@ import Footer from "../component/Layout/Footer";
 import CoinModel from "../component/CoinModel";
 import API from "../utils/API";
 import certificate from "../assets/placedIn.png";
+import parse from "html-react-parser";
 const FinalExam = () => {
   const navigate = useNavigate();
   const { userId, courseId } = useParams();
@@ -455,40 +456,40 @@ const FinalExam = () => {
         </div>
       </div>
 
-      {/* Questions Section */}
-      <div className="w-full md:w-3/4 flex flex-col gap-6">
-        {examData.finalExam.questions.map((question, questionIndex) => (
-          <div
-            id={`${questionIndex}`}
-            key={questionIndex}
-            className="bg-white shadow-md rounded-lg p-6 transform transition-all duration-300 hover:shadow-lg scroll-mt-36"
-          >
-            <p className="text-lg md:text-xl font-semibold text-gray-800 mb-4">
-              <span className="text-blue-500 font-bold">
-                Q{questionIndex + 1}:
-              </span>{" "}
-              {question.questionText}
-            </p>
-            <div className="space-y-4">
-              {question.options.map((option, optionIndex) => (
-                <label
-                  key={optionIndex}
-                  className="flex items-center gap-3 p-3 border border-gray-300 rounded-lg hover:shadow-md transition-all"
+            {/* Questions Section */}
+            <div className="w-full md:w-3/4 flex flex-col gap-6">
+              {examData.finalExam.questions.map((question, questionIndex) => (
+                <div
+                  id={`${questionIndex}`}
+                  key={questionIndex}
+                  className="bg-white shadow-md rounded-lg p-6 transform transition-all duration-300 hover:shadow-lg scroll-mt-36"
                 >
-                  <input
-                    type="radio"
-                    name={`question-${questionIndex}`}
-                    value={option}
-                    checked={selectedOptions[questionIndex] === option}
-                    onChange={() =>
-                      handleOptionChange(questionIndex, option)
-                    }
-                    className="form-radio w-5 h-5 text-blue-600 border-gray-300 focus:ring focus:ring-blue-400"
-                  />
-                  <span className="text-gray-700">{option}</span>
-                </label>
-              ))}
-            </div>
+                  <p className="text-lg md:text-xl font-semibold text-gray-800 mb-4">
+                    <span className="text-blue-500 font-bold">
+                      Q{questionIndex + 1}:
+                    </span>{" "}
+                    {parse(question.questionText || "")}
+                  </p>
+                  <div className="space-y-4">
+                    {question.options.map((option, optionIndex) => (
+                      <label
+                        key={optionIndex}
+                        className="flex items-center gap-3 p-3 border border-gray-300 rounded-lg hover:shadow-md transition-all"
+                      >
+                        <input
+                          type="radio"
+                          name={`question-${questionIndex}`}
+                          value={option}
+                          checked={selectedOptions[questionIndex] === option}
+                          onChange={() =>
+                            handleOptionChange(questionIndex, option)
+                          }
+                          className="form-radio w-5 h-5 text-blue-600 border-gray-300 focus:ring focus:ring-blue-400"
+                        />
+                        <span className="text-gray-700">{option}</span>
+                      </label>
+                    ))}
+                  </div>
 
             {/* "Do It Later" Button */}
             <button
@@ -690,7 +691,7 @@ const FinalExam = () => {
                       }`}
                     >
                       <h3 className="font-semibold">
-                        {index + 1}. {question.questionText}
+                        {index + 1}. {parse(question.questionText || "")}
                       </h3>
                       <div className="space-y-2 mt-2">
                         {question.options.map((option) => (

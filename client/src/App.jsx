@@ -33,6 +33,7 @@ import Transactions from "./pages/user/Transactions";
 import "react-quill/dist/quill.snow.css";
 import ExamResult from "./pages/exam/ExamResult";
 import Interest from "./pages/user/Interest";
+import GlobalRestrictions from "./component/Restrictions/GlobalRestrictions";
 
 function AppWrapper() {
   return (
@@ -46,6 +47,7 @@ function App() {
 
   return (
     <>
+      <GlobalRestrictions />
       <ScrollToTop />
       <Routes>
         <Route
