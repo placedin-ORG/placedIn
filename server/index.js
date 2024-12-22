@@ -44,13 +44,14 @@ app.use("/api/v1/login", ResetDailyLogin);
 app.use("/api/v1/learn", StartCourseRoute);
 app.use("/create", CourseRoute);
 app.use("/api/discussion", DiscussionRoute);
-app.use("/api/rating", RatingRoute);
+app.use("/api/v1/rating", RatingRoute);
 app.use("/api/v1/exam", ExamRoute);
 app.use("/api/v1/search", SearchRoute);
 app.use("/api/v1/purchase", purchaseRoutes);
 app.use("/api/v1/certificate", certificateRoute);
 app.use("/api/v1/ranking", rankingRoute);
 app.use("/api/v1/teacher", teacherRoute);
+
 
 const connectDb = async () => {
   try {
@@ -165,3 +166,5 @@ const resetDailyLogin = async () => {
 };
 
 resetDailyLogin();
+
+

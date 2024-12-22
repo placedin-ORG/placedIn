@@ -26,18 +26,18 @@ const GiveExam = () => {
   const [selectedOptions, setSelectedOptions] = useState({});
   const [isExamSubmitted, setIsExamSubmitted] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [start, setStart] = useState(false);
+  const [start, setStart] = useState(true);
   const [remainingTime, setRemainingTime] = useState(null);
   const [cond, setcond] = useState(false);
   const [isSubmit, setIsSubmit] = useState(false);
   const finalConfirmation = () => {
     setShowModal(true); // Show the confirmation modal
   };
-  useEffect(() => {
-    if (cond) {
-      setStart(true);
-    }
-  }, [cond]);
+  // useEffect(() => {
+  //   if (cond) {
+  //     setStart(true);
+  //   }
+  // }, [cond]);
 
   const handleStart = () => {
     const elem = document.documentElement;
@@ -128,7 +128,7 @@ const GiveExam = () => {
   }, [selectedOptions]);
 
   useEffect(() => {
-    if (!isExamSubmitted) {
+    if (!isExamSubmitted && !start) {
       const handleFullscreenChange = () => {
         if (!document.fullscreenElement) {
           console.log(
@@ -162,7 +162,7 @@ const GiveExam = () => {
         window.removeEventListener("blur", handleWindowBlur);
       };
     }
-  }, [isExamSubmitted]);
+  }, [isExamSubmitted,start]);
   const handleCloseFullscreen = () => {
     if (document.exitFullscreen) {
       document.exitFullscreen();
@@ -217,19 +217,19 @@ const GiveExam = () => {
     event.preventDefault();
     toast.warning('right click is prevented')
   };
-  const handleMouseDown = (e) => {
-    if (e.button === 0) {
-      e.preventDefault(); // Prevents left-click actions
-      toast.warning('left click is prevented')
-    }
-  };
+  // const handleMouseDown = (e) => {
+  //   if (e.button === 0) {
+  //     e.preventDefault(); // Prevents left-click actions
+  //     toast.warning('left click is prevented')
+  //   }
+  // };
   return (
     <>
       {/* Display remaining time */}
       <div className={`flex flex-col h-screen${
             isSubmit && "hidden"
           }`} onContextMenu={handleContextMenu}
-          onMouseDown={handleMouseDown}
+          // onMouseDown={handleMouseDown}
           >
 
   {/* Remaining Time */}
@@ -412,7 +412,7 @@ const GiveExam = () => {
           </div>
         </div>
       )}
-      {start && (
+      {start && start && (
         <div className="fixed inset-0 bg-black bg-opacity-100 flex items-center justify-center z-50" onContextMenu={handleContextMenu}>
           <div className="bg-white rounded-lg p-6 w-[95%] relative shadow-xl">
             {/* Close Button */}
