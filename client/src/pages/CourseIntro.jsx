@@ -213,6 +213,7 @@ const CourseIntro = () => {
   let truncatedDescription = "";
   let optimizedImage = "";
   if (course !== null) {
+    console.log(course.courseThumbnail)
     truncatedDescription =
       course.description.length > maxDescriptionLength && !showMore
         ? `${course.description.substring(0, maxDescriptionLength)}...`
@@ -329,6 +330,7 @@ const CourseIntro = () => {
                     <img
                       src={course.courseThumbnail}
                       className="w-full h-full object-cover"
+                      alt={course.title}
                     />
                   </div>
                 </div>

@@ -46,8 +46,8 @@ const PopularCourses = () => {
         ></div>
       ))}
     </div>
-
-    <div className="max-w-7xl mx-auto px-3 lg:px-8 py-16 relative z-10">
+    {
+      courses ?.length!==0 ?  <div className="max-w-7xl mx-auto px-3 lg:px-8 py-16 relative z-10">
       <h1 className="text-center text-primary text-4xl font-bold relative">
         Popular Courses
         <SmallUnderline />
@@ -60,7 +60,9 @@ const PopularCourses = () => {
           })}
         </div>
       )}
-    </div>
+    </div>: null
+    }
+   
   </div>
   
   );

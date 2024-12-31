@@ -58,7 +58,7 @@ const TopStudents = () => {
         <div className="w-full max-w-3xl mx-auto mt-6 p-4 bg-gradient-to-br rounded-md">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {/* Top 3 Students */}
-            {leaderboard
+            { leaderboard
               .filter((student) => student.position <= 3) // Filter top 3 students
               .map((student, index) => (
                 <motion.div

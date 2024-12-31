@@ -51,6 +51,7 @@ const FinalExam = () => {
     }
     setStart(false);
   };
+
   useEffect(() => {
     if (examData && !isExamSubmitted && !start) {
 
@@ -72,6 +73,8 @@ const FinalExam = () => {
       return () => clearInterval(timer); // Cleanup interval on unmount or examData changes
     }
   }, [examData, start]);
+
+
   useEffect(() => {
     const call = async () => {
       const data = await API.post("/learn/examData", {
@@ -82,7 +85,7 @@ const FinalExam = () => {
       if (data.data.msg === "not found") {
         setExamData(data.data.course);
         setcond(true);
-      
+
       } else if (data.data.msg === "found") {
         setExamResult(data.data.updatedData);
         console.log(data.data.updatedData);
@@ -148,7 +151,9 @@ const FinalExam = () => {
         window.removeEventListener("blur", handleWindowBlur);
       };
     }
-  }, [isExamSubmitted,start]);
+  }, [isExamSubmitted, start]);
+
+
   const handleCloseFullscreen = () => {
     if (document.exitFullscreen) {
       document.exitFullscreen();
@@ -413,64 +418,74 @@ const FinalExam = () => {
         //         )
       }
 
-{examData && (
-  <div
-    className="bg-gray-50 flex flex-col min-h-screen"
-    onContextMenu={handleContextMenu}
-  >
-    {/* Remaining Time */}
-    <Toast />
-    {remainingTime !== null && (
-      <div className="fixed top-0 left-0 right-0 bg-blue-600 text-white text-center py-2 z-50">
-        <span className="text-lg font-semibold">
-          ⏱️ Remaining Time: {Math.floor(remainingTime / 60)}:
-          {String(remainingTime % 60).padStart(2, "0")}
-        </span>
-      </div>
-    )}
+      {examData && (
+        <div
+          className="bg-gray-50 flex flex-col min-h-screen"
+          onContextMenu={handleContextMenu}
+        >
+          {/* Remaining Time */}
+          <Toast />
+          {remainingTime !== null && (
+            <div className="fixed top-0 left-0 right-0 bg-blue-600 text-white text-center py-2 z-50">
+              <span className="text-lg font-semibold">
+                ⏱️ Remaining Time: {Math.floor(remainingTime / 60)}:
+                {String(remainingTime % 60).padStart(2, "0")}
+              </span>
+            </div>
+          )}
 
-    {/* Main Content */}
-    <div className="flex-grow container mx-auto px-4 py-8 flex flex-col md:flex-row gap-6">
-      {/* Navigation Bar */}
-      <div className="w-full md:w-1/4 bg-white shadow-lg rounded-lg p-4 overflow-y-auto sticky top-20 max-h-screen">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-          {examData.finalExam.questions.map((_, questionIndex) => (
-            <a
-              key={questionIndex}
-              href={`#${questionIndex}`}
-              className={`flex items-center justify-center p-3 rounded-lg text-white font-semibold transition-all duration-300 transform ${
-                selectedOptions[questionIndex]
-                  ? "bg-green-600 shadow-lg scale-110"
-                  : "bg-gray-400 hover:bg-gray-500 shadow-md hover:scale-105"
-              } ${doItLater[questionIndex] ? "bg-orange-500" : ""} ${
-                window.location.hash === `#${questionIndex}`
-                  ? "ring-4 ring-blue-300"
-                  : ""
-              }`}
-              aria-label={`Question ${questionIndex + 1}`}
-              title={`Go to Question ${questionIndex + 1}`}
-            >
-              {questionIndex + 1}
-            </a>
-          ))}
-        </div>
-      </div>
+          {/* Main Content */}
+          <div className="container mx-auto px-4 py-6 flex flex-col md:flex-row gap-4">
+            {/* Navigation Bar */}
+            <div className="w-full md:w-1/4 bg-white shadow-lg rounded-lg p-4 overflow-x-auto md:overflow-y-auto sticky top-20 md:max-h-screen z-10">
+              <div className="flex md:grid md:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 overflow-x-scroll md:overflow-visible">
+                {examData.finalExam.questions.map((_, questionIndex) => (
+                  <a
+                    key={questionIndex}
+                    href={`#${questionIndex}`}
+                    className={`flex items-center justify-center p-3 rounded-lg text-white font-semibold transition-all duration-300 transform ${selectedOptions[questionIndex]
+                        ? "bg-green-600 shadow-lg scale-110"
+                        : "bg-gray-400 hover:bg-gray-500 shadow-md hover:scale-105"
+                      } ${doItLater[questionIndex] ? "bg-orange-500" : ""} ${window.location.hash === `#${questionIndex}`
+                        ? "ring-4 ring-blue-300"
+                        : ""
+                      }`}
+                    aria-label={`Question ${questionIndex + 1}`}
+                    title={`Go to Question ${questionIndex + 1}`}
+                  >
+                    {questionIndex + 1}
+                  </a>
+                ))}
+
+              </div>
+            </div>
 
             {/* Questions Section */}
-            <div className="w-full md:w-3/4 flex flex-col gap-6">
+            <div className="w-full md:w-3/4 flex flex-col gap-6 md:mt-0 mt-14">
               {examData.finalExam.questions.map((question, questionIndex) => (
                 <div
                   id={`${questionIndex}`}
                   key={questionIndex}
-                  className="bg-white shadow-md rounded-lg p-6 transform transition-all duration-300 hover:shadow-lg scroll-mt-36"
+                  className="bg-white shadow-md rounded-lg p-4 sm:p-6 transform transition-all duration-300 hover:shadow-lg scroll-mt-36"
                 >
-                  <p className="text-lg md:text-xl font-semibold text-gray-800 mb-4">
-                    <span className="text-blue-500 font-bold">
-                      Q{questionIndex + 1}:
-                    </span>{" "}
+                  <p className="text-base sm:text-lg font-semibold text-gray-800 mb-4 flex flex-wrap items-center gap-4">
+                    <span className="text-blue-500 font-bold">Q{questionIndex + 1}:</span>
                     {parse(question.questionText || "")}
+                    <span
+                      className={`${question.level === "Easy"
+                          ? "text-green-500 bg-green-300"
+                          : question.level === "Medium"
+                            ? "text-orange-500 bg-orange-300"
+                            : "text-red-500 bg-red-300"
+                        } p-1 rounded-md font-serif font-normal`}
+                      onClick={() => {
+                        console.log(question);
+                      }}
+                    >
+                      {question.level}
+                    </span>
                   </p>
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {question.options.map((option, optionIndex) => (
                       <label
                         key={optionIndex}
@@ -481,9 +496,7 @@ const FinalExam = () => {
                           name={`question-${questionIndex}`}
                           value={option}
                           checked={selectedOptions[questionIndex] === option}
-                          onChange={() =>
-                            handleOptionChange(questionIndex, option)
-                          }
+                          onChange={() => handleOptionChange(questionIndex, option)}
                           className="form-radio w-5 h-5 text-blue-600 border-gray-300 focus:ring focus:ring-blue-400"
                         />
                         <span className="text-gray-700">{option}</span>
@@ -491,29 +504,29 @@ const FinalExam = () => {
                     ))}
                   </div>
 
-            {/* "Do It Later" Button */}
-            <button
-              onClick={() => handleDoItLaterClick(questionIndex)}
-              className={`mt-4 px-4 py-2 rounded-lg transition-all ${
-                doItLater[questionIndex]
-                  ? "bg-orange-500 text-white hover:bg-orange-600"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              {doItLater[questionIndex] ? "Unmark" : "Mark For Later"}
-            </button>
+                  {/* "Do It Later" Button */}
+                  <button
+                    onClick={() => handleDoItLaterClick(questionIndex)}
+                    className={`mt-4 px-4 py-2 rounded-lg transition-all w-full sm:w-auto ${doItLater[questionIndex]
+                        ? "bg-orange-500 text-white hover:bg-orange-600"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      }`}
+                  >
+                    {doItLater[questionIndex] ? "Unmark" : "Mark For Later"}
+                  </button>
+                </div>
+              ))}
+              <button
+                onClick={() => setShowModal(true)}
+                className="mt-6 px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition duration-200 w-full md:w-auto"
+              >
+                Submit Exam
+              </button>
+            </div>
           </div>
-        ))}
-        <button
-          onClick={() => setShowModal(true)}
-          className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition duration-200"
-        >
-          Submit Exam
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+
+        </div>
+      )}
 
 
       {examResult && (
@@ -678,7 +691,7 @@ const FinalExam = () => {
                 (question, index) => {
                   const studentAnswer =
                     examResult.updatedcourse.finalExam.result.answers[0][
-                      index.toString()
+                    index.toString()
                     ];
                   const correctAnswer = question.correctAnswer;
                   const isCorrect = studentAnswer === correctAnswer;
@@ -686,9 +699,8 @@ const FinalExam = () => {
                   return (
                     <div
                       key={index}
-                      className={`p-4 border rounded mb-4 ${
-                        isCorrect ? "border-green-500" : "border-red-500"
-                      }`}
+                      className={`p-4 border rounded mb-4 ${isCorrect ? "border-green-500" : "border-red-500"
+                        }`}
                     >
                       <h3 className="font-semibold">
                         {index + 1}. {parse(question.questionText || "")}
@@ -697,13 +709,12 @@ const FinalExam = () => {
                         {question.options.map((option) => (
                           <div
                             key={option}
-                            className={`p-2 rounded ${
-                              option === correctAnswer
+                            className={`p-2 rounded ${option === correctAnswer
                                 ? "bg-green-100"
                                 : option === studentAnswer
-                                ? "bg-red-100"
-                                : ""
-                            }`}
+                                  ? "bg-red-100"
+                                  : ""
+                              }`}
                           >
                             {option}
                             {option === correctAnswer && (

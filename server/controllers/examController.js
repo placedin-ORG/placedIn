@@ -6,7 +6,26 @@ const { uploadFile } = require("../utils/cloudinary");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const genAI = new GoogleGenerativeAI("AIzaSyClxpijlw0iXbcOKRm624HU8jH7caeGJPI");
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const generateQuizFromContent = async (content) => {
+  const prompt = `
+compare these two questions and tell me that they are asking for same thing or not 
 
+Content:
+${content}
+
+Give me the answer in only 'yes' or 'no'
+`;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const questions = result.response.text();
+
+    return { success: true, questions: questions };
+  } catch (error) {
+    console.error("Error generating quiz from Gemini AI:", error);
+    return { success: false, message: error.message };
+  }
+};
 // Create a new exam
 const create = async (req, res) => {
   try {
@@ -24,8 +43,31 @@ const create = async (req, res) => {
       examThumbnail,
       discountAmount = 0,
       examDescription,
+      user
     } = req.body;
+  
+ console.log(user._id)
+    const documents = await Exam.find({}).select('questions');
+   console.log(documents)
+    const questionsArray = documents.flatMap(doc =>
+      doc.questions.map(qa => qa.questionText)
+      
+    );
 
+    for(let j=0;j<questions.length;j++  ){
+      let currentQues=questions[j].questionText
+       for(let i=0;i<questionsArray.length;i++){
+    let existQues=questionsArray[i];
+    const generatedContent = await generateQuizFromContent(`First Question: ${currentQues} And Second Questoin: ${existQues}` );
+  if(generatedContent.questions==='yes\n'){
+    console.log('i am here')
+      return res.json({error:'exist',current:currentQues,exist:existQues})
+  }
+    console.log(generatedContent);
+   }
+    }
+  
+  
     // Decode Base64 string to buffer
     const base64Data = examThumbnail.split(";base64,").pop(); // Remove metadata
     const buffer = Buffer.from(base64Data, "base64");
@@ -34,7 +76,7 @@ const create = async (req, res) => {
     const thumbnail = image.url;
 
     const exam = new Exam({
-      teacher: req.user._id,
+      teacher: user._id,
       startDate,
       duration,
       acceptedResultDate,
@@ -52,6 +94,7 @@ const create = async (req, res) => {
     await exam.save();
     res.status(201).json({ message: "Exam created successfully", exam });
   } catch (error) {
+    console.log(error)
     res.status(500).json({ error: error.message });
   }
 };
@@ -345,7 +388,27 @@ const getSpeceficExam = async (req, res) => {
 
 // Update an exam
 const update = async (req, res) => {
+  const {questions}=req.body
   try {
+    const documents = await Exam.find({}).select('questions');
+   console.log(documents)
+    const questionsArray = documents.flatMap(doc =>
+      doc.questions.map(qa => qa.questionText)
+      
+    );
+
+    for(let j=0;j<questions.length;j++  ){
+      let currentQues=questions[j].questionText
+       for(let i=0;i<questionsArray.length;i++){
+    let existQues=questionsArray[i];
+    const generatedContent = await generateQuizFromContent(`First Question: ${currentQues} And Second Questoin: ${existQues}` );
+  if(generatedContent.questions==='yes\n'){
+    console.log('i am here')
+      return res.json({error:'exist',current:currentQues,exist:existQues})
+  }
+    console.log(generatedContent);
+   }
+    }
     const base64Data = req.body.examThumbnail.split(";base64,").pop();
     if (base64Data) {
       const buffer = Buffer.from(base64Data, "base64");

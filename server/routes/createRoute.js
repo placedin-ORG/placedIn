@@ -1,9 +1,11 @@
 const router = require("express").Router();
 const Course = require("../models/courseModel");
 const User = require("../models/userModel");
+const Exam=require("../models/ExamModel")
 const bcrypt = require("bcryptjs");
 const { uploadFile } = require("../utils/cloudinary");
 const { isAuth } = require("../middlewares/auth");
+  
 
 router.post("/createCourse", async (req, res) => {
   try {
@@ -19,6 +21,7 @@ router.post("/createCourse", async (req, res) => {
       id,
       discountAmount,
       courseCategory,
+      adminId
     } = req.body;
 
     let thumbnail = courseThumbnail;
@@ -32,7 +35,7 @@ router.post("/createCourse", async (req, res) => {
 
     if (id === null) {
       const newCourse = new Course({
-        teacher: req.user._id,
+        teacher: adminId,
         paid,
         price,
         title: courseTitle,
@@ -144,8 +147,8 @@ router.get("/topRatedCourses", async (req, res) => {
 
     res.status(200).json({ courses });
   } catch (err) {
-    console.log(error);
-    res.status(500).json({ message: error.message });
+    console.log(err);
+    res.status(500).json({ message: err.message });
   }
 });
 router.post("/register", async (req, res) => {

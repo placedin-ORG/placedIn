@@ -117,6 +117,7 @@ const userSchema = new mongoose.Schema({
             options: [{ type: String, required: true }],
             correctAnswer: { type: String, required: true },
             image: { type: String }, // Optional for image-based questions
+            level:{type:String}
           },
         ],
         isCurrent: {

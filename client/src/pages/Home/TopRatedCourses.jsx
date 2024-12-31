@@ -19,7 +19,8 @@ const TopRatedCourses=()=>{
     }, []);
     return (
         <>
-         <div className="grainy-light">
+        {
+          courses?.length!==0 ? <div className="grainy-light">
       <div className="max-w-7xl mx-auto px-3 lg:px-8 py-16">
         <h1 className="text-center text-primary text-4xl font-bold relative">
          Top Rated Courses
@@ -34,7 +35,9 @@ const TopRatedCourses=()=>{
           </div>
         )}
       </div>
-    </div>
+    </div>: null
+        }
+         
         </>
     )
 }

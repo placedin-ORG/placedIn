@@ -50,6 +50,7 @@ router.post("/startLearning", async (req, res) => {
         { $inc: { studentEnrolled: 1 } }, // MongoDB $inc operator
         { new: true } // Return the updated document
       );
+      console.log(course.questions)
       const courseData = {
         courseId: course._id,
         examDuration: course.examDuration,
@@ -84,6 +85,7 @@ router.post("/startLearning", async (req, res) => {
             options: question.options,
             correctAnswer: question.correctAnswer,
             image: question.image,
+            level:question.level
           })),
         },
       };
