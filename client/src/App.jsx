@@ -34,6 +34,8 @@ import "react-quill/dist/quill.snow.css";
 import ExamResult from "./pages/exam/ExamResult";
 import Interest from "./pages/user/Interest";
 import GlobalRestrictions from "./component/Restrictions/GlobalRestrictions";
+import Host from "./pages/user/Host";
+import InternshipPortal from "./pages/internship/InternshipPortal";
 
 function AppWrapper() {
   return (
@@ -65,6 +67,7 @@ function App() {
         <Route path="/auth/forgot-password" element={<ForgotPassword />} />
         <Route path="/auth/reset-password/:token" element={<ResetPassword />} />
         <Route path="/resultExam" element={<ExamResult />} />
+        <Route path="/internship-portal" element={<InternshipPortal/>}/>
         <Route
           path="/finalExam/:userId/:courseId"
           element={
@@ -102,6 +105,7 @@ function App() {
               </ProtectedRoutes>
             }
           />
+
           <Route
             path="transactions"
             element={
@@ -133,6 +137,14 @@ function App() {
                 <UserProgress />
               </ProtectedRoutes>
             }
+          />
+          <Route
+          path="host"
+          element={
+            <ProtectedRoutes>
+              <Host/>
+            </ProtectedRoutes>
+          }
           />
         </Route>
 

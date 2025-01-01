@@ -9,6 +9,7 @@ import Footer from "../../component/Layout/Footer";
 import Hero2 from "./Hero2";
 import TopRatedCourses from "./TopRatedCourses";
 import TopStudents from "../../component/Layout/TopStudents";
+import Unlock from "./Unlock";
 const Hompage = () => {
   return (
     <>
@@ -18,6 +19,7 @@ const Hompage = () => {
       {/* <IntroHome />
        */}
       <Hero />
+      <Unlock/>
       {/* <Hero2 /> */}
       <Features />
       <PopularCourses />

@@ -19,6 +19,7 @@ const purchaseRoutes = require("./routes/purchaseRoutes");
 const certificateRoute = require("./routes/certificateRoute");
 const rankingRoute = require("./routes/userRankingRoutes");
 const teacherRoute = require("./routes/teacherRoutes");
+const internShipRoute=require("./routes/internshipRoute")
 const axios = require("axios");
 require("dotenv").config();
 const cloudinary = require("cloudinary");
@@ -50,7 +51,7 @@ app.use("/api/v1/purchase", purchaseRoutes);
 app.use("/api/v1/certificate", certificateRoute);
 app.use("/api/v1/ranking", rankingRoute);
 app.use("/api/v1/teacher", teacherRoute);
-
+app.use("/api/v1/internship",internShipRoute)
 
 const connectDb = async () => {
   try {
@@ -131,7 +132,9 @@ app.use("/api/v1/dailyQuestion", async (req, res) => {
       return res.json({ status: false, daily: user.dailyLogin.dailyQAndA });
     }
     user.dailyLogin.questions.push(user.dailyLogin.dailyQAndA.question);
+    console.log("sd")
     await user.save();
+    console.log("asfe")
     const generatedContent = await axios.post(
       `${process.env.SERVER_URL}/api/v1/generate`,
       {
@@ -151,7 +154,7 @@ app.use("/api/v1/dailyQuestion", async (req, res) => {
     res.json({ status: true, daily: user.dailyLogin.dailyQAndA });
     console.log("Daily login updated for all users.");
   } catch (error) {
-    console.error("Error resetting daily login:", error);
+    console.error("Error resetting daily login:", error.message);
   }
 });
 

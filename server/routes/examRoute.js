@@ -24,7 +24,7 @@ const { isAuth, authoriseRoles } = require("../middlewares/auth");
 
 // TODO: Add role authentication
 
-router.post("/create",  create);
+router.post("/create", isAuth, create);
 router.post("/speceficExam", getSpeceficExam);
 
 router.post("/submit-exam", isAuth, submitExam);

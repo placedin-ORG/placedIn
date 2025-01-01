@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { BiChevronDown } from "react-icons/bi";
 import { LiaTimesSolid } from "react-icons/lia";
-
+import { MdOutlineHomeWork } from "react-icons/md";
 import { HiMiniBars3BottomLeft } from "react-icons/hi2";
 import { BsHouseDoor } from "react-icons/bs";
 import { FaBook, FaUserCircle, FaClipboardList } from "react-icons/fa";
@@ -230,6 +230,18 @@ const SideBar = () => {
           <span className="text-[15px] ml-4 font-semibold">Transactions</span>
         </NavLink>
 
+        {/* Host */}
+        <NavLink
+          to={"/user/host"}
+          className={({ isActive }) =>
+            `p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:bg-emerald-100 text-gray-700 hover:text-primary ${
+              isActive && "bg-emerald-100 text-primary"
+            }`
+          }
+        >
+          <MdOutlineHomeWork className="text-xl" />
+          <span className="text-[15px] ml-4 font-semibold">Host</span>
+        </NavLink>
         {/* Settings */}
         <NavLink
           to={"/user/settings"}
