@@ -65,6 +65,7 @@ const Unlock=()=>{
           <div
            
             className="flex flex-col items-center bg-[#9BC9FF] shadow-lg rounded-lg p-4 hover:shadow-2xl transform hover:scale-105 transition-all duration-300 w-48 h-48"
+            onClick={()=>navigate("/job-portal")}
           >
             <h2>Jobs</h2>
             <div className="text-center text-blue-600 font-semibold mb-4">

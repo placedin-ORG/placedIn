@@ -36,7 +36,9 @@ import Interest from "./pages/user/Interest";
 import GlobalRestrictions from "./component/Restrictions/GlobalRestrictions";
 import Host from "./pages/user/Host";
 import InternshipPortal from "./pages/internship/InternshipPortal";
-
+import InternshipDetail from "./component/Intern/InternshipDetail/InternshipDetail";
+import JobPortal from "./pages/job/JobPortal";
+import JobDetail from "./component/job/JobDetail/JobDetail";
 function AppWrapper() {
   return (
     <BrowserRouter>
@@ -68,6 +70,9 @@ function App() {
         <Route path="/auth/reset-password/:token" element={<ResetPassword />} />
         <Route path="/resultExam" element={<ExamResult />} />
         <Route path="/internship-portal" element={<InternshipPortal/>}/>
+        <Route path="/internshipDetail" element={<InternshipDetail/>}/>
+        <Route path="/jobDetail" element={<JobDetail/>}/>
+        <Route path="/job-portal" element={<JobPortal/>}/>
         <Route
           path="/finalExam/:userId/:courseId"
           element={

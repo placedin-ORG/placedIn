@@ -22,39 +22,38 @@ const formatTimeLeft = (closingTime) => {
     if (minutes > 0) return `${minutes} minute${minutes > 1 ? "s" : ""} left`;
     return `${seconds} second${seconds > 1 ? "s" : ""} left`;
   };
-const InternCard=({internship,studentData})=>{
+const JobCard=({job,studentData})=>{
     const navigate=useNavigate();
     const [enrolled,setEnrolled]=useState(false);
     const [timeLeft, setTimeLeft] = useState("");
     useEffect(()=>{
       if(studentData){
         console.log(studentData)
-        const isIdPresent = studentData.some(item => item.internship === internship._id);
+        const isIdPresent = studentData.some(item => item.job === job._id);
         if(isIdPresent){
             setEnrolled(true);
         }
 
     }
-    setTimeLeft(formatTimeLeft(internship.closingTime));
+    setTimeLeft(formatTimeLeft(job.closingTime));
     },[])
     const onApply=()=>{
-     navigate("/internshipDetail",{state:{internship,enrolled}});
+     navigate("/jobDetail",{state:{job,enrolled}});
     }
     return <>
-    {
-      timeLeft==="" ? null :  <div className="bg-white shadow-lg rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 group">
+ <div className="bg-white shadow-lg rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 group">
       {/* Thumbnail */}
       <div className="relative w-full ">
         <img
-          src={internship.thumbnail}
-          alt={`${internship.title} thumbnail`}
+          src={job.thumbnail}
+          alt={`${job.title} thumbnail`}
           className="w-full h-40 object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent  group-hover:opacity-100 transition-opacity duration-300">
           <div className="p-4 flex items-center justify-between text-white">
             <span className="flex items-center space-x-1">
               <FaEye />
-              <span>{internship.view} views</span>
+              <span>{job.view} views</span>
             </span>
             {enrolled &&  (
               <span className="flex items-center space-x-1 bg-green-500 px-2 py-1 rounded-full text-sm">
@@ -68,8 +67,8 @@ const InternCard=({internship,studentData})=>{
 
       {/* Content */}
       <div className="p-4">
-        <h3 className="text-lg font-semibold truncate">{internship.title}</h3>
-        <p className="text-gray-500">{internship.companyName}</p>
+        <h3 className="text-lg font-semibold truncate">{job.title}</h3>
+        <p className="text-gray-500">{job.companyName}</p>
         <p className="text-gray-600">closing on:<span className="text-gray-500">{timeLeft}</span> </p>
         <div className="mt-4">
           <button
@@ -82,8 +81,6 @@ const InternCard=({internship,studentData})=>{
         </div>
       </div>
     </div>
-    }
-
     </>
 }
-export default InternCard;
+export default JobCard;

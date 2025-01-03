@@ -24,6 +24,6 @@ const studentInternship=new mongoose.Schema({
       type:String
      }
 },{timestamps:true})
-const studentIntern=mongoose.model(studentInternship);
+const studentIntern=mongoose.model("StudentIntern",studentInternship);
 
 module.exports=studentIntern

@@ -1,2 +1,7 @@
 TODO: 
-purchaseController -> Only get the course id and it's name
+ Multiple Category selected by host (completed) #################
+ closing time reach and external link not show and not able to apply (completed )######
+ seperate page for job and internship ()
+ searching for job and internships ()
+ Authentications And Authentications while hosting ()
+:ATS in internship and job ()

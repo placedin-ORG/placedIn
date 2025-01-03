@@ -20,6 +20,7 @@ module.exports = {
         },
         
       },
+    
       animation: {
         shimmer: "shimmer 2s infinite",
         'fade-in': 'fadeIn 0.5s ease-in-out',

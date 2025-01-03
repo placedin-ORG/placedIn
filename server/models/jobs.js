@@ -2,7 +2,7 @@
 
 const mongoose=require("mongoose");
 
-const internshipSchema=new mongoose.Schema({
+const jobSchema=new mongoose.Schema({
    teacherId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Admin",
@@ -37,15 +37,15 @@ const internshipSchema=new mongoose.Schema({
     companyLogo:{
         type:String
     },
+    category:{
+        type:Array,
+        default:[]
+     },
     maximumApplicant:{
         type:Number
     },
      closingTime:{
         type:Date
-     },
-     category:{
-        type:Array,
-        default:[]
      },
      studentApplied:{
         type:Number,
@@ -57,5 +57,5 @@ const internshipSchema=new mongoose.Schema({
      }
 },{timestamps:true})
 
-const internship=mongoose.model("Internship",internshipSchema);
-module.exports=internship
+const job=mongoose.model("Job",jobSchema);
+module.exports=job

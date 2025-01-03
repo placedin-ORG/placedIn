@@ -7,7 +7,7 @@ const InternshipPortal=()=>{
     return <>
     <div className="grainy-light min-h-screen">
    <Navbar/>
-   <TopSection/>
+   <TopSection type="internship"/>
    <InternCategory/>
    <Internships/>
     </div>

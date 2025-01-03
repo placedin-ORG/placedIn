@@ -1,8 +1,8 @@
 
-const Internship=require("../models/internship");
-const Student=require("../models/studentInternship");
+const Job=require("../models/jobs");
+const Student=require("../models/studentJob");
 const { uploadFile } = require("../utils/cloudinary");
-const Countinue=require("../models/continuewInternship")
+const Countinue=require("../models/continuewJob")
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
 const path = require('path');
@@ -31,7 +31,7 @@ const create=async(req,res)=>{
             maximumApplicant,
             closingTime,
             teacherId,
-            internshipId
+           jobId
           } = req.body;
       
           // Validation
@@ -40,9 +40,8 @@ const create=async(req,res)=>{
               .status(400)
               .json({ message: "Title, description, company name, and closing time are required." });
           }
-         console.log(OtherSite)
-          if (OtherSite && !/^https?:\/\/[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(:\d+)?(\/.*)?$/
-.test(OtherSite)) {
+      
+          if (OtherSite && !/^https?:\/\/[\w.-]+$/.test(OtherSite)) {
             return res.status(400).json({ message: "Invalid external application link." });
           }
           let newThumbnail="";
@@ -64,9 +63,9 @@ const create=async(req,res)=>{
          
 
  
-          // Create a new internship document
-          if(internshipId!==null){
-            await Internship.findByIdAndUpdate({_id:internshipId},{
+          // Create a new job document
+          if(jobId!==null){
+            await Job.findByIdAndUpdate({_id:jobId},{
               live:live || false,
               title,
               description,
@@ -80,9 +79,9 @@ const create=async(req,res)=>{
               closingTime,
               teacherId,
             });
-            res.status(201).json({ message: "Internship updated successfully."});
+            res.status(201).json({ message: "Job updated successfully."});
           }else{
-               const newInternship = new Internship({
+               const newJob = new Job({
             teacherId, 
             live: live || false,
             title,
@@ -98,8 +97,8 @@ const create=async(req,res)=>{
           });
       
           // Save to database
-          await newInternship.save();
-          res.status(201).json({ message: "Internship created successfully.", internship: newInternship });
+          await newJob.save();
+          res.status(201).json({ message: "Job created successfully.", job: newJob });
           }
        
         
@@ -112,27 +111,27 @@ const get=async(req,res)=>{
   try{
     const {user}=req.body;
     if(user){
-     const studentInternship=await Student.find({student:user._id});
-     const data= await Internship.find({});
+     const studentJob=await Student.find({student:user._id});
+     const data= await Job.find({});
      if(data){
-      return   res.json({status:true,data,studentInternship});
+      return   res.json({status:true,data,studentJob});
       }
     }
- const data= await Internship.find({});
+ const data= await Job.find({});
  if(data){
   return   res.json({status:true,data})
   }
  if(data){
  return   res.json({status:true,data})
  }
-  return res.json({status:false,message:"Cannot find Internships"})
+  return res.json({status:false,message:"Cannot find Job"})
   }catch(err){
     console.log(err.meesage);
   }
 }
 
 const apply=async(req,res)=>{
-  const { studentId, internshipId, phoneNumber, location, gender } = req.body;
+  const { studentId, jobId, phoneNumber, location, gender } = req.body;
   const resumeFile = req.file;
 
   if (!resumeFile) {
@@ -160,15 +159,15 @@ const apply=async(req,res)=>{
     // Save application data to the database
     const newApplication = new Student({
       student: studentId,
-      internship: internshipId,
+      job: jobId,
       phoneNumber,
       location,
       Gender:gender,
       resume: resumeUrl, // Store the Cloudinary URL
     });
 
-    await Internship.findByIdAndUpdate(
-      internshipId,
+    await Job.findByIdAndUpdate(
+     jobId,
       { $inc: { studentApplied: 1 } } // Increment the 'studentApplied' field
     );
 
@@ -178,26 +177,26 @@ const apply=async(req,res)=>{
       message: "Application submitted successfully!",
       application: newApplication,
     })} catch (error) {
-    console.error("Error applying for internship:", error);
+    console.error("Error applying for job:", error);
     return res.status(500).json({ message: "Server error. Please try again later." });
   }
 }
 
 const IncreaseView=async(req,res)=>{
   try{
-  const {studentId,internshipId}=req.body;
+  const {studentId,jobId}=req.body;
  console.log("sfa")
-const found=await Countinue.findOne({studentId,internshipId});
+const found=await Countinue.findOne({studentId,jobId});
 
 if(found){
   return ;
 }
-const addInternship=new Countinue({
-  studentId,internshipId
+const addJob=new Countinue({
+  studentId,jobId
 })
-await addInternship.save();
-console.log(internshipId)
-await Internship.findByIdAndUpdate({_id:internshipId},{$inc:{view:1}});
+await addJob.save();
+console.log(jobId)
+await Job.findByIdAndUpdate({_id:jobId},{$inc:{view:1}});
 return ;
   }catch(err){
     console.log(err.message)
@@ -206,8 +205,8 @@ return ;
   const getForHost=async(req,res)=>{
     try{
      const {teacherId}=req.body;
-     const hostIntern=await Internship.find({teacherId});
-     res.json({status:true,hostIntern})
+     const hostJob=await Job.find({teacherId});
+     res.json({status:true,hostJob})
     }catch(err){
       console.log(err.message);
     }
@@ -215,11 +214,11 @@ return ;
 
   const submitions=async(req,res)=>{
     try{
-      const { internshipId } = req.body;
+      const { jobId } = req.body;
 
-      const applications = await Student.find({ internship: internshipId })
+      const applications = await Student.find({ job: jobId })
         .populate("student", "email avatar name") // Fetch email, profile photo, and name
-        .populate("internship");
+        .populate("job");
   
       res.status(200).json(applications);
     }catch(err){
