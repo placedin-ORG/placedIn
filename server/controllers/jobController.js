@@ -31,7 +31,8 @@ const create=async(req,res)=>{
             maximumApplicant,
             closingTime,
             teacherId,
-           jobId
+           jobId,
+           category
           } = req.body;
       
           // Validation
@@ -41,7 +42,7 @@ const create=async(req,res)=>{
               .json({ message: "Title, description, company name, and closing time are required." });
           }
       
-          if (OtherSite && !/^https?:\/\/[\w.-]+$/.test(OtherSite)) {
+          if (OtherSite && !/^https?:\/\/[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(:\d+)?(\/.*)?$/.test(OtherSite)) {
             return res.status(400).json({ message: "Invalid external application link." });
           }
           let newThumbnail="";
@@ -78,6 +79,7 @@ const create=async(req,res)=>{
               maximumApplicant:maximumApplicant || 0,
               closingTime,
               teacherId,
+              category
             });
             res.status(201).json({ message: "Job updated successfully."});
           }else{
@@ -94,6 +96,7 @@ const create=async(req,res)=>{
             companyLogo:newLogo,
             maximumApplicant: maximumApplicant || 0,
             closingTime,
+            category
           });
       
           // Save to database

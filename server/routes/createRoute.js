@@ -109,8 +109,8 @@ router.get("/getCourses", async (req, res) => {
 
     return res.status(200).json({ courses });
   } catch (err) {
-    console.log(error);
-    res.status(500).json({ message: error.message });
+    console.log(err);
+    res.status(500).json({ message: err.message });
   }
 });
 

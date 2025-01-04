@@ -42,7 +42,7 @@ const Jobs=()=>{
       call();
     },[])
     return <>
-    <div className="px-5 py-10 min-h-screen">
+    <div className="px-5 py-10 ">
       {/* Header Section */}
       <div className="max-w-4xl mx-auto text-start mb-8">
         <h1 className="text-3xl md:text-4xl font-bold text-gray-800">Jobs</h1>

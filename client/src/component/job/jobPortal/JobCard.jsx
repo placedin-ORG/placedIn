@@ -41,7 +41,8 @@ const JobCard=({job,studentData})=>{
      navigate("/jobDetail",{state:{job,enrolled}});
     }
     return <>
- <div className="bg-white shadow-lg rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 group">
+    {
+      timeLeft ==="Close"?null: <div className="bg-white shadow-lg rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 group">
       {/* Thumbnail */}
       <div className="relative w-full ">
         <img
@@ -81,6 +82,8 @@ const JobCard=({job,studentData})=>{
         </div>
       </div>
     </div>
+    }
+
     </>
 }
 export default JobCard;

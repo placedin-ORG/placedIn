@@ -16,6 +16,18 @@ cloudinary.config({
 const storage = multer.memoryStorage(); // Store file in memory before uploading to Cloudinary
 
 const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 }, });
+
+const allInternship=async(req,res)=>{
+  try{
+   const internships=await Internship.find({});
+   if(internship){
+    return res.json({status:true,internships});
+   }
+   return res.json({status:false,message:"cannot get internship"});
+  }catch(err){
+    console.log(err);
+  }
+}
 const create=async(req,res)=>{
     try{
         const {
@@ -31,7 +43,8 @@ const create=async(req,res)=>{
             maximumApplicant,
             closingTime,
             teacherId,
-            internshipId
+            internshipId,
+            category
           } = req.body;
       
           // Validation
@@ -79,6 +92,7 @@ const create=async(req,res)=>{
               maximumApplicant:maximumApplicant || 0,
               closingTime,
               teacherId,
+              category
             });
             res.status(201).json({ message: "Internship updated successfully."});
           }else{
@@ -95,6 +109,7 @@ const create=async(req,res)=>{
             companyLogo:newLogo,
             maximumApplicant: maximumApplicant || 0,
             closingTime,
+            category
           });
       
           // Save to database
@@ -122,9 +137,7 @@ const get=async(req,res)=>{
  if(data){
   return   res.json({status:true,data})
   }
- if(data){
- return   res.json({status:true,data})
- }
+
   return res.json({status:false,message:"Cannot find Internships"})
   }catch(err){
     console.log(err.meesage);
@@ -226,4 +239,4 @@ return ;
       console.log(err.message);
     }
   }
-module.exports={create,get,apply,IncreaseView,getForHost,submitions}
+module.exports={create,get,apply,IncreaseView,getForHost,submitions,allInternship}

@@ -59,7 +59,7 @@ const connectDb = async () => {
     await mongoose.connect(`${process.env.MONGO_URI}/placedInDB`);
     console.log("mongoose connection successfull");
   } catch (error) {
-    console.log(error);
+    console.log(error.message);
   }
 };
 

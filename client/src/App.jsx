@@ -39,6 +39,10 @@ import InternshipPortal from "./pages/internship/InternshipPortal";
 import InternshipDetail from "./component/Intern/InternshipDetail/InternshipDetail";
 import JobPortal from "./pages/job/JobPortal";
 import JobDetail from "./component/job/JobDetail/JobDetail";
+import AllInternship from "./pages/internship/AllInternship";
+import AllJob from "./pages/job/AllJob";
+import SearchInternship from "./pages/searching/SearchInternship";
+import JobSearch from "./pages/searching/JobSearch";
 function AppWrapper() {
   return (
     <BrowserRouter>
@@ -73,6 +77,8 @@ function App() {
         <Route path="/internshipDetail" element={<InternshipDetail/>}/>
         <Route path="/jobDetail" element={<JobDetail/>}/>
         <Route path="/job-portal" element={<JobPortal/>}/>
+        <Route path="/AllInternships" element={<AllInternship/>}/>
+        <Route path="/AllJobs" element={<AllJob/>}/>
         <Route
           path="/finalExam/:userId/:courseId"
           element={
@@ -175,6 +181,8 @@ function App() {
         </Route>
         <Route path="/intro/exam/:id" element={<ExamIntro />} />
         <Route path="/search/:query" element={<SearchResult />} />
+        <Route path="/search/internship/:query" element={<SearchInternship />} />
+        <Route path="/search/job/:query" element={<JobSearch />} />
         <Route path="/add-interest" element={<Interest />} />
       </Routes>
     </>

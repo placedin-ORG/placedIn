@@ -25,6 +25,9 @@ const JobDetail=()=>{
           call();
         }
        },[])
+       const handleClick=()=>{
+        window.open(job.OtherSite, '_blank');
+       }
     return <>
     <Navbar/>
     <div className="min-h-screen flex flex-col md:flex-row   bg-green-100">
@@ -73,8 +76,8 @@ const JobDetail=()=>{
        {
         user===null ?    <button className="mt-auto bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700" onClick={()=>navigate("/login")}>
         Login And Apply
-      </button> :     <button className="mt-auto bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700" disabled={enrolled}  onClick={()=>setModel(true)}>
-         {enrolled ? 'Applied':'Quick Apply'} 
+      </button> :     <button className="mt-auto bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700" disabled={enrolled}  onClick={job.OtherSite===""?()=>setModel(true):()=>handleClick()}>
+        Apply
         </button>
        }
     

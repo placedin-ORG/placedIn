@@ -42,9 +42,9 @@ const Internships=()=>{
       call();
     },[])
     return <>
-    <div className="px-5 py-10 min-h-screen">
+    <div className="px-5 py-10  ">
       {/* Header Section */}
-      <div className="max-w-4xl mx-auto text-start mb-8">
+      <div className="max-w-4xl mx-auto text-start mb-8 border-3" >
         <h1 className="text-3xl md:text-4xl font-bold text-gray-800">Internships</h1>
         <p className="text-gray-600 mt-2">
           Find the internships that fit your career aspirations and help you grow.
