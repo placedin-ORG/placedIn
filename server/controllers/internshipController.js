@@ -6,7 +6,8 @@ const Countinue=require("../models/continuewInternship")
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
 const path = require('path');
-const streamifier=require("streamifier")
+const streamifier=require("streamifier");
+const Notification=require("../models/notification")
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -111,9 +112,17 @@ const create=async(req,res)=>{
             closingTime,
             category
           });
-      
           // Save to database
-          await newInternship.save();
+          const internNotification=await newInternship.save();
+          await Notification.create({
+            type:"internship",
+            message:`is Hiring for internship, for the role of ${title} check now...`,
+            id:internNotification._id,
+            companyName,
+            companyLogo:newLogo,
+            category:category
+          })
+          console.log(internNotification)
           res.status(201).json({ message: "Internship created successfully.", internship: newInternship });
           }
        

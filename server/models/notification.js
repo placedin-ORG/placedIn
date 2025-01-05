@@ -1,4 +1,4 @@
-const mongoose=require("mongosse");
+const mongoose=require("mongoose");
 
 const NotificationSchema=new mongoose.Schema({
 Ntype:{
@@ -13,8 +13,14 @@ id:{
 category:{
     type:Array,
     default:[]
+},
+companyName:{
+    type:String
+},
+companyLogo:{
+    type:String
 }
-},{timestamp:true})
+},{timestamps:true})
 
 const Notification=mongoose.model('Notification',NotificationSchema);
 

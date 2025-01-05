@@ -163,6 +163,10 @@ const userSchema = new mongoose.Schema({
   profileLinks: {
     resume: { type: String },
   },
+  seenNotification:{
+    type:Boolean,
+    default:false
+  }
 });
 
 userSchema.methods.comparePassword = async function (candidatePassword) {

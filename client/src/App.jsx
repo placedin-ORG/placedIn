@@ -43,6 +43,7 @@ import AllInternship from "./pages/internship/AllInternship";
 import AllJob from "./pages/job/AllJob";
 import SearchInternship from "./pages/searching/SearchInternship";
 import JobSearch from "./pages/searching/JobSearch";
+import Notification from "./pages/notification/Notification";
 function AppWrapper() {
   return (
     <BrowserRouter>
@@ -79,6 +80,7 @@ function App() {
         <Route path="/job-portal" element={<JobPortal/>}/>
         <Route path="/AllInternships" element={<AllInternship/>}/>
         <Route path="/AllJobs" element={<AllJob/>}/>
+        <Route path="/notifications" element={<Notification/>}/>
         <Route
           path="/finalExam/:userId/:courseId"
           element={

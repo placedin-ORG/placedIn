@@ -22,6 +22,7 @@ const teacherRoute = require("./routes/teacherRoutes");
 const internShipRoute=require("./routes/internshipRoute")
 const jobRoute=require("./routes/jobRoute")
 const axios = require("axios");
+const notificationRoute=require("./routes/notificationRoute")
 require("dotenv").config();
 const cloudinary = require("cloudinary");
 
@@ -54,6 +55,7 @@ app.use("/api/v1/ranking", rankingRoute);
 app.use("/api/v1/teacher", teacherRoute);
 app.use("/api/v1/internship",internShipRoute)
 app.use("/api/v1/job",jobRoute)
+app.use("/api/v1/notification",notificationRoute)
 const connectDb = async () => {
   try {
     await mongoose.connect(`${process.env.MONGO_URI}/placedInDB`);

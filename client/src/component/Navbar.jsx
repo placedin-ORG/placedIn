@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { Link, NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import { AiFillBell } from 'react-icons/ai';
 const Navbar = ({type}) => {
   
   const navigate = useNavigate();
@@ -55,6 +56,16 @@ const Navbar = ({type}) => {
           {/* Nav Links */}
           <div className="flex items-center gap-5">
             <div className="hidden md:flex space-x-6 items-center">
+            <NavLink
+                to="/notifications"
+                className={({ isActive }) =>
+                  isActive
+                    ? "text-primary text-2xl border-b-2 border-primary"
+                    : "text-gray-700 hover:text-primary text-2xl"
+                }
+              >
+                <AiFillBell/>
+              </NavLink>
               <NavLink
                 to="/courses"
                 className={({ isActive }) =>
