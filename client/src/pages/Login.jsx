@@ -21,11 +21,11 @@ const Login = () => {
     return emailRegex.test(email);
   };
 
-  useEffect(() => {
-    if (user) {
-      navigate("/user/profile");
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (user) {
+  //     navigate("/user/profile");
+  //   }
+  // }, []);
 
   const validateForm = () => {
     const newErrors = {};

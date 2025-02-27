@@ -14,6 +14,7 @@ const InternshipDetail=()=>{
     const { internship,enrolled } = location.state || {}; 
      console.log(internship)
     useEffect(()=>{
+     
         if(user!==null){
           const call=async()=>{
             await API.post("/internship/IncreaseView",{
@@ -77,7 +78,7 @@ const InternshipDetail=()=>{
        {
         user===null ?    <button className="mt-auto bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700" onClick={()=>navigate("/login")}>
         Login And Apply
-      </button> :     <button className="mt-auto bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700" disabled={enrolled}  onClick={internship.OtherSite===""?()=>setModel(true):()=>handleClick()}>
+      </button> :     <button className="mt-auto bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700" disabled={enrolled}  onClick={internship.OtherSite==="" || internship.OtherSite===null?()=>setModel(true):()=>handleClick()}>
          {enrolled ? 'Applied':'Quick Apply'} 
         </button>
        }

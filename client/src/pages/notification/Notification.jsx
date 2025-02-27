@@ -5,6 +5,7 @@ import {useSelector} from 'react-redux';
 import { FaBriefcase } from 'react-icons/fa';
 import { formatDistanceToNow } from 'date-fns';
 import {useNavigate} from 'react-router-dom'
+import Navbar from '../../component/Navbar';
 const Notification = () => {
     const navigate=useNavigate();
     const user=useSelector((state)=>state.user.user);
@@ -12,10 +13,12 @@ const Notification = () => {
     useEffect(()=>{
         const call=async()=>{
   try{
+    console.log(user._id)
         const response=await API.post("/notification/getNotifications",{
             userId:user._id
         });
         if(response.status){
+            console.log(response)
             setNotification(response.data.notifications);
         }else{
             toast.error(response.data,message);
@@ -57,8 +60,10 @@ try{
 }
     }
     return (
-        <div className="p-8 bg-gray-100 min-h-screen">
-        <h1 className="text-3xl font-bold mb-6 text-center">New update</h1>
+        <>
+        <Navbar/>
+         <div className="p-8 bg-gray-100 min-h-screen">
+        <h1 className="text-3xl font-bold mb-6 text-center">New updates</h1>
         {
             notifications.length!==0 ? <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {notifications.map((notification) => (
@@ -97,6 +102,8 @@ try{
         }
        
     </div>
+        </>
+       
     );
 };
 

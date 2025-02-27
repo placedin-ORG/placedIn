@@ -1,4 +1,4 @@
-
+const User = require('../models/userModel');
 const Internship=require("../models/internship");
 const Student=require("../models/studentInternship");
 const { uploadFile } = require("../utils/cloudinary");
@@ -7,7 +7,9 @@ const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
 const path = require('path');
 const streamifier=require("streamifier");
-const Notification=require("../models/notification")
+const Notification=require("../models/notification");
+const { sendEmail } = require("../utils/sendMail.js");
+const ejs = require("ejs");
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -27,6 +29,68 @@ const allInternship=async(req,res)=>{
    return res.json({status:false,message:"cannot get internship"});
   }catch(err){
     console.log(err);
+  }
+}
+
+const sendEmailsInBatches = async (userEmails,companyName,title) => {
+  const data={companyName,title,url:"https://bharathmegaminds.com"}
+    const html = await ejs.renderFile(
+      path.join(__dirname, "../emails/notification-email.ejs"),
+      data
+    );
+  for (let i = 0; i < userEmails.length; i += 50) {
+      const batch = userEmails.slice(i, i + 50);
+      console.log(`Sending batch ${i / 50 + 1}`);
+      console.log(batch[0].email);
+      // Send emails concurrently in batch
+      const results = await Promise.allSettled(batch.map(email => sendEmail({to:email.email, subject:`notification update`,html})));
+
+      // Log failed emails for further handling
+      results.forEach((result, index) => {
+          if (result.status === 'rejected') {
+              console.error(`Failed email: ${batch[index]}`);
+          }
+      });
+  }
+};
+
+const sendInternshipEmail = async (userEmails,message,internshipName) => {
+  const data={internshipName,message,url:"https://bharathmegaminds.com"}
+    const html = await ejs.renderFile(
+      path.join(__dirname, "../emails/Internship-email.ejs"),
+      data
+    );
+  for (let i = 0; i < userEmails.length; i += 50) {
+      const batch = userEmails.slice(i, i + 50);
+      console.log(`Sending batch ${i / 50 + 1}`);
+      console.log(batch[0]);
+      // Send emails concurrently in batch
+      const results = await Promise.allSettled(batch.map(email => sendEmail({to:email, subject:`notification update`,html})));
+
+      // Log failed emails for further handling
+      results.forEach((result, index) => {
+          if (result.status === 'rejected') {
+              console.error(`Failed email: ${batch[index]}`);
+          }
+      });
+  }
+};
+
+const selectedNotification=async(req,res)=>{
+  try{
+   const {filterData,message,internshipName}=req.body;
+   const allEmails=[];
+   for(let i=0;i<filterData.length;i++ ){
+    allEmails.push(filterData[i].student.email);
+   }
+   if(allEmails.length===0){
+    return ;
+   }
+  //  console.log(filterData)
+   console.log(allEmails)
+   await  sendInternshipEmail(allEmails,message,internshipName);
+  }catch(err){
+    console.log(err.message);
   }
 }
 const create=async(req,res)=>{
@@ -121,9 +185,21 @@ const create=async(req,res)=>{
             companyName,
             companyLogo:newLogo,
             category:category
-          })
-          console.log(internNotification)
-          res.status(201).json({ message: "Internship created successfully.", internship: newInternship });
+          });
+
+          // res.status(201).json({ message: "Internship created successfully.", internship: newInternship });
+          const allEmails = await User.find({
+            'dailyLogin.dailyQAndA.categories': { $in: category }
+        }).select('email');
+        console.log(allEmails)
+       
+          if (allEmails.length === 0) {
+            return ;
+        }
+
+       await  sendEmailsInBatches(allEmails,companyName,title);
+       
+
           }
        
         
@@ -248,4 +324,4 @@ return ;
       console.log(err.message);
     }
   }
-module.exports={create,get,apply,IncreaseView,getForHost,submitions,allInternship}
+module.exports={create,get,apply,IncreaseView,getForHost,submitions,allInternship,selectedNotification    }

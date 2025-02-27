@@ -1,7 +1,9 @@
 const Notification=require("../models/notification");
 const User = require('../models/userModel');
 const Student=require("../models/studentInternship");
-const Internship=require("../models/internship")
+const Internship=require("../models/internship");
+const StudentJob=require("../models/studentJob");
+const Job=require("../models/jobs")
 const getNotification=async(req,res)=>{
     try{
         const { userId } = req.body;
@@ -31,42 +33,79 @@ const getNotification=async(req,res)=>{
 
 const viewNotification=async(req,res)=>{
     try{
-            const {user,_id}=req.body;
+            const {user,_id,type}=req.body;
             console.log(_id)
+            if(type==="internship"){
+                if(user){
+                    const studentInternship=await Student.find({student:user._id});
+                    console.log(studentInternship)
+                    const data= await Internship.findById({_id});
+                    if(data){
+                       const currentTime = new Date();
+       const closingTime = new Date(data.closingTime);
+       
+       // Check if the current time has passed the closing time
+       if (currentTime.getTime() >= closingTime.getTime()) {
+          return res.json({status:false,message:"This Portal is Closed"})
+           // Perform your action here
+       } else {
+           return   res.json({status:true,data,studentInternship});
+       }
+                 
+                     }
+                     return res.json({status:false,message:"Cannot find Internships"})
+                   }
+                const data= await Internship.findById({_id});
+                if(data){
+                   const currentTime = new Date();
+                   const closingTime = new Date(data.closingTime);
+                   
+                   // Check if the current time has passed the closing time
+                   if (currentTime.getTime() >= closingTime.getTime()) {
+                      return res.json({status:false,message:"This Portal is Closed"})
+                       // Perform your action here
+                   } else {
+                       return   res.json({status:true,data});
+                   }
+                 }
+               
+                 return res.json({status:false,message:"Cannot find Internships"})
+            }
+         else{
             if(user){
-             const studentInternship=await Student.find({student:user._id});
-             console.log(studentInternship)
-             const data= await Internship.findById({_id});
-             if(data){
-                const currentTime = new Date();
-const closingTime = new Date(data.closingTime);
-
-// Check if the current time has passed the closing time
-if (currentTime.getTime() >= closingTime.getTime()) {
-   return res.json({status:false,message:"This Portal is Closed"})
-    // Perform your action here
-} else {
-    return   res.json({status:true,data,studentInternship});
-}
-          
-              }
-              return res.json({status:false,message:"Cannot find Internships"})
-            }
-         const data= await Internship.findById({_id});
-         if(data){
-            const currentTime = new Date();
-            const closingTime = new Date(data.closingTime);
-            
-            // Check if the current time has passed the closing time
-            if (currentTime.getTime() >= closingTime.getTime()) {
-               return res.json({status:false,message:"This Portal is Closed"})
-                // Perform your action here
-            } else {
-                return   res.json({status:true,data});
-            }
-          }
-        
-          return res.json({status:false,message:"Cannot find Internships"})
+                const studentJob=await StudentJob.find({student:user._id});
+                const data= await Job.findById({_id});
+                if(data){
+                   const currentTime = new Date();
+   const closingTime = new Date(data.closingTime);
+   
+   // Check if the current time has passed the closing time
+   if (currentTime.getTime() >= closingTime.getTime()) {
+      return res.json({status:false,message:"This Portal is Closed"})
+       // Perform your action here
+   } else {
+       return   res.json({status:true,data,studentJob});
+   }
+             
+                 }
+                 return res.json({status:false,message:"Cannot find Jobs"})
+               }
+            const data= await Job.findById({_id});
+            if(data){
+               const currentTime = new Date();
+               const closingTime = new Date(data.closingTime);
+               
+               // Check if the current time has passed the closing time
+               if (currentTime.getTime() >= closingTime.getTime()) {
+                  return res.json({status:false,message:"This Portal is Closed"})
+                   // Perform your action here
+               } else {
+                   return   res.json({status:true,data});
+               }
+             }
+           
+             return res.json({status:false,message:"Cannot find Jobs"})
+         }
        
     }catch(err){
         console.log(err.message);

@@ -1,4 +1,6 @@
 const express = require("express");
+const path = require("path");
+
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -23,8 +25,22 @@ const internShipRoute=require("./routes/internshipRoute")
 const jobRoute=require("./routes/jobRoute")
 const axios = require("axios");
 const notificationRoute=require("./routes/notificationRoute")
+const AtsRoute=require("./routes/atsRoute");
+const chatRoutes = require("./routes/chatRoutes");
+const Message=require("./models/messageModel")
+const socketIo = require("socket.io");
+const http=require('http')
 require("dotenv").config();
 const cloudinary = require("cloudinary");
+const app = express();
+app.use(cors());
+const server = http.createServer(app);
+const io = socketIo(server, {
+  cors: {
+    origin: ["http://localhost:3000", "http://localhost:5173"],
+    methods: ["GET", "POST"]
+  },
+});
 
 // Initialize Google Gemini AI
 const genAI = new GoogleGenerativeAI("AIzaSyCLgsSfQhcXZdUj9inr7n6fB0E5DZpHK0w"); // Replace with your actual API key
@@ -34,11 +50,10 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-const app = express();
 const port = process.env.PORT;
 app.use(express.json({ limit: "50mb", extended: true }));
 app.use(bodyParser.json());
-app.use(cors());
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/v1", QuizRoute);
 app.use("/api/v1/create", CourseRoute);
 app.use("/api/v1/auth", UserRoute);
@@ -56,6 +71,8 @@ app.use("/api/v1/teacher", teacherRoute);
 app.use("/api/v1/internship",internShipRoute)
 app.use("/api/v1/job",jobRoute)
 app.use("/api/v1/notification",notificationRoute)
+app.use("/api/v1/ats",AtsRoute)
+app.use("/api/v1/chat", chatRoutes);
 const connectDb = async () => {
   try {
     await mongoose.connect(`${process.env.MONGO_URI}/placedInDB`);
@@ -67,14 +84,37 @@ const connectDb = async () => {
 
 connectDb()
   .then(() => {
-    app.listen(port, () => {
+    server.listen(port, () => {
       console.log(`Server is running on http://localhost:${port}`);
     });
   })
   .catch(() => {
     console.log("Error Connecting to databse");
+  })
+  
+  //Messaging
+  io.on('connection', (socket) => {
+    console.log('A user connected');
+  
+    // Handling sendMessage
+    socket.on("sendMessage", async ({ senderType, senderId, receiverType, receiverId, content, file }) => {
+      try {
+        const message = new Message({ senderType, senderId, receiverType, receiverId, content, file });
+        await message.save();
+        console.log((content))
+        // socket.emit("receiveMessage", message);
+        socket.broadcast.emit("receiveMessage", message);
+      } catch (error) {
+        console.error("Error sending message:", error);
+      }
+    });
+    
+  
+    // Handle user disconnect
+    socket.on('disconnect', () => {
+      console.log('User disconnected');
+    });
   });
-
 // Function to parse the quiz into a structured format
 function parseQuizToQuestionsArray(quizString) {
   if (typeof quizString !== "string") {

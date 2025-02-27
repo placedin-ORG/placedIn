@@ -100,7 +100,15 @@ const create=async(req,res)=>{
           });
       
           // Save to database
-          await newJob.save();
+          const jobNotification=await newJob.save();
+          await Notification.create({
+            type:"job",
+            message:`is Hiring for job, for the role of ${title} check now...`,
+            id:jobNotification._id,
+            companyName,
+            companyLogo:newLogo,
+            category:category
+          })
           res.status(201).json({ message: "Job created successfully.", job: newJob });
           }
        

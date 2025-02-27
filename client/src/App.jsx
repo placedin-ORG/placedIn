@@ -44,6 +44,7 @@ import AllJob from "./pages/job/AllJob";
 import SearchInternship from "./pages/searching/SearchInternship";
 import JobSearch from "./pages/searching/JobSearch";
 import Notification from "./pages/notification/Notification";
+import ChatPage from "./pages/message/ChatPage";
 function AppWrapper() {
   return (
     <BrowserRouter>
@@ -81,6 +82,7 @@ function App() {
         <Route path="/AllInternships" element={<AllInternship/>}/>
         <Route path="/AllJobs" element={<AllJob/>}/>
         <Route path="/notifications" element={<Notification/>}/>
+        <Route path="/chat" element={<ChatPage/>}/>
         <Route
           path="/finalExam/:userId/:courseId"
           element={

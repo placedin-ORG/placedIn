@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import { Link, NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { AiFillBell } from 'react-icons/ai';
+import { FiMessageCircle } from "react-icons/fi";
 const Navbar = ({type}) => {
   
   const navigate = useNavigate();
@@ -56,6 +57,11 @@ const Navbar = ({type}) => {
           {/* Nav Links */}
           <div className="flex items-center gap-5">
             <div className="hidden md:flex space-x-6 items-center">
+            {
+              user && <Link to="/chat">
+              <FiMessageCircle className="h-6 w-6 text-primary hover:text-green-600 hover:border-b-2 hover:border-b-green-400" />
+            </Link>
+            }
             <NavLink
                 to="/notifications"
                 className={({ isActive }) =>

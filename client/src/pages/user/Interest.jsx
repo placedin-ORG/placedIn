@@ -12,7 +12,8 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Toast from "../../component/Toast";
 import API from "../../utils/API";
-
+import Navbar from "../../component/Navbar";
+import Footer from "../../component/Layout/Footer"
 const category = [
   { key: "doctorate", icon: FaGraduationCap, label: "Doctorate" },
   { key: "aiml", icon: FaRobot, label: "AIML" },
@@ -68,6 +69,7 @@ const Interest = () => {
   return (
     <>
       <Toast />
+      <Navbar/>
       <div className="p-6">
         <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
           Select Your Interests
@@ -97,6 +99,7 @@ const Interest = () => {
           </button>
         </div>
       </div>
+      <Footer />
     </>
   );
 };
