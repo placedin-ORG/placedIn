@@ -38,7 +38,7 @@ const InternCard=({internship,studentData})=>{
     setTimeLeft(formatTimeLeft(internship.closingTime));
     },[])
     const onApply=()=>{
-     navigate("/internshipDetail",{state:{internship,enrolled}});
+     navigate(`/internshipDetail/id=${internship._id}`,{state:{internshipId:internship._id,enrolled}});
     }
     return <>
     {

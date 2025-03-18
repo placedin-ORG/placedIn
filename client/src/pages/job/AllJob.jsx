@@ -10,7 +10,7 @@ const ITEMS_PER_PAGE = 10;
 import toast from 'react-hot-toast'
 import {useSelector} from "react-redux";
 import JobCard from "../../component/Job/JobPortal/JobCard";
-  
+
 const AllJob=()=>{
     const user=useSelector((state)=>state.user.user);
     const location = useLocation();

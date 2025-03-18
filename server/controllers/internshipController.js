@@ -20,10 +20,27 @@ const storage = multer.memoryStorage(); // Store file in memory before uploading
 
 const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 }, });
 
+const getInternshipById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const internship = await Internship.findById(id);
+    
+    if (!internship) {
+      return res.status(404).json({ message: "Internship not found" });
+    }
+
+    return res.status(200).json(internship);
+  } catch (error) {
+    console.error("Error fetching internship:", error);
+    return res.status(500).json({ message: "Server error. Please try again later." });
+  }
+};
+
 const allInternship=async(req,res)=>{
   try{
    const internships=await Internship.find({});
-   if(internship){
+   if(internships){
     return res.json({status:true,internships});
    }
    return res.json({status:false,message:"cannot get internship"});
@@ -324,4 +341,4 @@ return ;
       console.log(err.message);
     }
   }
-module.exports={create,get,apply,IncreaseView,getForHost,submitions,allInternship,selectedNotification    }
+module.exports={create,get,apply,IncreaseView,getForHost,submitions,allInternship,selectedNotification ,getInternshipById   }

@@ -14,5 +14,5 @@ const messageSchema = new mongoose.Schema({
     default: null,
   },
 }, { timestamps: true });
-
+messageSchema.index({ senderId: 1, receiverId: 1, content: 1, createdAt: 1 }, { unique: true });
 module.exports = mongoose.model("Message", messageSchema);

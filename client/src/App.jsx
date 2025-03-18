@@ -76,7 +76,7 @@ function App() {
         <Route path="/auth/reset-password/:token" element={<ResetPassword />} />
         <Route path="/resultExam" element={<ExamResult />} />
         <Route path="/internship-portal" element={<InternshipPortal/>}/>
-        <Route path="/internshipDetail" element={<InternshipDetail/>}/>
+        <Route path="/internshipDetail/:id" element={<InternshipDetail/>}/>
         <Route path="/jobDetail" element={<JobDetail/>}/>
         <Route path="/job-portal" element={<JobPortal/>}/>
         <Route path="/AllInternships" element={<AllInternship/>}/>

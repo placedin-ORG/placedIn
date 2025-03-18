@@ -28,7 +28,10 @@ const notificationRoute=require("./routes/notificationRoute")
 const AtsRoute=require("./routes/atsRoute");
 const chatRoutes = require("./routes/chatRoutes");
 const Message=require("./models/messageModel")
+const Wishlist=require("./models/wishlistRoutes");
+
 const socketIo = require("socket.io");
+
 const http=require('http')
 require("dotenv").config();
 const cloudinary = require("cloudinary");
@@ -73,6 +76,7 @@ app.use("/api/v1/job",jobRoute)
 app.use("/api/v1/notification",notificationRoute)
 app.use("/api/v1/ats",AtsRoute)
 app.use("/api/v1/chat", chatRoutes);
+app.use("/api/v1/wishlist",Wishlist);
 const connectDb = async () => {
   try {
     await mongoose.connect(`${process.env.MONGO_URI}/placedInDB`);
@@ -95,21 +99,13 @@ connectDb()
   //Messaging
   io.on('connection', (socket) => {
     console.log('A user connected');
-  
+    
     // Handling sendMessage
-    socket.on("sendMessage", async ({ senderType, senderId, receiverType, receiverId, content, file }) => {
-      try {
-        const message = new Message({ senderType, senderId, receiverType, receiverId, content, file });
-        await message.save();
-        console.log((content))
-        // socket.emit("receiveMessage", message);
-        socket.broadcast.emit("receiveMessage", message);
-      } catch (error) {
-        console.error("Error sending message:", error);
-      }
+    socket.on("sendMessage", (message) => {
+      // Broadcast to all OTHER clients (not the sender)
+      socket.broadcast.emit("receiveMessage", message);
     });
     
-  
     // Handle user disconnect
     socket.on('disconnect', () => {
       console.log('User disconnected');
