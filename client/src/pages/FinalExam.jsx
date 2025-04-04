@@ -318,496 +318,573 @@ const FinalExam = () => {
   return (
     <>
       {/* Display remaining time */}
-      {
-        //         examData && (
-        //          <div className="bg-gray-50  flex flex-col border">
-        //       {/* Remaining Time */}
-        //       <Toast/>
-        //       {remainingTime !== null && (
-        //         <div className="fixed top-0 left-0 right-0 bg-blue-600 text-white text-center py-2 z-50">
-        //           <span className="text-lg font-semibold">
-        //             ⏱️ Remaining Time: {Math.floor(remainingTime / 60)}:{String(remainingTime % 60).padStart(2, "0")}
-        //           </span>
-        //         </div>
-        //       )}
-        //       {/* Main Content */}
-        //       <div className="container mx-auto px-4 py-16 flex-grow " >
-        //       {examData && (
-        //           <>
-        //             {/* Navigation Bar */}
-        //             <div
-        //               className="fixed top-0 left-0 right-0 bg-white !mt-9 shadow-xl rounded-b-lg p-4 z-50 flex flex-col justify-start items-center max-w-4xl mx-auto overflow-y-auto"
-        //               style={{ maxHeight: "80vh" }}
-        //             >
-        //               <div className="grid grid-cols-6 gap-4 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12">
-        //                 {examData.finalExam.questions.map((_, questionIndex) => (
-        //                   <a
-        //                     key={questionIndex}
-        //                     href={`#${questionIndex}`}
-        //                     className={`w-full flex items-center justify-center p-4 rounded-lg text-white transition-all duration-300 transform ${
-        //                       selectedOptions[questionIndex]
-        //                         ? "bg-green-600 shadow-lg scale-110"
-        //                         : "bg-gray-400 hover:bg-gray-500 shadow-md hover:scale-105"
-        //                     } ${
-        //                       doItLater[questionIndex] ? "bg-orange-500" : "" // Ensure orange color is applied correctly
-        //                     } ${
-        //                       window.location.hash === `#${questionIndex}` ? "ring-4 ring-blue-300" : ""
-        //                     }`}
-        //                     aria-label={`Question ${questionIndex + 1}`}
-        //                     title={`Go to Question ${questionIndex + 1}`}
-        //                   >
-        //                     <span className="text-lg font-semibold">{questionIndex + 1}</span>
-        //                   </a>
-        //                 ))}
-        //               </div>
-        //             </div>
-        //             {/* Questions Section */}
-        //             <div className="mt-32">
-        //               {examData.finalExam.questions.map((question, questionIndex) => (
-        //                 <div
-        //                   id={`${questionIndex}`}
-        //                   key={questionIndex}
-        //                   className="bg-white shadow-md rounded-lg p-6 mb-6 transform transition-all duration-300 hover:shadow-lg scroll-mt-36"
-        //                 >
-        //                   <p className="text-lg md:text-xl font-semibold text-gray-800 mb-4">
-        //                     <span className="text-blue-500 font-bold">Q{questionIndex + 1}:</span>{" "}
-        //                     {question.questionText}
-        //                   </p>
-        //                   <div className="space-y-4">
-        //                     {question.options.map((option, optionIndex) => (
-        //                       <label
-        //                         key={optionIndex}
-        //                         className="flex items-center gap-3 p-3 border border-gray-300 rounded-lg hover:shadow-md transition-all"
-        //                       >
-        //                         <input
-        //                           type="radio"
-        //                           name={`question-${questionIndex}`}
-        //                           value={option}
-        //                           checked={selectedOptions[questionIndex] === option}
-        //                           onChange={() => handleOptionChange(questionIndex, option)}
-        //                           className="form-radio w-5 h-5 text-blue-600 border-gray-300 focus:ring focus:ring-blue-400"
-        //                         />
-        //                         <span className="text-gray-700">{option}</span>
-        //                       </label>
-        //                     ))}
-        //                   </div>
-        //                   {/* "Do It Later" Button */}
-        //                   <button
-        //                     onClick={() => handleDoItLaterClick(questionIndex)}
-        //                     className={`mt-4 px-4 py-2 rounded-lg transition-all ${
-        //                       doItLater[questionIndex]
-        //                         ? "bg-orange-500 text-white hover:bg-orange-600"
-        //                         : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-        //                     }`}
-        //                   >
-        //                     {doItLater[questionIndex] ? "Unmark" : "Mark For Later"}
-        //                   </button>
-        //                 </div>
-        //               ))}
-        //              <button
-        //   onClick={() => setShowModal(true)}
-        //   className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition duration-200"
-        // >
-        //   Submit Exam
-        // </button>
-        //             </div>
-        //           </>
-        //         )}
-        //     </div>
-        //     </div>
-        //         )
-      }
-
+    
       {examData && (
-        <div
-          className="bg-gray-50 flex flex-col min-h-screen"
-          onContextMenu={handleContextMenu}
-        >
-          {/* Remaining Time */}
-          <Toast />
-          {remainingTime !== null && (
-            <div className="fixed top-0 left-0 right-0 bg-blue-600 text-white text-center py-2 z-50">
-              <span className="text-lg font-semibold">
-                ⏱️ Remaining Time: {Math.floor(remainingTime / 60)}:
-                {String(remainingTime % 60).padStart(2, "0")}
-              </span>
+  <div
+    className="bg-gray-50 flex flex-col min-h-screen"
+    onContextMenu={handleContextMenu}
+  >
+    {/* Remaining Time */}
+    <Toast />
+    {remainingTime !== null && (
+      <div className="fixed top-0 left-0 right-0 bg-blue-700 text-white text-center py-3 z-50 shadow-md">
+        <span className="text-lg font-semibold flex items-center justify-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          Remaining Time: {Math.floor(remainingTime / 60)}:
+          {String(remainingTime % 60).padStart(2, "0")}
+        </span>
+      </div>
+    )}
+
+    {/* Main Content */}
+    <div className="container mx-auto px-4 py-8 flex flex-col md:flex-row gap-6 mt-12">
+      {/* Navigation Bar */}
+      <div className="w-full md:w-1/4 bg-white shadow-lg rounded-lg p-6 overflow-x-auto md:overflow-y-auto sticky top-20 md:max-h-screen z-10 border border-gray-100">
+        <h2 className="text-xl font-bold mb-4 text-gray-800">Questions</h2>
+        <div className="grid grid-cols-5 sm:grid-cols-5 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          {examData.finalExam.questions.map((_, questionIndex) => (
+            <a
+              key={questionIndex}
+              href={`#${questionIndex}`}
+              className={`flex items-center justify-center p-3 rounded-lg text-white font-semibold transition-all duration-300 ${
+                selectedOptions[questionIndex]
+                  ? "bg-green-600 shadow-md"
+                  : doItLater[questionIndex]
+                  ? "bg-orange-500 shadow-md"
+                  : window.location.hash === `#${questionIndex}`
+                  ? "bg-blue-600 shadow-md"
+                  : "bg-gray-400 hover:bg-gray-500"
+              } ${
+                window.location.hash === `#${questionIndex}`
+                  ? "ring-2 ring-blue-300"
+                  : ""
+              }`}
+              aria-label={`Question ${questionIndex + 1}`}
+              title={`${
+                selectedOptions[questionIndex]
+                  ? "Answered"
+                  : doItLater[questionIndex]
+                  ? "Marked for later"
+                  : "Unanswered"
+              } - Question ${questionIndex + 1}`}
+            >
+              {questionIndex + 1}
+            </a>
+          ))}
+        </div>
+        
+        <div className="mt-6 pt-4 border-t border-gray-200">
+          <div className="flex flex-col gap-2 text-sm">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-sm bg-green-600"></div>
+              <span>Answered</span>
             </div>
-          )}
-
-          {/* Main Content */}
-          <div className="container mx-auto px-4 py-6 flex flex-col md:flex-row gap-4">
-            {/* Navigation Bar */}
-            <div className="w-full md:w-1/4 bg-white shadow-lg rounded-lg p-4 overflow-x-auto md:overflow-y-auto sticky top-20 md:max-h-screen z-10">
-              <div className="flex md:grid md:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 overflow-x-scroll md:overflow-visible">
-                {examData.finalExam.questions.map((_, questionIndex) => (
-                  <a
-                    key={questionIndex}
-                    href={`#${questionIndex}`}
-                    className={`flex items-center justify-center p-3 rounded-lg text-white font-semibold transition-all duration-300 transform ${selectedOptions[questionIndex]
-                        ? "bg-green-600 shadow-lg scale-110"
-                        : "bg-gray-400 hover:bg-gray-500 shadow-md hover:scale-105"
-                      } ${doItLater[questionIndex] ? "bg-orange-500" : ""} ${window.location.hash === `#${questionIndex}`
-                        ? "ring-4 ring-blue-300"
-                        : ""
-                      }`}
-                    aria-label={`Question ${questionIndex + 1}`}
-                    title={`Go to Question ${questionIndex + 1}`}
-                  >
-                    {questionIndex + 1}
-                  </a>
-                ))}
-
-              </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-sm bg-orange-500"></div>
+              <span>Marked for review</span>
             </div>
-
-            {/* Questions Section */}
-            <div className="w-full md:w-3/4 flex flex-col gap-6 md:mt-0 mt-14">
-              {examData.finalExam.questions.map((question, questionIndex) => (
-                <div
-                  id={`${questionIndex}`}
-                  key={questionIndex}
-                  className="bg-white shadow-md rounded-lg p-4 sm:p-6 transform transition-all duration-300 hover:shadow-lg scroll-mt-36"
-                >
-                  <p className="text-base sm:text-lg font-semibold text-gray-800 mb-4 flex flex-wrap items-center gap-4">
-                    <span className="text-blue-500 font-bold">Q{questionIndex + 1}:</span>
-                    {parse(question.questionText || "")}
-                    <span
-                      className={`${question.level === "Easy"
-                          ? "text-green-500 bg-green-300"
-                          : question.level === "Medium"
-                            ? "text-orange-500 bg-orange-300"
-                            : "text-red-500 bg-red-300"
-                        } p-1 rounded-md font-serif font-normal`}
-                      onClick={() => {
-                        console.log(question);
-                      }}
-                    >
-                      {question.level}
-                    </span>
-                  </p>
-                  <div className="space-y-3">
-                    {question.options.map((option, optionIndex) => (
-                      <label
-                        key={optionIndex}
-                        className="flex items-center gap-3 p-3 border border-gray-300 rounded-lg hover:shadow-md transition-all"
-                      >
-                        <input
-                          type="radio"
-                          name={`question-${questionIndex}`}
-                          value={option}
-                          checked={selectedOptions[questionIndex] === option}
-                          onChange={() => handleOptionChange(questionIndex, option)}
-                          className="form-radio w-5 h-5 text-blue-600 border-gray-300 focus:ring focus:ring-blue-400"
-                        />
-                        <span className="text-gray-700">{option}</span>
-                      </label>
-                    ))}
-                  </div>
-
-                  {/* "Do It Later" Button */}
-                  <button
-                    onClick={() => handleDoItLaterClick(questionIndex)}
-                    className={`mt-4 px-4 py-2 rounded-lg transition-all w-full sm:w-auto ${doItLater[questionIndex]
-                        ? "bg-orange-500 text-white hover:bg-orange-600"
-                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                      }`}
-                  >
-                    {doItLater[questionIndex] ? "Unmark" : "Mark For Later"}
-                  </button>
-                </div>
-              ))}
-              <button
-                onClick={() => setShowModal(true)}
-                className="mt-6 px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition duration-200 w-full md:w-auto"
-              >
-                Submit Exam
-              </button>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-sm bg-gray-400"></div>
+              <span>Unanswered</span>
             </div>
           </div>
-
         </div>
-      )}
+        
+        <div className="mt-6 pt-4 border-t border-gray-200">
+          <div className="flex justify-between items-center text-sm text-gray-600">
+            <span>Answered: {Object.keys(selectedOptions).length}</span>
+            <span>Total: {examData.finalExam.questions.length}</span>
+          </div>
+          <button
+            onClick={() => setShowModal(true)}
+            className="mt-4 w-full px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition duration-200 flex items-center justify-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14"></path>
+              <path d="M12 5l7 7-7 7"></path>
+            </svg>
+            Submit Exam
+          </button>
+        </div>
+      </div>
 
-
-      {examResult && (
-        <div
-          onContextMenu={handleContextMenu}
-          className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex flex-col items-center justify-center p-6"
-        >
-          <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-2xl">
-            {/* Animated Title */}
-            <h1 className="text-3xl font-bold text-blue-600 text-center mb-6 animate-fade-in">
-              Exam Results
-            </h1>
-
-            {/* Result Details */}
-            {examResult && (
-              <div className="space-y-6">
-                {/* Correct Answers */}
-
-                <div className="flex items-center justify-between p-4 bg-green-100 border-l-4 border-green-500 rounded-lg animate-slide-in">
-                  <p className="text-lg font-medium text-green-700">
-                    Correct Answers:
-                  </p>
-                  <p className="text-2xl font-bold text-green-700">
-                    {examResult.correct}
-                  </p>
-                </div>
-
-                {/* Wrong Answers */}
-                <div className="flex items-center justify-between p-4 bg-red-100 border-l-4 border-red-500 rounded-lg animate-slide-in">
-                  <p className="text-lg font-medium text-red-700">
-                    Wrong Answers:
-                  </p>
-                  <p className="text-2xl font-bold text-red-700">
-                    {examResult.wrong}
-                  </p>
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-yellow-100 border-l-4 border-yellow-500 rounded-lg animate-slide-in">
-                  <p className="text-lg font-medium text-yellow-700">
-                    Total Questions:
-                  </p>
-                  <p className="text-2xl font-bold text-yellow-700">
-                    {examResult.totalQuestions}
-                  </p>
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-blue-100 border-l-4 border-blue-500 rounded-lg animate-slide-in">
-                  <p className="text-lg font-medium text-blue-700">
-                    Attempted:
-                  </p>
-                  <p className="text-2xl font-bold text-blue-700">
-                    {examResult.attempted}
-                  </p>
-                </div>
-
-                {/* Accuracy */}
-                <div className="flex items-center justify-between p-4 bg-blue-100 border-l-4 border-blue-500 rounded-lg animate-slide-in">
-                  <p className="text-lg font-medium text-blue-700">Accuracy:</p>
-                  <p className="text-2xl font-bold text-blue-700">
-                    {examResult.accuracy}%
-                  </p>
-                </div>
+      {/* Questions Section */}
+      <div className="w-full md:w-3/4 flex flex-col gap-6 md:mt-0">
+        {examData.finalExam.questions.map((question, questionIndex) => (
+          <div
+            id={`${questionIndex}`}
+            key={questionIndex}
+            className={`bg-white shadow-md rounded-lg p-6 transform transition-all duration-300 hover:shadow-lg scroll-mt-36 border-l-4 ${
+              selectedOptions[questionIndex]
+                ? "border-green-500"
+                : doItLater[questionIndex]
+                ? "border-orange-500"
+                : "border-gray-300"
+            }`}
+          >
+            <div className="flex justify-between items-start mb-4">
+              <div className="flex items-center gap-3">
+                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold text-lg">
+                  {questionIndex + 1}
+                </span>
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-medium ${
+                    question.level === "Easy"
+                      ? "text-green-800 bg-green-100"
+                      : question.level === "Medium"
+                      ? "text-orange-800 bg-orange-100"
+                      : "text-red-800 bg-red-100"
+                  }`}
+                >
+                  {question.level}
+                </span>
               </div>
+              
+              <button
+                onClick={() => handleDoItLaterClick(questionIndex)}
+                className={`px-3 py-1 rounded-lg text-sm transition-all ${
+                  doItLater[questionIndex]
+                    ? "bg-orange-100 text-orange-800 hover:bg-orange-200"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                {doItLater[questionIndex] ? "Unmark" : "Mark for review"}
+              </button>
+            </div>
+            
+            <div className="text-base font-medium text-gray-800 mb-5">
+              {parse(question.questionText || "")}
+            </div>
+            
+            <div className="space-y-3">
+              {question.options.map((option, optionIndex) => (
+                <label
+                  key={optionIndex}
+                  className={`flex items-center gap-3 p-4 border rounded-lg hover:border-blue-300 transition-all cursor-pointer ${
+                    selectedOptions[questionIndex] === option
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-gray-200"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name={`question-${questionIndex}`}
+                    value={option}
+                    checked={selectedOptions[questionIndex] === option}
+                    onChange={() => handleOptionChange(questionIndex, option)}
+                    className="form-radio w-5 h-5 text-blue-600 border-gray-300 focus:ring focus:ring-blue-200"
+                  />
+                  <span className="text-gray-700">{option}</span>
+                </label>
+              ))}
+            </div>
+            
+            <div className="flex justify-between mt-6 pt-4 border-t border-gray-100">
+              {questionIndex > 0 && (
+                <a
+                  href={`#${questionIndex - 1}`}
+                  className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-sm font-medium"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 12H5"></path>
+                    <path d="M12 19l-7-7 7-7"></path>
+                  </svg>
+                  Previous
+                </a>
+              )}
+              {questionIndex < examData.finalExam.questions.length - 1 && (
+                <a
+                  href={`#${questionIndex + 1}`}
+                  className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-sm font-medium ml-auto"
+                >
+                  Next
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12h14"></path>
+                    <path d="M12 5l7 7-7 7"></path>
+                  </svg>
+                </a>
+              )}
+            </div>
+          </div>
+        ))}
+        
+        <button
+          onClick={() => setShowModal(true)}
+          className="mb-12 px-6 py-4 bg-blue-700 text-white font-semibold rounded-lg shadow-md hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition duration-200"
+        >
+          Submit Exam
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+
+{examResult && (
+  <div
+    onContextMenu={handleContextMenu}
+    className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center py-10 px-4"
+  >
+    <div className="bg-white shadow-xl rounded-xl p-8 w-full max-w-2xl border border-gray-100">
+      {/* Header with Score */}
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">
+          Exam Results
+        </h1>
+        <div className="inline-flex items-center justify-center">
+          <div className="relative w-32 h-32">
+            <svg className="w-full h-full" viewBox="0 0 100 100">
+              <circle 
+                className="text-gray-200" 
+                strokeWidth="8" 
+                stroke="currentColor" 
+                fill="transparent" 
+                r="42" 
+                cx="50" 
+                cy="50" 
+              />
+              <circle 
+                className="text-blue-600" 
+                strokeWidth="8" 
+                stroke="currentColor" 
+                fill="transparent" 
+                r="42" 
+                cx="50" 
+                cy="50" 
+                strokeDasharray="264"
+                strokeDashoffset={264 - (264 * examResult.accuracy / 100)}
+                strokeLinecap="round"
+              />
+            </svg>
+            <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
+              <span className="text-3xl font-bold text-gray-800">{examResult.accuracy}%</span>
+            </div>
+          </div>
+        </div>
+        <p className="text-gray-500 mt-2">
+          {examResult.accuracy >= 70 
+            ? "Congratulations! You've passed the exam." 
+            : "Keep practicing. You can improve!"}
+        </p>
+      </div>
+
+      {/* Result Summary Cards */}
+      <div className="grid grid-cols-2 gap-4 mb-8">
+        <div className="bg-white rounded-lg p-4 shadow border border-l-4 border-l-green-500 border-gray-100">
+          <div className="flex items-center mb-1">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            <p className="text-sm font-medium text-gray-600">Correct</p>
+          </div>
+          <p className="text-2xl font-bold text-gray-800">{examResult.correct}</p>
+        </div>
+        
+        <div className="bg-white rounded-lg p-4 shadow border border-l-4 border-l-red-500 border-gray-100">
+          <div className="flex items-center mb-1">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            <p className="text-sm font-medium text-gray-600">Incorrect</p>
+          </div>
+          <p className="text-2xl font-bold text-gray-800">{examResult.wrong}</p>
+        </div>
+        
+        <div className="bg-white rounded-lg p-4 shadow border border-l-4 border-l-blue-500 border-gray-100">
+          <div className="flex items-center mb-1">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <p className="text-sm font-medium text-gray-600">Attempted</p>
+          </div>
+          <p className="text-2xl font-bold text-gray-800">{examResult.attempted}</p>
+        </div>
+        
+        <div className="bg-white rounded-lg p-4 shadow border border-l-4 border-l-yellow-500 border-gray-100">
+          <div className="flex items-center mb-1">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            <p className="text-sm font-medium text-gray-600">Total</p>
+          </div>
+          <p className="text-2xl font-bold text-gray-800">{examResult.totalQuestions}</p>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        <button
+          onClick={() => navigate("/")}
+          className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+          Dashboard
+        </button>
+        <button
+          onClick={() => setCertificateModel(true)}
+          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg shadow-md transition duration-200 flex items-center justify-center gap-2"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+          </svg>
+          Get Certificate
+        </button>
+      </div>
+    </div>
+
+    {/* Certificate Modal */}
+    {certificteModel && (
+      <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg max-w-md w-full relative shadow-2xl">
+          <button
+            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 focus:outline-none"
+            onClick={() => setCertificateModel(false)}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          
+          <div className="p-6">
+            <div className="text-center mb-6">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-blue-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+              </svg>
+              <h2 className="text-2xl font-bold text-gray-800">Your Certificate</h2>
+              <p className="text-gray-600 mt-1">Enter your name as you'd like it to appear</p>
+            </div>
+
+            {examResult.updatedcourse.finalExam.certificate.downloaded ? (
+              <input
+                type="text"
+                id="nameInput"
+                placeholder="John Doe"
+                className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+                value={examResult.updatedcourse.finalExam.certificate.name}
+                readOnly
+              />
+            ) : (
+              <input
+                type="text"
+                id="nameInput"
+                placeholder="John Doe"
+                className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
             )}
 
-            {/* Animated Button */}
-            <div className="mt-8 text-center animate-fade-in">
+            <canvas
+              ref={canvasRef}
+              width={800}
+              height={600}
+              style={{ display: "none" }}
+            ></canvas>
+
+            {!examResult.updatedcourse.finalExam.certificate.downloaded ? (
               <button
-                onClick={() => navigate("/")}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 transform hover:scale-105"
+                onClick={handleGenerateCertificate}
+                className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 mb-2 font-medium"
               >
-                Back to Dashboard
+                Generate Certificate
               </button>
+            ) : (
               <button
-                onClick={() => setCertificateModel(true)}
-                className="ml-2 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 transform hover:scale-105"
+                id="downloadButton"
+                onClick={handleDownload}
+                className="w-full bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400 mb-2 font-medium"
               >
                 Download Certificate
               </button>
-            </div>
+            )}
           </div>
-          {/*certificate model*/}
-          {certificteModel && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center z-50">
-              <div className="bg-white rounded-lg p-6 w-[95%] relative shadow-xl flex items-center justify-center gap-3 flex-col">
-                {/* Close Button */}
-                <button
-                  className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
-                  onClick={() => setCertificateModel(false)}
-                >
-                  ✖
-                </button>
+        </div>
+      </div>
+    )}
 
-                <h1 className="text-3xl font-semibold text-gray-800 mb-6">
-                  Certificate Generator
-                </h1>
+    {/* Detailed Results Section */}
+    <div className="bg-white rounded-xl shadow-lg border border-gray-100 w-full max-w-4xl mt-8 overflow-hidden">
+      <div className="p-6 border-b border-gray-200">
+        <h2 className="text-xl font-bold text-gray-800 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+          Question Analysis
+        </h2>
+      </div>
+      
+      <div className="max-h-96 overflow-y-auto p-4">
+        {examResult.updatedcourse.finalExam.questions.map((question, index) => {
+          const studentAnswer = 
+            examResult.updatedcourse.finalExam.result.answers[0][index.toString()];
+          const correctAnswer = question.correctAnswer;
+          const isCorrect = studentAnswer === correctAnswer;
 
-                <div className="w-full max-w-sm bg-white p-6 rounded-lg shadow-lg">
-                  <label
-                    htmlFor="nameInput"
-                    className="block text-lg font-medium text-gray-700 mb-2"
-                  >
-                    Enter Your Name:
-                  </label>
-                  {examResult.updatedcourse.finalExam.certificate.downloaded ? (
-                    <input
-                      type="text"
-                      id="nameInput"
-                      placeholder="John Doe"
-                      className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
-                      value={
-                        examResult.updatedcourse.finalExam.certificate.name
-                      }
-                    />
-                  ) : (
-                    <input
-                      type="text"
-                      id="nameInput"
-                      placeholder="John Doe"
-                      className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                    />
-                  )}
-
-                  <button
-                    onClick={handleGenerateCertificate}
-                    className="w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 mb-4"
-                  >
-                    Generate Certificate
-                  </button>
-
-                  <canvas
-                    ref={canvasRef}
-                    width={800}
-                    height={600}
-                    style={{ display: "none" }}
-                  ></canvas>
-
-                  <button
-                    id="downloadButton"
-                    onClick={handleDownload}
-                    className="w-full bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400"
-                    style={{ display: "none" }}
-                  >
-                    Download Certificate
-                  </button>
+          return (
+            <div
+              key={index}
+              className={`mb-6 border rounded-lg overflow-hidden ${
+                isCorrect ? "border-green-200" : "border-red-200"
+              }`}
+            >
+              <div className={`px-4 py-3 ${
+                isCorrect ? "bg-green-50" : "bg-red-50"
+              }`}>
+                <div className="flex items-start">
+                  <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center mr-3 ${
+                    isCorrect ? "bg-green-500" : "bg-red-500"
+                  }`}>
+                    {isCorrect ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    )}
+                  </div>
+                  <h3 className="font-medium text-gray-800">
+                    {index + 1}. {parse(question.questionText || "")}
+                  </h3>
                 </div>
               </div>
-            </div>
-          )}
-
-          {examResult && (
-            <div className="bg-white w-[70%] mt-5 p-4 rounded shadow-md mb-6 max-h-[400px] overflow-y-auto">
-              <div>
-                {isModalOpen ? (
-                  <CoinModel setIsModalOpen={setIsModalOpen} type="result" />
-                ) : null}
+              <div className="p-4 bg-white">
+                {question.options.map((option) => (
+                  <div
+                    key={option}
+                    className={`p-3 mb-2 rounded-md flex items-center ${
+                      option === correctAnswer
+                        ? "bg-green-100 border border-green-200"
+                        : option === studentAnswer && option !== correctAnswer
+                        ? "bg-red-100 border border-red-200"
+                        : "bg-gray-50 border border-gray-200"
+                    }`}
+                  >
+                    <span className="flex-grow">{option}</span>
+                    {option === correctAnswer && (
+                      <svg className="h-5 w-5 text-green-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                    {option === studentAnswer && option !== correctAnswer && (
+                      <svg className="h-5 w-5 text-red-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                  </div>
+                ))}
               </div>
-              <h2 className="text-xl font-bold mb-4">Final Exam Results</h2>
-              {examResult.updatedcourse.finalExam.questions.map(
-                (question, index) => {
-                  const studentAnswer =
-                    examResult.updatedcourse.finalExam.result.answers[0][
-                    index.toString()
-                    ];
-                  const correctAnswer = question.correctAnswer;
-                  const isCorrect = studentAnswer === correctAnswer;
-
-                  return (
-                    <div
-                      key={index}
-                      className={`p-4 border rounded mb-4 ${isCorrect ? "border-green-500" : "border-red-500"
-                        }`}
-                    >
-                      <h3 className="font-semibold">
-                        {index + 1}. {parse(question.questionText || "")}
-                      </h3>
-                      <div className="space-y-2 mt-2">
-                        {question.options.map((option) => (
-                          <div
-                            key={option}
-                            className={`p-2 rounded ${option === correctAnswer
-                                ? "bg-green-100"
-                                : option === studentAnswer
-                                  ? "bg-red-100"
-                                  : ""
-                              }`}
-                          >
-                            {option}
-                            {option === correctAnswer && (
-                              <FaCheckCircle className="inline ml-2 text-green-500" />
-                            )}
-                            {option === studentAnswer &&
-                              option !== correctAnswer && (
-                                <FaTimesCircle className="inline ml-2 text-red-500" />
-                              )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                }
-              )}
             </div>
-          )}
+          );
+        })}
+      </div>
+    </div>
 
-          {/* <div className='flex flex-col gap-3 w-[50%] h-72 mb-24'>
-<h1 className='text-3xl font-semibold font-mono'>Certificate</h1>
-<img className='w-full h-full' src='https://th.bing.com/th/id/OIP.rxDrB65ZGXpz6L5nE22ecAHaFP?w=249&h=180&c=7&r=0&o=5&dpr=1.4&pid=1.7'/>
-<button className="text-base lg:text-xl text-white bg-red-500 w-fit px-8 lg:px-16 rounded-xl py-1.5 font-semibold" >
-     Download Certificate
+    {/* Rating Section */}
+    <div className="bg-white rounded-xl shadow-lg border border-gray-100 w-full max-w-2xl mt-8 mb-16 p-6">
+      <div className="text-center">
+        <h2 className="text-xl font-bold text-gray-800 mb-2">Rate this Course</h2>
+        <p className="text-gray-600 mb-4">Your feedback helps us improve our content</p>
+        <div className="flex items-center justify-center">
+          <Rating courseId={courseId} userId={userId} />
+        </div>
+      </div>
+    </div>
+
+    {isModalOpen ? (
+      <CoinModel setIsModalOpen={setIsModalOpen} type="result" />
+    ) : null}
+  </div>
+)}
+
+{showModal && (
+  <div
+    className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50"
+    onContextMenu={handleContextMenu}
+  >
+    <div className="bg-white rounded-lg p-8 w-full max-w-md mx-4 relative shadow-2xl animate-fadeIn">
+      {/* Close Button */}
+      <button
+        className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+        onClick={() => setShowModal(false)}
+        aria-label="Close"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
       </button>
-</div> */}
-
-          <div className="p-6 bg-white shadow-lg rounded-lg mt-10 w-full">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">
-              Rate this Course
-            </h2>
-            <div className="flex items-center justify-center">
-              <Rating courseId={courseId} userId={userId} />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showModal && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-          onContextMenu={handleContextMenu}
+      
+      {/* Header */}
+      <h2 className="text-2xl font-bold text-gray-800 mb-4">Confirm Submission</h2>
+      
+      {/* Divider */}
+      <div className="h-px bg-gray-200 w-full mb-6"></div>
+      
+      {/* Content */}
+      <p className="text-gray-600 mb-8">
+        Are you sure you want to submit the final exam? This action cannot be undone.
+      </p>
+      
+      {/* Action Buttons */}
+      <div className="flex justify-end space-x-4">
+        <button
+          className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors font-medium"
+          onClick={() => setShowModal(false)}
         >
-          <div className="bg-white rounded-lg p-6 w-[95%] relative shadow-xl">
-            {/* Close Button */}
-            <button
-              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
-              onClick={() => setShowModal(false)}
-            >
-              ✖
-            </button>
-            <h2 className="text-xl font-semibold mb-4">Confirm Start</h2>
-            <p className="text-gray-700 mb-6">
-              Are you sure you want to submit the final exam?
-            </p>
-            <div className="flex justify-end space-x-3">
-              <button
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
-                onClick={() => setShowModal(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="px-4 py-2 bg-orange-400 text-white rounded-md hover:bg-orange-500"
-                onClick={() => handleSubmitExam(false)}
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      {start && examData && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-100 flex items-center justify-center z-50"
-          onContextMenu={handleContextMenu}
+          Cancel
+        </button>
+        <button
+          className="px-5 py-2.5 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors font-medium focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+          onClick={() => handleSubmitExam(false)}
         >
-          <div className="bg-white rounded-lg p-6 w-[95%] relative shadow-xl">
-            {/* Close Button */}
-
-            <h2 className="text-xl font-semibold mb-4">Confirm Start</h2>
-            <p className="text-gray-700 mb-6">confirm for full screen</p>
-            <div className="flex justify-end space-x-3">
-              <button
-                className="px-4 py-2 bg-orange-400 text-white rounded-md hover:bg-orange-500"
-                onClick={handleStart}
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          Submit Exam
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+   {start && examData && (
+  <div
+    className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50"
+    onContextMenu={handleContextMenu}
+  >
+    <div className="bg-white rounded-lg p-8 w-full max-w-md mx-4 relative shadow-2xl animate-fadeIn">
+      {/* Header */}
+      <h2 className="text-2xl font-bold text-gray-800 mb-4">Enter Full Screen Mode</h2>
+      
+      {/* Divider */}
+      <div className="h-px bg-gray-200 w-full mb-6"></div>
+      
+      {/* Content */}
+      <p className="text-gray-600 mb-8">
+        This exam requires full screen mode. Your session will begin immediately after confirmation.
+      </p>
+      
+      {/* Action Buttons */}
+      <div className="flex justify-end space-x-4">
+        <button
+          className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors font-medium"
+          onClick={() => window.history.back()}
+        >
+          Cancel
+        </button>
+        <button
+          className="px-5 py-2.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          onClick={handleStart}
+        >
+          Confirm
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </>
   );
 };

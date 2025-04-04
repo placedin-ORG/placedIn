@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { AiOutlineHeart, AiFillHeart, AiOutlineShareAlt } from "react-icons/ai";
@@ -25,9 +25,12 @@ const InternshipDetail = () => {
   
   // Get internship ID and enrolled status from URL params or state
   const { internshipId, enrolled: initialEnrolled } = location.state || {};
-  const urlInternshipId = new URLSearchParams(location.search).get("id");
+  const {id}=useParams();
+
+  const urlInternshipId = id
   const currentInternshipId = internshipId || urlInternshipId;
-  
+  console.log(urlInternshipId) 
+  console.log(currentInternshipId)
   // Use the passed enrolled status or default to false
   const [enrolled, setEnrolled] = useState(initialEnrolled || false);
 

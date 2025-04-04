@@ -298,25 +298,35 @@ const apply=async(req,res)=>{
   }
 }
 
-const IncreaseView=async(req,res)=>{
-  try{
-  const {studentId,internshipId}=req.body;
- console.log("sfa")
-const found=await Countinue.findOne({studentId,internshipId});
+const IncreaseView = async (req, res) => {
+  try {
+    const { studentId, internshipId } = req.body;
 
-if(found){
-  return ;
-}
-const addInternship=new Countinue({
-  studentId,internshipId
-})
-await addInternship.save();
-console.log(internshipId)
-await Internship.findByIdAndUpdate({_id:internshipId},{$inc:{view:1}});
-return ;
-  }catch(err){
-    console.log(err.message)
-  }}
+    const found = await Countinue.findOne({ studentId, internshipId });
+
+    if (found) {
+      console.log("sfa");
+      return res.status(200).json({ message: "Already viewed" }); // Fix: Send response
+    }
+
+    const addInternship = new Countinue({
+      studentId,
+      internshipId,
+    });
+
+    await addInternship.save();
+    console.log(internshipId);
+
+    await Internship.findByIdAndUpdate(internshipId, { $inc: { view: 1 } }); // Fix: Correct syntax
+
+    return res.status(200).json({ message: "View count updated" }); // Fix: Return a proper response
+
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).json({ error: err.message }); // Fix: Send error response
+  }
+};
+
 
   const getForHost=async(req,res)=>{
     try{

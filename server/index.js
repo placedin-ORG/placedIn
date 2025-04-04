@@ -28,7 +28,7 @@ const notificationRoute=require("./routes/notificationRoute")
 const AtsRoute=require("./routes/atsRoute");
 const chatRoutes = require("./routes/chatRoutes");
 const Message=require("./models/messageModel")
-const Wishlist=require("./models/wishlistRoutes");
+const Wishlist=require("./routes/wishlistRoutes");
 
 const socketIo = require("socket.io");
 
