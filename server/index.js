@@ -31,11 +31,34 @@ const Message=require("./models/messageModel")
 const Wishlist=require("./routes/wishlistRoutes");
 
 const socketIo = require("socket.io");
+const session = require("express-session");
+const passport = require("passport");
+require("./config/passport"); // Passport configuration
 
 const http=require('http')
 require("dotenv").config();
 const cloudinary = require("cloudinary");
 const app = express();
+
+// Session middleware
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // use secure cookies in production
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+    },
+  })
+);
+
+// Passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
+
+
 app.use(cors());
 const server = http.createServer(app);
 const io = socketIo(server, {

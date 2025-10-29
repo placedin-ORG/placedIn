@@ -6,6 +6,7 @@ import Toast from "../component/Toast";
 import API from "../utils/API";
 import Navbar from "../component/Navbar";
 import { useSelector } from "react-redux";
+import { FaGoogle, FaGithub } from "react-icons/fa";
 
 const Register = () => {
   const { user } = useSelector((state) => state.user);
@@ -110,6 +111,10 @@ const Register = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSocialLogin = (provider) => {
+    window.location.href = `${import.meta.env.VITE_APP_BASE_URL}/auth/${provider}`;
   };
 
   return (
@@ -220,8 +225,32 @@ const Register = () => {
                 Sign Up
               </button>
             </div>
+          </form>
 
-            <div className="text-center animate-bounce-in delay-600">
+          <div className="relative flex py-5 items-center">
+            <div className="flex-grow border-t border-gray-400"></div>
+            <span className="flex-shrink mx-4 text-gray-400">OR</span>
+            <div className="flex-grow border-t border-gray-400"></div>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={() => handleSocialLogin("google")}
+              className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 py-2 rounded-md hover:bg-gray-50"
+            >
+              <FaGoogle />
+              <span>Continue with Google</span>
+            </button>
+            <button
+              onClick={() => handleSocialLogin("github")}
+              className="w-full flex items-center justify-center gap-2 bg-gray-800 text-white py-2 rounded-md hover:bg-gray-700"
+            >
+              <FaGithub />
+              <span>Continue with GitHub</span>
+            </button>
+          </div>
+
+            <div className="pt-2 text-center animate-bounce-in delay-600">
               <span className="text-gray-700">Already Have an Account? </span>
               <button
                 className="text-primary hover:underline"
@@ -230,7 +259,6 @@ const Register = () => {
                 Log In
               </button>
             </div>
-          </form>
         </div>
       </div>
     </>

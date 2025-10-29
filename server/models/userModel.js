@@ -8,12 +8,18 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   resetPasswordToken: { type: String },
   resetPasswordExpire: { type: Date },
-  password: { type: String, required: true },
+  password: { type: String,
+    required: function () {
+      return !this.provider; // Only require a password if there is no social provider
+    },
+  },
   coins: { type: Number, default: 0 },
   avatar: {
     type: String,
     default: "/images/avatar.png",
   },
+  provider: { type: String },
+  providerId: { type: String },
   dailyLogin: {
     
     questions:[String],
