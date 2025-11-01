@@ -1,8 +1,7 @@
 const router = require("express").Router();
 const Course = require("../models/courseModel");
 const User = require("../models/userModel");
-const Exam=require("../models/ExamModel")
-const bcrypt = require("bcryptjs");
+const Exam=require("../models/ExamModel");
 const { uploadFile } = require("../utils/cloudinary");
 const { isAuth } = require("../middlewares/auth");
   
@@ -118,12 +117,12 @@ router.get("/courses/all", async (req, res) => {
   try {
     const courses = await Course.find({ setLive: true }).sort({
       createdAt: -1,
-    });
+    }).populate("teacher");
 
     return res.status(200).json({ courses });
   } catch (err) {
-    console.log(error);
-    res.status(500).json({ message: error.message });
+    console.log(err);
+    res.status(500).json({ message: err.message });
   }
 });
 

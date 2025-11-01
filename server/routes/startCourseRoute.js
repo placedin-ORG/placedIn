@@ -7,11 +7,11 @@ router.post("/fetchCourse", async (req, res) => {
   try {
     const { id, userId } = req.body;
 
-    const course = await Course.findById(id);
+    const course = await Course.findById(id).populate("teacher");
     const relatedCourses = await Course.find({
       category: course?.category,
       _id: { $ne: id },
-    });
+    }).populate("teacher");
     if (userId !== null) {
       const user = await User.findOne({
         _id: userId,

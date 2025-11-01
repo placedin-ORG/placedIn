@@ -3,7 +3,7 @@ import {MdWork,MdOutlineQuiz,MdLibraryAdd} from 'react-icons/md';
 
 const Host=()=>{
     const handleRedirect = () => {
-        window.location.href = "http://localhost:3000/"; // Replace with your desired URL
+        window.location.href = "http://localhost:5000/"; // Replace with your desired URL
       };
       const [visible,setVisible]=useState(false);
       useEffect(()=>{

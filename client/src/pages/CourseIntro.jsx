@@ -12,6 +12,7 @@ import {
   FaShare,
   FaShieldAlt,
 } from "react-icons/fa";
+import { BsFillPersonFill } from "react-icons/bs"
 import Slider from "react-slick";
 import { FaStar, FaRegStar } from "react-icons/fa";
 import "slick-carousel/slick/slick.css";
@@ -67,7 +68,7 @@ const CourseIntro = () => {
 
         if (data.data.status) {
           setCourse(data.data.course);
-          console.log(data.data.course);
+          console.log( "fetches course data", data.data.course);
           console.log(data.data.relatedCourses.length);
           if (data.data.relatedCourses.length !== 0) {
             setRelatedCourses(data.data.relatedCourses);
@@ -247,7 +248,7 @@ const CourseIntro = () => {
             <div>
               <div className="w-full flex flex-col lg:flex-row">
                 {/* Text Section */}
-                <div className="lg:w-5/6 w-full flex items-center justify-center py-5">
+                <div className="lg:w-5/6 w-full flex items-center  py-5">
                   <div className="px-5 lg:px-36 flex flex-col gap-3">
                     <div className="flex items-center gap-1">
                       <p className="px-5 py-1 bg-green-100 text-green-500 rounded-2xl w-fit font-semibold">
@@ -272,20 +273,23 @@ const CourseIntro = () => {
                     </div>
                     {/** Ratings */}
                     <div className="flex items-center space-y-4 justify-start    rounded-lg  w-full max-w-sm">
-                      <div className="flex   justify-start space-x-1">
+                      <div className="flex items-center  justify-start space-x-1">
+                      <p className=" text-yellow-600 font-semibold">{averageRating.toFixed(1)}</p>
                         {Array.from({ length: 5 }).map((_, index) =>
                           index < averageRating ? (
                             <FaStar
                               key={index}
-                              className="text-yellow-500 text-3xl"
+                              className="text-yellow-500 text-xl"
                             />
                           ) : (
                             <FaRegStar
                               key={index}
-                              className="text-gray-400 text-3xl"
+                              className="text-gray-400 text-xl"
                             />
                           )
                         )}
+                        <p className="font-semibold text-green-500"> ({course.rating.length} rating)</p>
+                        <p className="pl-2 font-medium text-gray-700">{course.studentEnrolled} students</p>
                       </div>
                     </div>
                     <h1 className="text-red-500 font-semibold text-3xl lg:text-5xl">
@@ -423,6 +427,32 @@ const CourseIntro = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* {instructor bio} */}
+                <div>
+                  <h1 className="font-bold text-3xl mt-2">Instructor</h1>
+                  <div className=" flex flex-col gap-3 mt-4">
+                    <p className="text-xl flex items-center gap-2 text-green-500  font-semibold">
+                      <BsFillPersonFill/>
+                    {course.teacher.name}</p>
+
+                    <p className="text-xl ">A teacher who loves to teach about <span className="text-xl text-green-500 font-bold"> {course.courseCategory} </span></p>
+
+                   <div className="flex flex-col lg:flex-row gap-4 items-center ">
+                     <img 
+                      src= {course.teacher.avatar}
+                      className=" h-24 w-24 rounded-full"
+                    />
+
+                    <div className="  mt-2 w-1/2 break-words whitespace-pre-wrap ">
+                      {course.teacher.bio}
+                     
+                    </div>
+                   </div>
+                  </div>
+                </div>
+
+
 
                 {/**
  Similar Courses

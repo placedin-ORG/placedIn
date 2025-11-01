@@ -29,6 +29,7 @@ const adminSchema = new mongoose.Schema(
     resetPasswordToken: { type: String },
     resetPasswordExpire: { type: Date },
     password: { type: String, required: true },
+    bio:{type:String},
     avatar: {
       type: String,
       default: "/images/avatar.png",
