@@ -69,8 +69,8 @@ const io = socketIo(server, {
 });
 
 // Initialize Google Gemini AI
-const genAI = new GoogleGenerativeAI("AIzaSyCLgsSfQhcXZdUj9inr7n6fB0E5DZpHK0w"); // Replace with your actual API key
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+//const genAI = new GoogleGenerativeAI("AIzaSyCLgsSfQhcXZdUj9inr7n6fB0E5DZpHK0w"); // Replace with your actual API key
+//const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,

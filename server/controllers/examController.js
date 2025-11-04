@@ -4,98 +4,83 @@ const { ExamResult } = require("../models/ExamModel");
 const { uploadFile } = require("../utils/cloudinary");
 
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const genAI = new GoogleGenerativeAI("AIzaSyClxpijlw0iXbcOKRm624HU8jH7caeGJPI");
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 const generateQuizFromContent = async (content) => {
   const prompt = `
-compare these two questions and tell me that they are asking for same thing or not 
+You are a duplicate question detector. You will receive a JSON object containing two arrays of questions: "newQuestions" and "existingQuestions".
+Compare each question in "newQuestions" against all questions in "existingQuestions".
+If you find any pair of questions that are semantically the same, your response MUST be a single valid JSON object with the key "duplicateFound" set to true, and include the text of the matching "newQuestion" and "existingQuestion".
+If no duplicates are found after checking all combinations, your response MUST be a single valid JSON object with the key "duplicateFound" set to false.
 
-Content:
+Example of a duplicate found:
+{ "duplicateFound": true, "newQuestion": "What is the capital of France?", "existingQuestion": "Which city is the capital of France?" }
+
+Example of no duplicate:
+{ "duplicateFound": false }
+
+Here is the content to evaluate:
 ${content}
-
-Give me the answer in only 'yes' or 'no'
 `;
 
   try {
     const result = await model.generateContent(prompt);
-    const questions = result.response.text();
-
-    return { success: true, questions: questions };
+    const responseText = result.response.text().replace(/```json/g, "").replace(/```/g, "").trim();
+    const parsedResponse = JSON.parse(responseText);
+    return parsedResponse;
   } catch (error) {
     console.error("Error generating quiz from Gemini AI:", error);
-    return { success: false, message: error.message };
+    // In case of AI error, we'll assume no duplicate to avoid blocking exam creation.
+    return { duplicateFound: false };
   }
 };
 // Create a new exam
 const create = async (req, res) => {
+  const { questions } = req.body;
   try {
-    const {
-      startDate,
-      duration,
-      acceptedResultDate,
-      price,
-      numberOfStudents,
-      questions,
-      category,
-      examTitle,
-      topics,
-      description,
-      examThumbnail,
-      discountAmount = 0,
-      examDescription,
-      user
-    } = req.body;
-  
- console.log(user._id)
-    const documents = await Exam.find({}).select('questions');
-   console.log(documents)
-    const questionsArray = documents.flatMap(doc =>
-      doc.questions.map(qa => qa.questionText)
-      
+    // 1. Efficiently fetch all existing question texts
+    const allExams = await Exam.find({}).select("questions.questionText");
+    const existingQuestions = allExams.flatMap((exam) =>
+      exam.questions.map((q) => q.questionText)
     );
 
-    for(let j=0;j<questions.length;j++  ){
-      let currentQues=questions[j].questionText
-       for(let i=0;i<questionsArray.length;i++){
-    let existQues=questionsArray[i];
-    const generatedContent = await generateQuizFromContent(`First Question: ${currentQues} And Second Questoin: ${existQues}` );
-  if(generatedContent.questions==='yes\n'){
-    console.log('i am here')
-      return res.json({error:'exist',current:currentQues,exist:existQues})
-  }
-    console.log(generatedContent);
-   }
+    // 2. Perform a single, batched AI call to check for duplicates
+    if (existingQuestions.length > 0 && questions.length > 0) {
+      const newQuestions = questions.map((q) => q.questionText);
+      const comparisonContent = JSON.stringify({ newQuestions, existingQuestions });
+      const duplicateCheckResult = await generateQuizFromContent(comparisonContent);
+
+      if (duplicateCheckResult.duplicateFound) {
+        // 3. If a duplicate is found, STOP execution and return the error
+        return res.status(409).json({
+          error: "exist",
+          message: "A similar question already exists.",
+          current: duplicateCheckResult.newQuestion,
+          exist: duplicateCheckResult.existingQuestion,
+        });
+      }
     }
-  
-  
-    // Decode Base64 string to buffer
-    const base64Data = examThumbnail.split(";base64,").pop(); // Remove metadata
-    const buffer = Buffer.from(base64Data, "base64");
 
-    const image = await uploadFile(buffer, "placedIn/teacher/exam");
-    const thumbnail = image.url;
+    // 4. Handle thumbnail upload (with a check for missing thumbnail)
+    if (req.body.examThumbnail && req.body.examThumbnail.includes(";base64,")) {
+      const base64Data = req.body.examThumbnail.split(";base64,").pop();
+      const buffer = Buffer.from(base64Data, "base64");
+      const image = await uploadFile(buffer, "placedIn/teacher/exam");
+      req.body.examThumbnail = image.url;
+    } else {
+      // Set a default or remove the field if no new image is provided
+      delete req.body.examThumbnail;
+    }
 
-    const exam = new Exam({
-      teacher: user._id,
-      startDate,
-      duration,
-      acceptedResultDate,
-      price,
-      questions,
-      category,
-      examTitle,
-      topics,
-      description,
-      discountAmount,
-      examThumbnail: thumbnail,
-      description,
-    });
-
-    await exam.save();
+    // 5. Create the exam
+    const exam = await Exam.create(req.body);
     res.status(201).json({ message: "Exam created successfully", exam });
   } catch (error) {
-    console.log(error)
-    res.status(500).json({ error: error.message });
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
@@ -144,7 +129,7 @@ const submitExam = async (req, res) => {
       const question = exam.questions.find(
         (q) => q._id.toString() === questionId.toString()
       );
-      if (question.type === "objective" && question.options[0] === answer) {
+      if (question.type === "objective" && question.correctAnswer === answer) {
         score += 1; // Increment score for correct answer
       }
     });
@@ -173,12 +158,12 @@ const submitExam = async (req, res) => {
 // Get all exams
 const get = async (req, res) => {
   try {
-    const exams = await Exam.find();
+    const exams = await Exam.find({}).populate("teacher", "name");
     res.status(200).json({ exams });
   } catch (error) {
     console.log(error);
 
-    res.status(500).json({ error: "Error" });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -247,7 +232,7 @@ const getUserCompletedExams = async (req, res) => {
 
 const getTeacherExams = async (req, res) => {
   try {
-    const exams = await Exam.find({ teacher: req.user._id });
+    const exams = await Exam.find({ teacher: req.user._id }).populate("teacher", "name");
 
     if (!exams || exams.length == 0) {
       return res
@@ -285,7 +270,7 @@ const hasGivenExam = async (req, res) => {
 
 const getExamById = async (req, res) => {
   try {
-    const exam = await Exam.findById(req.params.id);
+    const exam = await Exam.findById(req.params.id).populate("teacher", "name");
 
     if (!exam) return res.status(404).json({ msg: "Exam not found" });
 
@@ -299,7 +284,13 @@ const getExamById = async (req, res) => {
 
 const getCompletedExams = async (userId) => {
   try {
-    const completedExams = await ExamResult.find({ userId }).populate("ExamId");
+    const completedExams = await ExamResult.find({ userId }).populate({
+      path: "ExamId",
+      populate: {
+        path: "teacher",
+        select: "name",
+      },
+    });
 
     return completedExams;
   } catch (error) {
@@ -388,35 +379,42 @@ const getSpeceficExam = async (req, res) => {
 
 // Update an exam
 const update = async (req, res) => {
-  const {questions}=req.body
+  const { questions } = req.body;
+  const examId = req.params.id;
   try {
-    const documents = await Exam.find({}).select('questions');
-   console.log(documents)
-    const questionsArray = documents.flatMap(doc =>
-      doc.questions.map(qa => qa.questionText)
-      
+    // 1. Fetch existing questions, excluding the ones from the exam being updated
+    const allExams = await Exam.find({ _id: { $ne: examId } }).select("questions.questionText");
+    const existingQuestions = allExams.flatMap((exam) =>
+      exam.questions.map((q) => q.questionText)
     );
 
-    for(let j=0;j<questions.length;j++  ){
-      let currentQues=questions[j].questionText
-       for(let i=0;i<questionsArray.length;i++){
-    let existQues=questionsArray[i];
-    const generatedContent = await generateQuizFromContent(`First Question: ${currentQues} And Second Questoin: ${existQues}` );
-  if(generatedContent.questions==='yes\n'){
-    console.log('i am here')
-      return res.json({error:'exist',current:currentQues,exist:existQues})
-  }
-    console.log(generatedContent);
-   }
+    // 2. Perform a single, batched AI call
+    if (existingQuestions.length > 0 && questions.length > 0) {
+      const newQuestions = questions.map((q) => q.questionText);
+      const comparisonContent = JSON.stringify({ newQuestions, existingQuestions });
+      const duplicateCheckResult = await generateQuizFromContent(comparisonContent);
+
+      if (duplicateCheckResult.duplicateFound) {
+        // 3. If a duplicate is found, STOP execution
+        return res.status(409).json({
+          error: "exist",
+          message: "A similar question already exists in another exam.",
+          current: duplicateCheckResult.newQuestion,
+          exist: duplicateCheckResult.existingQuestion,
+        });
+      }
     }
-    const base64Data = req.body.examThumbnail.split(";base64,").pop();
-    if (base64Data) {
+
+    // 4. Handle thumbnail upload
+    if (req.body.examThumbnail && req.body.examThumbnail.includes(";base64,")) {
+      const base64Data = req.body.examThumbnail.split(";base64,").pop();
       const buffer = Buffer.from(base64Data, "base64");
       const image = await uploadFile(buffer, "placedIn/teacher/exam");
       req.body.examThumbnail = image.url;
     }
 
-    const exam = await Exam.findByIdAndUpdate(req.params.id, req.body, {
+    // 5. Update the exam
+    const exam = await Exam.findByIdAndUpdate(examId, req.body, {
       new: true,
     });
 
@@ -529,73 +527,122 @@ const calculateResults = async (req, res) => {
   try {
     const ExamId = req.params.id;
     const examData = await Exam.findById(ExamId);
-    const submissions = await ExamResult.find({
-      ExamId: req.params.id,
-    });
+    if (!examData) {
+      return res.status(404).json({ message: "Exam not found" });
+    }
+    const submissions = await ExamResult.find({ ExamId });
+    if (submissions.length === 0) {
+      return res.status(200).json({ message: "No submissions to calculate." });
+    }
 
-    // Iterate through each submission to calculate scores
+    const allSubmissionsToEvaluate = [];
+    const objectiveScores = {}; // Store pre-calculated objective scores by submission ID
+
+    // First, calculate all objective scores and prepare subjective answers for a single batch AI call
     for (const submission of submissions) {
-      let totalScore = 0;
-      const individualScores = [];
+      let objectiveScore = 0;
+      const subjectiveAnswers = [];
 
-      // Process each answer in the user's submission
       for (const userAnswer of submission.userAnswers) {
         const question = examData.questions.find(
           (q) => q._id.toString() === userAnswer.questionId.toString()
         );
-
-        if (!question) {
-          console.error(`Question not found for ID: ${userAnswer.questionId}`);
-          continue;
-        }
-
-        let score = 0;
+        if (!question) continue;
 
         if (question.type === "objective") {
-          // Objective question: compare user answer with correct answer
+          if (userAnswer.answer === question.correctAnswer) {
+            objectiveScore += question.weightage || 1;
+          }
+        } else if (question.type === "subjective") {
+          subjectiveAnswers.push({
+            questionId: userAnswer.questionId,
+            questionText: question.questionText,
+            answer: userAnswer.answer,
+            weightage: question.weightage,
+          });
+        }
+      }
+      
+      objectiveScores[submission._id.toString()] = objectiveScore;
+
+      if (subjectiveAnswers.length > 0) {
+        allSubmissionsToEvaluate.push({
+          submissionId: submission._id,
+          answers: subjectiveAnswers,
+        });
+      }
+    }
+
+    const evaluatedSubjectiveScores = {}; // { submissionId: { questionId: score } }
+
+    // Now, evaluate all subjective answers from all submissions in ONE single API call
+    if (allSubmissionsToEvaluate.length > 0) {
+      const prompt = `
+        You are an AI exam evaluator. You will receive a JSON array of student submissions.
+        For each submission, evaluate the list of subjective answers based on their corresponding questions and weightage.
+        Your response MUST be a valid JSON object where keys are "submissionId"s and values are objects containing "questionId" and the assigned "score".
+
+        Example Input:
+        [{"submissionId":"sub1","answers":[{"questionId":"q1","questionText":"Explain photosynthesis.","answer":"It's how plants make food.","weightage":10}]}]
+
+        Example Response:
+        {"sub1":{"q1":6}}
+
+        Input Data:
+        ${JSON.stringify(allSubmissionsToEvaluate)}
+      `;
+
+      try {
+        const modelResponse = await model.generateContent(prompt);
+        const responseText = modelResponse.response.text().replace(/```json/g, "").replace(/```/g, "").trim();
+        const parsedScores = JSON.parse(responseText);
+        
+        // Merge parsed scores into our structure
+        for (const subId in parsedScores) {
+          evaluatedSubjectiveScores[subId] = parsedScores[subId];
+        }
+
+      } catch (aiError) {
+        console.error("Critical AI Error during batch evaluation:", aiError);
+        // If AI fails, we can't score subjective questions. We will proceed with objective scores only.
+      }
+    }
+
+    // Finally, loop through submissions one last time to update them in the database
+    for (const submission of submissions) {
+      const submissionIdStr = submission._id.toString();
+      let finalTotalScore = objectiveScores[submissionIdStr] || 0;
+      const finalIndividualScores = [];
+
+      // Reconstruct individual scores
+      submission.userAnswers.forEach(userAnswer => {
+        const question = examData.questions.find(q => q._id.toString() === userAnswer.questionId.toString());
+        if (!question) return;
+
+        let score = 0;
+        if (question.type === 'objective') {
           if (userAnswer.answer === question.correctAnswer) {
             score = question.weightage || 1;
           }
-        } else if (question.type === "subjective") {
-          // Subjective question: use generative AI to evaluate the answer
-          const prompt = `
-            Evaluate the following answer based on the question:
-            Question: ${question.questionText}
-            Answer: ${userAnswer.answer}
-            Score out of ${question.weightage}.
-            Level: ${question.level}
-            Only return the score as a number and don not give 0 for any kind of answer keep it minimum 1`;
-
-          const modelResponse = await model.generateContent(prompt);
-
-          // Extract the score from the AI's response
-          const parsedScore = parseFloat(modelResponse.response.text());
-
-          score = isNaN(parsedScore) ? 0 : parsedScore;
+        } else { // Subjective
+          score = evaluatedSubjectiveScores[submissionIdStr]?.[userAnswer.questionId.toString()] || 0;
         }
+        
+        finalTotalScore += (question.type === 'subjective' ? score : 0); // Objective score is already in finalTotalScore
+        finalIndividualScores.push({ questionId: userAnswer.questionId, answer: userAnswer.answer, score });
+      });
 
-        individualScores.push({
-          questionId: userAnswer.questionId,
-          score,
-        });
-
-        totalScore += score;
-      }
-
-      // Save the scores in the database
       await ExamResult.findByIdAndUpdate(
         submission._id,
-        { score: totalScore, userAnswers: individualScores },
+        { score: finalTotalScore, userAnswers: finalIndividualScores },
         { new: true }
       );
     }
 
-    res
-      .status(200)
-      .json({ message: "Scores calculated and saved successfully!" });
+    res.status(200).json({ message: "All scores calculated and saved successfully!" });
   } catch (error) {
-    console.error("Error calculating scores:", error);
-    res.status(500).json({ message: "Failed to calculate scores" });
+    console.error("Error in calculateResults function:", error);
+    res.status(500).json({ message: "Failed to calculate scores due to a server error." });
   }
 };
 

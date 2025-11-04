@@ -6,7 +6,8 @@ import API from "../../utils/API";
 import Navbar from "../../component/Navbar";
 import Footer from "../../component/Layout/Footer";
 import parse from "html-react-parser";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const LoadingSpinner = () => (
   <div className="flex flex-col items-center justify-center min-h-screen">
@@ -45,20 +46,28 @@ const RankBadge = ({ rank }) => {
   return null;
 };
 
-const ExamResult = ({ ExamId, userId }) => {
+const ExamResult = () => {
+  const { ExamId } = useParams();
+  const { user: currentUser } = useSelector((state) => state.user);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   const fetchResults = async () => {
+    if(!currentUser?._id) {
+      setError("User not found. Please log in.");
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     
     try {
       const response = await API.post("/exam/speceficExam", {
         ExamId,
-        userId,
+        userId: currentUser._id,
       });
       
       if (!response.data) {
@@ -76,7 +85,7 @@ const ExamResult = ({ ExamId, userId }) => {
 
   useEffect(() => {
     fetchResults();
-  }, [ExamId, userId]);
+  }, [ExamId, currentUser]);
 
   if (loading) {
     return <LoadingSpinner />;
