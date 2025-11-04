@@ -10,6 +10,7 @@ import {
   FaReceipt,
   FaShare,
   FaShieldAlt,
+  FaCalendarAlt, // Import FaCalendarAlt
 } from "react-icons/fa";
 import { FaStar, FaRegStar } from "react-icons/fa";
 import "slick-carousel/slick/slick.css";
@@ -25,6 +26,7 @@ import axios from "axios";
 import ExamCard from "../../component/exams/ExamCard";
 import { useRazorpay } from "react-razorpay";
 import { tst } from "../../utils/utils";
+
 const CustomPrevArrow = ({ onClick }) => (
   <button
     onClick={onClick}
@@ -55,6 +57,7 @@ const ExamIntro = () => {
   const [enrolled, setEnrolled] = useState(false);
   const [examGiven, setExamGiven] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [submissionDate, setSubmissionDate] = useState(null); 
   const user = useSelector((state) => state);
   const { error, isLoading, Razorpay } = useRazorpay();
 
@@ -81,8 +84,11 @@ const ExamIntro = () => {
 
         if (data.data.status) {
           setLoading(false);
-          console.log(new Date(data.data.exam.startDate));
           setExam(data.data.exam);
+          if (data.data.examResult) {
+            setExamGiven(true);
+            setSubmissionDate(data.data.examResult.createdAt); // Save the submission date
+          }
           if (
             data?.data?.exam?.enrolledStudents?.some(
               (student) => student.userId === user.user.user._id
@@ -113,15 +119,21 @@ const ExamIntro = () => {
     console.log(exam);
     if (user.user.user === null) {
       navigate("/register");
+      return;
+    } 
+    
+    if (exam.publishResult && examGiven) {
+      navigate(`/exam/result/${id}`);
+      return;
+    }
+
+    if (start || enrolled) {
+      navigate(`/exam/${user.user.user._id}/${id}`);
     } else {
-      if (start || enrolled) {
-        navigate(`/exam/${user.user.user._id}/${id}`);
+      if (exam.price > 0) {
+        await handlePayment();
       } else {
-        if (exam.price > 0) {
-          await handlePayment();
-        } else {
-          navigate(`/examInstruction/${user.user.user._id}/${id}`);
-        }
+        navigate(`/examInstruction/${user.user.user._id}/${id}`);
       }
     }
   };
@@ -244,9 +256,20 @@ const ExamIntro = () => {
           {exam && (
             <div>
               <div className="w-full flex flex-col lg:flex-row">
-                {/* Text Section */}
-                <div className="lg:w-5/6 w-full flex items-center justify-center py-5">
-                  <div className="px-5 lg:px-36 flex flex-col gap-3">
+                {/* Image Section (Moved to the left) */}
+                <div className="lg:w-1/2 w-full p-5">
+                  <div className="h-auto w-full overflow-hidden rounded-xl shadow-lg">
+                    <img
+                      src={optimizedImage || exam.examThumbnail}
+                      className="w-full h-full object-cover"
+                      alt={exam.examTitle}
+                    />
+                  </div>
+                </div>
+
+                {/* Text Section (Moved to the right) */}
+                <div className="lg:w-1/2 w-full flex items-center justify-start py-5">
+                  <div className="px-5 lg:px-10 flex flex-col gap-3">
                     <div className="flex items-center gap-1">
                       <p className="px-5 py-1 bg-green-100 text-green-500 rounded-2xl w-fit font-semibold">
                         {exam.price > 0 ? (
@@ -267,19 +290,7 @@ const ExamIntro = () => {
                         </p>
                       )}
                     </div>
-                    {/** Ratings */}
-                    {/* <div className="flex items-center space-y-4 justify-start    rounded-lg  w-full max-w-sm">
-     
-      <div className="flex   justify-start space-x-1">
-        {Array.from({ length: 5 }).map((_, index) =>
-          index < averageRating ? (
-            <FaStar key={index} className="text-yellow-500 text-3xl" />
-          ) : (
-            <FaRegStar key={index} className="text-gray-400 text-3xl" />
-          )
-        )}
-      </div>
-    </div> */}
+
                     <h1 className="text-red-500 font-semibold text-3xl lg:text-5xl">
                       {exam.examTitle}
                     </h1>
@@ -294,62 +305,83 @@ const ExamIntro = () => {
                         </button>
                       )}
                     </p>
-                    <span className="text-red-500 text-sm lg:text-lg flex items-center gap-1 mt-3">
-                      <FaClock /> :{" "}
-                      <span className="text-slate-600 font-semibold">
-                        {exam.duration >= 60
-                          ? `${Math.floor(exam.duration / 60)} hours of Exam`
-                          : `${exam.duration} minutes of Exam`}
+
+                    {/* Date and Duration Display */}
+                    <div className="flex flex-col gap-2 mt-3">
+                      <span className="text-red-500 text-sm lg:text-lg flex items-center gap-2">
+                        <FaCalendarAlt /> :{" "}
+                        <span className="text-slate-600 font-semibold">
+                          {new Date(exam.startDate).toLocaleDateString(
+                            "en-GB",
+                            {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            }
+                          )}
+                        </span>
                       </span>
-                    </span>
+                      <span className="text-red-500 text-sm lg:text-lg flex items-center gap-2">
+                        <FaClock /> :{" "}
+                        <span className="text-slate-600 font-semibold">
+                          {exam.duration >= 60
+                            ? `${Math.floor(exam.duration / 60)} hours`
+                            : `${exam.duration} minutes`}
+                        </span>
+                      </span>
+                    </div>
 
-                    {new Date(new Date(exam.startDate).toDateString()) <=
-                    new Date(new Date().toDateString()) ? (
-                      <button
-                        className="text-base lg:text-xl text-white bg-primary-light w-fit px-8 lg:px-16 rounded-xl py-1.5 font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
-                        onClick={() => startLearning()}
-                        disabled={
-                          (!exam.publishResult && examGiven) ||
-                          (exam.publishResult && !examGiven)
-                        }
-                      >
-                        {exam.publishResult
-                          ? "View Results"
-                          : examGiven
-                          ? "Please Wait for Results"
-                          : enrolled
-                          ? "Start Test Now"
-                          : "Register for Exam"}
-                      </button>
-                    ) : (
-                      <button
-                        className="text-base lg:text-xl text-white bg-gray-400 w-fit px-8 lg:px-16 rounded-xl py-1.5 font-semibold"
-                        disabled
-                      >
-                        On {new Date(exam.startDate).toLocaleDateString()}
-                      </button>
-                    )}
+                    {/* Button Logic */}
+                    <div className="flex flex-col items-start">
+                      {new Date(new Date(exam.startDate).toDateString()) <=
+                      new Date(new Date().toDateString()) ? (
+                        <button
+                          className="text-base lg:text-xl text-white bg-primary-light w-fit px-8 lg:px-16 rounded-xl py-1.5 font-semibold disabled:opacity-60 disabled:cursor-not-allowed mt-4"
+                          onClick={() => startLearning()}
+                          disabled={
+                            (!exam.publishResult && examGiven) ||
+                            (exam.publishResult && !examGiven)
+                          }
+                        >
+                          {exam.publishResult
+                            ? "View Results"
+                            : examGiven
+                            ? "Please Wait for Results"
+                            : enrolled
+                            ? "Start Test Now"
+                            : "Register for Exam"}
+                        </button>
+                      ) : (
+                        <button
+                          className="text-base lg:text-xl text-white bg-primary-light w-fit px-8 lg:px-16 rounded-xl py-1.5 font-semibold mt-4"
+                          onClick={() => startLearning()}
+                        >
+                          Register for Exam
+                        </button>
+                      )}
 
-                    {/* <button
-      className="text-base lg:text-xl text-white bg-primary-light w-fit px-8 lg:px-16 rounded-xl py-1.5 font-semibold"
-      onClick={() => startLearning()}
-    >
-      {start ? "View Result" : "Start Your Exam"}
-    </button> */}
+                      {/* Predicted Result Date Display */}
+                      {examGiven && !exam.publishResult && submissionDate && (
+                        <p className="text-sm text-gray-600 mt-2">
+                          Predicted result date:{" "}
+                          <span className="font-semibold">
+                            {new Date(
+                              new Date(submissionDate).setDate(
+                                new Date(submissionDate).getDate() + 5
+                              )
+                            ).toLocaleDateString("en-GB", {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            })}
+                          </span>
+                        </p>
+                      )}
+                    </div>
 
-                    <p className="font-semibold text-slate-600 flex gap-1 items-center text-sm lg:text-base">
+                    <p className="font-semibold text-slate-600 flex gap-1 items-center text-sm lg:text-base mt-4">
                       <FaPhone /> For enquiry call: 91XXXXXXXXXX
                     </p>
-                  </div>
-                </div>
-
-                {/* Image Section */}
-                <div className="hidden lg:block lg:w-1/2 pr-5">
-                  <div className="h-96 w-full overflow-hidden rounded-r-3xl">
-                    <img
-                      src={exam.examThumbnail}
-                      className="w-full h-full object-cover"
-                    />
                   </div>
                 </div>
               </div>

@@ -76,7 +76,14 @@ function App() {
         <Route path="/auth/forgot-password" element={<ForgotPassword />} />
         <Route path="/auth/reset-password/:token" element={<ResetPassword />} />
         <Route path="/social-auth" element={<SocialAuthCallback />} />
-        <Route path="/resultExam" element={<ExamResult />} />
+        <Route
+         path="/exam/result/:ExamId" 
+         element={
+          <ProtectedRoutes>
+            <ExamResult />
+          </ProtectedRoutes>
+         } 
+        />
         <Route path="/internship-portal" element={<InternshipPortal/>}/>
         <Route path="/internshipDetail/:id" element={<InternshipDetail/>}/>
         <Route path="/jobDetail" element={<JobDetail/>}/>
