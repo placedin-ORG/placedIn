@@ -22,6 +22,7 @@ router.post("/createCourse", async (req, res) => {
       courseCategory,
       adminId
     } = req.body;
+    console.log("Data of chapters",chapters);
 
     let thumbnail = courseThumbnail;
     const base64Data = courseThumbnail?.split(";base64,").pop(); // Remove metadata
@@ -97,14 +98,10 @@ router.get("/teacher-courses", isAuth, async (req, res) => {
 router.get("/getCourses", async (req, res) => {
   try {
     // console.log(await Course.find());
-    const courses = await Course.aggregate([
-      {
-        $sort: { studentEnrolled: -1 }, // Sort by studentEnrolled in descending order
-      },
-      {
-        $limit: 3, // Limit the result to the top 3
-      },
-    ]);
+    const courses = await Course.find()
+  .sort({ studentEnrolled: -1 })
+  .limit(3)
+  .populate("teacher");
 
     return res.status(200).json({ courses });
   } catch (err) {
@@ -128,21 +125,26 @@ router.get("/courses/all", async (req, res) => {
 
 router.get("/topRatedCourses", async (req, res) => {
   try {
-    const courses = await Course.aggregate([
-      {
-        $addFields: {
-          avgRating: {
-            $avg: "$rating.rating", // Calculate average rating
-          },
-        },
-      },
-      {
-        $sort: { avgRating: -1 }, // Sort by highest rating
-      },
-      {
-        $limit: 3, // Limit to top 3 courses
-      },
-    ]);
+  const allCourses = await Course.find()
+  .populate("teacher") 
+  .lean();
+  
+// Compute average rating for each course
+const coursesWithAvg = allCourses.map(course => {
+  const ratings = course.rating || [];
+  const avgRating =
+    ratings.length > 0
+      ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length
+      : 0;
+
+  return { ...course, avgRating };
+});
+
+// Sort by avgRating descending and take top 3
+const courses = coursesWithAvg
+  .sort((a, b) => b.avgRating - a.avgRating)
+  .slice(0, 3);
+
 
     res.status(200).json({ courses });
   } catch (err) {

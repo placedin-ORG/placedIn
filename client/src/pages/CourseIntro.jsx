@@ -429,7 +429,7 @@ const CourseIntro = () => {
                 </div>
 
                 {/* {instructor bio} */}
-                <div>
+                <div className=" p-3">
                   <h1 className="font-bold text-3xl mt-2">Instructor</h1>
                   <div className=" flex flex-col gap-3 mt-4">
                     <p className="text-xl flex items-center gap-2 text-green-500  font-semibold">
@@ -438,10 +438,10 @@ const CourseIntro = () => {
 
                     <p className="text-xl ">A teacher who loves to teach about <span className="text-xl text-green-500 font-bold"> {course.courseCategory} </span></p>
 
-                   <div className="flex flex-col lg:flex-row gap-4 items-center ">
+                   <div className="flex flex-col lg:flex-row gap-7 items-center ">
                      <img 
                       src= {course.teacher.avatar}
-                      className=" h-24 w-24 rounded-full"
+                      className=" h-28 w-28 rounded-full"
                     />
 
                     <div className="  mt-2 w-1/2 break-words whitespace-pre-wrap ">

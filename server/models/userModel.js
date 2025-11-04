@@ -87,6 +87,8 @@ const userSchema = new mongoose.Schema({
               videoUrl: {
                 type: String,
               },
+                videoDuration:
+                {type:String},
               isCompleted: {
                 type: Boolean,
                 default: false,

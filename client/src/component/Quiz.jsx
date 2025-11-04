@@ -3,6 +3,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Toast from "./Toast"
 const Quiz = ({ selectedQuiz,chapterIndex,openNextChapter }) => {
+  console.log("selected quiz",selectedQuiz);
     const [selectedOptions, setSelectedOptions] = useState({});
     const [condition, setCondition] = useState(false)
     const handleOptionChange = (questionIndex, option) => {
@@ -15,7 +16,7 @@ const Quiz = ({ selectedQuiz,chapterIndex,openNextChapter }) => {
     console.log(selectedQuiz)
     const handleSubmit = () => {
       console.log(selectedQuiz)
-      console.log(selectedOptions[1].charAt(0))
+      
         console.log(selectedOptions[0])
         if (selectedQuiz.length === Object.keys(selectedOptions).length) {
             setCondition(true);

@@ -46,6 +46,11 @@ const courseSchema = new mongoose.Schema(
           type: mongoose.Schema.Types.ObjectId,
           ref: "User", // Assuming you have a User model
         },
+
+      reply: {
+      text: String,
+      date: { type: Date, default: Date.now },
+      },
         timestamp: {
           type: Date,
           default: Date.now,
@@ -73,6 +78,7 @@ const courseSchema = new mongoose.Schema(
             name: { type: String },
             videoUrl: { type: String },
             content: { type: String },
+            videoDuration:{type:String},
           },
         ],
         quiz: [

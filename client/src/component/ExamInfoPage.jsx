@@ -18,6 +18,7 @@ const ExamInfoPage = () => {
       let url = `${
         import.meta.env.VITE_APP_CLIENT_URL
       }/finalExam/${userId}/${courseId}`;
+      console.log("value of url" , url);
       window.open(url, "_blank"); // Open the final exam in a new tab
       navigate(`/courseDetail/${id}`); // Navigate back to course details
     } catch (err) {

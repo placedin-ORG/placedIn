@@ -149,12 +149,52 @@ router.post("/updateUser", async (req, res) => {
 
 router.post("/fetchuser", async (req, res) => {
   const { userId, courseId } = req.body;
-  const data = await User.findOne({
-    _id: userId,
-    "ongoingCourses.courseId": courseId,
+
+  // Fetch the course data
+  const courseDoc = await Course.findById(courseId);
+  if (!courseDoc) {
+    return res.status(404).json({ status: false, message: "Course not found" });
+  }
+
+  const courseData = courseDoc.toObject();
+
+ 
+  const userChapters = courseData.chapters.map((chapter, i) => ({
+    title: chapter.title,
+    isCompleted: false,
+    isCurrent: i === 0, 
+    topics: (chapter.topics || []).map((topic, j) => ({
+      name: topic.name,
+      content: topic.content,
+      videoUrl: topic.videoUrl,
+      videoDuration: topic.videoDuration || null,
+      isCompleted: false,
+      isCurrent: i === 0 && j === 0, 
+    })),
+    quiz: {
+      quizQuestions: chapter.quiz || [], 
+      isCurrent: false,
+      isCompleted: false,
+    },
+  }));
+
+  const user = await User.findOneAndUpdate(
+    { _id: userId, "ongoingCourses.courseId": courseId },
+    { $set: { "ongoingCourses.$.chapters": userChapters } },
+    { new: true }
+  );
+
+  if (!user) {
+    return res.status(404).json({ status: false, message: "User not found" });
+  }
+
+  res.json({
+    status: true,
+    message: "Chapters updated successfully for this user",
+    data: user,
   });
-  res.json({ status: true, data });
 });
+
 
 router.post("/openquiz", async (req, res) => {
   try {
@@ -510,4 +550,68 @@ router.post("/examresult", async (req, res) => {
     console.log(err);
   }
 });
+
+router.post("/fetchAllComments", async (req, res) => {
+  try {
+    console.log("aa gya");
+    const {user}=req.body;
+    const userId=user._id;
+
+    let data = await Course.find({teacher:userId}); 
+
+    console.log("data of all course", data);
+
+
+
+    if (!data || data.length === 0) {
+      return res.json({ status: false, message: "No comments found" });
+    }
+
+    return res.json({
+      status: true,
+      data,
+      message: "Comments fetched successfully",
+    });
+  } catch (error) {
+    console.error("Error fetching comments:", error);
+    return res.status(500).json({
+      status: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+});
+
+// POST /learn/replyComment
+router.post("/replyComment", async (req, res) => {
+  try {
+    const { courseId, commentIndex, replyText } = req.body;
+
+    // Find the course
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ status: false, message: "Course not found" });
+    }
+
+    // Find the comment by index
+    if (!course.discussion[commentIndex]) {
+      return res.status(404).json({ status: false, message: "Comment not found" });
+    }
+
+    // Add reply
+    course.discussion[commentIndex].reply = {
+      text: replyText,
+      date: new Date(),
+    };
+
+    await course.save();
+
+    res.json({ status: true, message: "Reply added successfully", data: course });
+  } catch (err) {
+    console.error("Error in replyComment:", err);
+    res.status(500).json({ status: false, message: "Server error" });
+  }
+});
+
+
 module.exports = router;

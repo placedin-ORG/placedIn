@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { FaAngleDown, FaAngleUp, FaLock, FaLockOpen } from "react-icons/fa";
 import { useSelector, useDispatch } from "react-redux";
 import { useParams } from "react-router-dom";
-import { updateOnGoing } from "../redux/UserSlice";
+import { updateOnGoing,setCurrentCourse } from "../redux/UserSlice";
 import { persistor } from "../redux/store";
 import Player from "@vimeo/player";
 import Video from "../component/Video";
@@ -16,12 +16,14 @@ import Disccussion from "../component/Disccussion";
 import Rating from "../component/Rating";
 import Footer from "../component/Layout/Footer";
 import confetti from "canvas-confetti";
+import formatSecondsToHMS from "../utils/durationHelper"
 const CourseDetail = () => {
   const [celebrate, setCelebrate] = useState(false);
   const [discussion, setDiscussion] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [courseData, setCourseData] = useState(null);
+  const [courseData, setCourseData] = useState( null);
+
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [expandedChapter, setExpandedChapter] = useState(null);
@@ -31,15 +33,32 @@ const CourseDetail = () => {
   const [isVideoWatched, setIsVideoWatched] = useState(false);
   const { id } = useParams();
   const currentCourse = useSelector((state) => state.user.user);
-  console.log(currentCourse);
+  console.log( " value of currentb course",currentCourse);
+
+  
 
   useEffect(() => {
+
+    if (!currentCourse?._id) return;
+  const reduxCourse = currentCourse?.ongoingCourses?.find(
+    (course) => course.courseId === id
+  );
+
+  if (reduxCourse) {
+    setCourseData(reduxCourse);
+    dispatch(setCurrentCourse({ course: reduxCourse }));
+    console.log(" Loaded from Redux:", reduxCourse);
+    return; PI
+  }
+
     const call = async () => {
       const fetchedData = await API.post("/learn/fetchuser", {
         userId: currentCourse._id,
         courseId: id,
       });
       const data = fetchedData.data.data.ongoingCourses;
+     
+      
       let latest = null;
 
       for (let i = 0; i < data.length; i++) {
@@ -50,9 +69,11 @@ const CourseDetail = () => {
           }
           latest = data[i];
           setCourseData(data[i]);
+          dispatch(setCurrentCourse({ course: data[i] })); 
           break;
         }
       }
+      
       let result = null;
       latest.chapters.forEach((chapter, chapterIndex) => {
         chapter.topics.forEach((topic, topicIndex) => {
@@ -71,7 +92,21 @@ const CourseDetail = () => {
       setSelectedTopic(result);
     };
     call();
-  }, []);
+  }, [currentCourse,id]);
+
+  // useEffect(()=>{
+  //  const fetchCourse= async ()=>{
+  //     const Data = await API.post("/learn/fetchCourse", {
+  //       userId: currentCourse._id,
+  //       id: id,
+  //     }); 
+  //     setCurrentCourseData(Data.data.course.chapters);
+  //     console.log("Duration data",Data.data.course.chapters);
+       
+  //  }
+  //  fetchCourse();
+
+  // },[]);
 
   const doConfetii = () => {
     fireConfetti();
@@ -85,7 +120,7 @@ const CourseDetail = () => {
     });
   };
   const handleTopicClick = (topic, index, topics, chapterIndex) => {
-    console.log({ topic, index, topics, chapterIndex });
+    console.log( " data of selected tpoic",{ topic, index, topics, chapterIndex });
     if (topic.isCurrent) {
       setSelectedTopic({
         topic: topic,
@@ -93,6 +128,8 @@ const CourseDetail = () => {
         topics: topics,
         chapterIndex: chapterIndex,
       });
+      console.log("selected topic",selectedTopic),
+      
 
       setSelectedQuiz(null);
     }
@@ -100,6 +137,9 @@ const CourseDetail = () => {
   };
 
   const handleQuizClick = (quiz, index) => {
+    
+    console.log("value of quiz",quiz); 
+
     if (quiz.isCurrent) {
       setSelectedQuiz({
         questions: quiz.quizQuestions,
@@ -149,6 +189,7 @@ const CourseDetail = () => {
         (course) => course.courseId === id
       );
       setCourseData(course);
+      console.log("course data 2",courseData);
       const chapter = course.chapters[selectedTopic.chapterIndex];
       if (!chapter) return;
       setSelectedTopic({
@@ -220,7 +261,7 @@ const CourseDetail = () => {
   const handleFinalExam = async () => {
     try {
       const userId = currentCourse._id;
-      console.log(courseData);
+      console.log(" in final exam" ,courseData);
       if (courseData.finalExam.isCompleted) {
         navigate(`/finalExam/${userId}/${courseData.courseId}`);
       } else {
@@ -263,6 +304,8 @@ const CourseDetail = () => {
     return "😁"; // Happy face at 100%
   };
   return (
+     console.log("CourseData",courseData),
+    
     <>
       {/* <button onClick={()=>clear()}>clear</button> */}
       <Navbar />
@@ -346,12 +389,15 @@ const CourseDetail = () => {
                     <div key={chapterIndex} className="mb-6">
                       {/* Chapter Header */}
                       <div
-                        className="flex justify-between items-center mb-2 cursor-pointer group"
+                        className="flex justify-between  items-center mb-2 cursor-pointer group"
                         onClick={() => toggleChapter(chapterIndex)}
                       >
+                        <div className="flex justify-between items-center w-full mr-2">
                         <h3 className="text-lg font-medium text-gray-800 group-hover:text-primary-dark">
                           {chapter.title}
                         </h3>
+                        <span className="text-black">{chapter?.topics.length} lectures</span>
+                        </div>
                         <button className="text-black hover:text-primary-dark focus:outline-none">
                           {expandedChapter === chapterIndex ? (
                             <FaAngleUp />
@@ -382,14 +428,19 @@ const CourseDetail = () => {
                                 )
                               }
                             >
-                              <div className="flex justify-between items-center">
-                                <span className="text-sm flex items-center gap-2">
+                              <div className="flex justify-between gap-2 w-full items-center">
+                                <span className="text-sm flex gap-32   items-center">
+                                 
+                                <span className="flex gap-2 items-center">  
                                   {topic.name}
+                                
                                   {topic.isCurrent ? (
                                     <FaLockOpen />
                                   ) : (
                                     <FaLock />
                                   )}
+                                 </span>
+                                  <span className="text-black">{formatSecondsToHMS(topic?.videoDuration)}</span>
                                 </span>
                                 <button
                                   onClick={(e) => {
@@ -468,7 +519,9 @@ const CourseDetail = () => {
                   )}
                 </aside>
                 {/* Right Section (Selected Topic Video & Content) */}
+
                 <div className="w-full lg:w-3/4 lg:pl-6 mt-10 lg:mt-0">
+                
                   {selectedTopic ? (
                     <div>
                       {/* Topic Header */}
