@@ -5,7 +5,7 @@ import Navbar from "../../component/Navbar";
 import ExamCard from "../../component/exams/ExamCard";
 import Xskeletonn from "../../component/loading/Xskeleton";
 import cannot from "../../assets/cannot.jpeg";
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 12;
 const AllExams = () => {
   const [exams, setExams] = useState([]);
   const [filteredExams, setFilteredExams] = useState([]);
