@@ -73,6 +73,7 @@ const create = async (req, res) => {
     }
 
     // 5. Create the exam
+    req.body.teacher = req.user._id;
     const exam = await Exam.create(req.body);
     res.status(201).json({ message: "Exam created successfully", exam });
   } catch (error) {

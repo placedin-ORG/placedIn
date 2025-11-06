@@ -131,7 +131,7 @@ router.get("/topRatedCourses", async (req, res) => {
   
 // Compute average rating for each course
 const coursesWithAvg = allCourses.map(course => {
-  const ratings = course.rating || [];
+  const ratings = course.reviews || [];
   const avgRating =
     ratings.length > 0
       ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length

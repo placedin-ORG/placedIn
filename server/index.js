@@ -104,7 +104,7 @@ app.use("/api/v1/chat", chatRoutes);
 app.use("/api/v1/wishlist",Wishlist);
 const connectDb = async () => {
   try {
-    await mongoose.connect(`${process.env.MONGO_URI}/placedInDB`);
+    await mongoose.connect(`${process.env.MONGO_URI}`);
     console.log("mongoose connection successfull");
   } catch (error) {
     console.log(error.message);
