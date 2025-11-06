@@ -1,7 +1,7 @@
 const Course = require("../models/courseModel");
 exports.addReview = async (req, res) => {
   try {
-    console.log("aa gya",req.body);
+
     const { courseId } = req.params;
     const { rating, comment } = req.body;
    const {userId }= req.body;
