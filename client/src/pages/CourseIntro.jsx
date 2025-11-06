@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { useRazorpay } from "react-razorpay";
+import Review from "../pages/review"
 import {
   FaClock,
   FaList,
@@ -468,11 +469,11 @@ const CourseIntro = () => {
                       </span>{" "}
                       Similar Courses
                     </h1>
-                    <div className="mt-12 w-full mb-6 flex gap-2 border overflow-x-auto px-4">
+                    <div className="mt-12 w-full mb-6 flex gap-3 border overflow-x-auto px-4">
                       {relatedCourses?.map((course, index) => (
                         <div
                           key={index}
-                          className=" flex-shrink-0 h-full border hover:shadow-xl transition duration-300 rounded-xl bg-white overflow-hidden"
+                          className=" flex-shrink-0 h-full min-w-[330px] border hover:shadow-xl transition duration-300 rounded-xl bg-white overflow-hidden"
                         >
                           <CourseCard course={course} />
                         </div>
@@ -485,6 +486,8 @@ const CourseIntro = () => {
           )}
         </div>
       )}
+
+      <Review courseId={id} avgRating={averageRating}/>
 
       <Footer />
     </>
