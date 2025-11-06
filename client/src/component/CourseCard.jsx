@@ -9,6 +9,7 @@ import { FaStar, FaRegStar } from "react-icons/fa";
 import { BsFillPersonFill } from "react-icons/bs"
 
 const CourseCard = ({ course, isUser = false }) => {
+  console.log("course value in course card",course);
   const navigate = useNavigate();
   // const user = useSelector((state) => state);
   const dispatch = useDispatch();
@@ -36,12 +37,12 @@ const CourseCard = ({ course, isUser = false }) => {
 
   const calculateAverageRating = () => {
     if (course) {
-      if (course.rating.length === 0) return 0;
-      const totalRating = course.rating.reduce(
+      if (course.reviews?.length === 0) return 0;
+      const totalRating = course.reviews?.reduce(
         (acc, cur) => acc + cur.rating,
         0
       );
-      return totalRating / course.rating.length;
+      return totalRating / course.reviews?.length;
     }
   };
 
@@ -94,7 +95,7 @@ const CourseCard = ({ course, isUser = false }) => {
                                 )}
                               </div>
                               <div className=" flex items-center mt-[10px]  text-gray-500 font-semibold ">
-                               ({course.rating.length}) 
+                               ({course.reviews?.length}) 
                               </div>
                             </div>
 

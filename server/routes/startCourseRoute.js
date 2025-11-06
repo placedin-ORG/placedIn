@@ -553,14 +553,11 @@ router.post("/examresult", async (req, res) => {
 
 router.post("/fetchAllComments", async (req, res) => {
   try {
-    console.log("aa gya");
+   
     const {user}=req.body;
     const userId=user._id;
 
     let data = await Course.find({teacher:userId}); 
-
-    console.log("data of all course", data);
-
 
 
     if (!data || data.length === 0) {

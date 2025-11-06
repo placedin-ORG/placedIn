@@ -226,12 +226,12 @@ const CourseIntro = () => {
   }
   const calculateAverageRating = () => {
     if (course) {
-      if (course.rating.length === 0) return 0;
-      const totalRating = course.rating.reduce(
+      if (course.reviews?.length === 0) return 0;
+       const totalRating = course.reviews?.reduce(
         (acc, cur) => acc + cur.rating,
         0
       );
-      return totalRating / course.rating.length;
+      return totalRating / course.reviews?.length;
     }
   };
 
@@ -288,8 +288,8 @@ const CourseIntro = () => {
                             />
                           )
                         )}
-                        <p className="font-semibold text-green-500"> ({course.rating.length} rating)</p>
-                        <p className="pl-2 font-medium text-gray-700">{course.studentEnrolled} students</p>
+                        <p className="font-semibold text-green-500"> ({course.reviews?.length} rating)</p>
+                        <p className="pl-2 font-medium text-gray-700">{course.studentEnrolled} students enrolled</p>
                       </div>
                     </div>
                     <h1 className="text-red-500 font-semibold text-3xl lg:text-5xl">
