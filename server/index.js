@@ -29,6 +29,7 @@ const AtsRoute=require("./routes/atsRoute");
 const chatRoutes = require("./routes/chatRoutes");
 const Message=require("./models/messageModel")
 const Wishlist=require("./routes/wishlistRoutes");
+const companyRoute = require("./routes/companyRoutes");
 
 const socketIo = require("socket.io");
 const session = require("express-session");
@@ -94,6 +95,7 @@ app.use("/api/v1/purchase", purchaseRoutes);
 app.use("/api/v1/certificate", certificateRoute);
 app.use("/api/v1/ranking", rankingRoute);
 app.use("/api/v1/teacher", teacherRoute);
+app.use("/api/v1/company", companyRoute);
 app.use("/api/v1/internship",internShipRoute)
 app.use("/api/v1/job",jobRoute)
 app.use("/api/v1/notification",notificationRoute)

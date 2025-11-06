@@ -182,7 +182,7 @@ function App() {
             </ProtectedRoutes>
           }
         />
-        <Route path="/" element={<UserLayout />}>
+        <Route path="/">
           <Route
             path="examInstruction/:userId/:ExamId"
             element={

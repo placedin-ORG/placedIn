@@ -249,6 +249,7 @@ const getTeacherExams = async (req, res) => {
 // Check that the user has given the exam
 
 const hasGivenExam = async (req, res) => {
+  console.log(req.user);
   try {
     const exam = await ExamResult.findOne({
       ExamId: req.params.id,

@@ -40,7 +40,7 @@ const adminSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["teacher", "admin"],
+      enum: ["teacher", "admin", 'company'],
       default: "teacher",
     },
     profileLinks: [ProfileLinkSchema],
@@ -61,7 +61,7 @@ adminSchema.methods.comparePassword = async function (candidatePassword) {
 // Generate JWT token
 
 adminSchema.methods.generateToken = function () {
-  const token = jwt.sign({ _id: this._id }, process.env.JWT_SECRET, {
+  const token = jwt.sign({ _id: this._id, user:this }, process.env.JWT_SECRET, {
     expiresIn: "7d",
   });
   return token;
