@@ -211,7 +211,7 @@ const CourseIntro = () => {
     ],
   };
   const [showMore, setShowMore] = useState(false);
-  const maxDescriptionLength = 100; // Adjust as needed
+  const maxDescriptionLength = 250; // Adjust as needed
   let truncatedDescription = "";
   let optimizedImage = "";
   if (course !== null) {
@@ -296,7 +296,7 @@ const CourseIntro = () => {
                     <h1 className="text-red-500 font-semibold text-3xl lg:text-5xl">
                       {course.title}
                     </h1>
-                    <p className="text-base lg:text-lg font-semibold text-slate-600">
+                    {/* <p className="text-base lg:text-lg font-semibold text-slate-600">
                       {truncatedDescription}
                       {course.description.length > maxDescriptionLength && (
                         <button
@@ -306,7 +306,7 @@ const CourseIntro = () => {
                           {showMore ? "See Less" : "See More"}
                         </button>
                       )}
-                    </p>
+                    </p> */}
                     <span className="text-red-500 text-sm lg:text-lg flex items-center gap-1 mt-3">
                       <FaClock /> :{" "}
                       <span className="text-slate-600 font-semibold">
@@ -360,6 +360,21 @@ const CourseIntro = () => {
                       {elem.title}
                     </div>
                   ))}
+                </div>
+
+                <div className=" pt-11 pb-4 pl-6  ">
+                  <h1 className="text-green-600 text-2xl font-extrabold"> Description </h1>
+                    <p className="text-base lg:text-lg w-3/4 font-semibold text-slate-600 pt-4">
+                    {truncatedDescription}
+                    {course.description.length > maxDescriptionLength && (
+                        <button
+                         onClick={() => setShowMore(!showMore)}
+                          className="text-red-500 light font-bold ml-2"
+                        >
+                          {showMore ? "See Less" : "See More"}
+                        </button>
+                      )}
+                    </p>
                 </div>
 
                 {/*
