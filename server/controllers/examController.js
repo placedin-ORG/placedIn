@@ -130,8 +130,15 @@ const submitExam = async (req, res) => {
       const question = exam.questions.find(
         (q) => q._id.toString() === questionId.toString()
       );
-      if (question.type === "objective" && question.correctAnswer === answer) {
-        score += 1; // Increment score for correct answer
+      if (question.type === "objective") {
+        // --- LOGS ADDED ---
+        const isCorrect = Number(answer) === Number(question.correctAnswer); // <-- SIMPLIFIED LOGIC
+        console.log(
+          `[submitExam] Q: ${questionId} | User Answer: ${answer} (${typeof answer}) | Correct Answer: ${question.correctAnswer} (${typeof question.correctAnswer}) | IsCorrect: ${isCorrect}`
+        ); // <-- NEW LOG
+        if (isCorrect) {
+          score += question.weightage || 1;
+        }
       }
     });
 
@@ -354,10 +361,19 @@ const getSpeceficExam = async (req, res) => {
     console.log(exam);
     console.log(user);
     if (user) {
-      user.userAnswers = user.userAnswers.map((answer) => ({
-        ...answer,
-        answer: answer.answer.replace(/<\/?p>/g, ""), // Remove <p> tags
-      }));
+      user.userAnswers = user.userAnswers.map((answer) => {
+        let cleanedAnswer = answer.answer;
+
+        // Only run replace() if the answer is a string (a subjective answer)
+        if (typeof cleanedAnswer === "string") {
+          cleanedAnswer = cleanedAnswer.replace(/<\/?p>/g, "");
+        }
+
+        return {
+          ...answer,
+          answer: cleanedAnswer, // This will be the number for objective, or cleaned string for subjective
+        };
+      });
       const allResults = await ExamResult.find({ ExamId });
 
       // Sort results by total score in descending order
@@ -552,7 +568,12 @@ const calculateResults = async (req, res) => {
         if (!question) continue;
 
         if (question.type === "objective") {
-          if (userAnswer.answer === question.correctAnswer) {
+          // --- LOGS ADDED (LOOP 1) ---
+          const isCorrect = Number(userAnswer.answer) === Number(question.correctAnswer);
+          console.log(
+            `[calculateResults-Loop1] Q: ${question._id} | User Answer: ${userAnswer.answer} (${typeof userAnswer.answer}) | Correct Answer: ${question.correctAnswer} (${typeof question.correctAnswer}) | IsCorrect: ${isCorrect}`
+          ); // <-- NEW LOG
+          if (isCorrect) {
             objectiveScore += question.weightage || 1;
           }
         } else if (question.type === "subjective") {
@@ -602,6 +623,7 @@ const calculateResults = async (req, res) => {
         // Merge parsed scores into our structure
         for (const subId in parsedScores) {
           evaluatedSubjectiveScores[subId] = parsedScores[subId];
+          console.log(parsedScores[subId]);
         }
 
       } catch (aiError) {
@@ -613,26 +635,31 @@ const calculateResults = async (req, res) => {
     // Finally, loop through submissions one last time to update them in the database
     for (const submission of submissions) {
       const submissionIdStr = submission._id.toString();
-      let finalTotalScore = objectiveScores[submissionIdStr] || 0;
+      let finalTotalScore = 0;
       const finalIndividualScores = [];
 
       // Reconstruct individual scores
-      submission.userAnswers.forEach(userAnswer => {
+      for (const userAnswer of submission.userAnswers) {
         const question = examData.questions.find(q => q._id.toString() === userAnswer.questionId.toString());
-        if (!question) return;
+        if (!question) continue;
 
         let score = 0;
         if (question.type === 'objective') {
-          if (userAnswer.answer === question.correctAnswer) {
+          // --- LOGS ADDED (LOOP 2) ---
+          const isCorrect = Number(userAnswer.answer) === Number(question.correctAnswer); // <-- SIMPLIFIED LOGIC
+           console.log(
+            `[calculateResults-Loop2] Q: ${question._id} | User Answer: ${userAnswer.answer} (${typeof userAnswer.answer}) | Correct Answer: ${question.correctAnswer} (${typeof question.correctAnswer}) | IsCorrect: ${isCorrect}`
+          ); // <-- NEW LOG
+          if (isCorrect) {
             score = question.weightage || 1;
           }
         } else { // Subjective
           score = evaluatedSubjectiveScores[submissionIdStr]?.[userAnswer.questionId.toString()] || 0;
         }
         
-        finalTotalScore += (question.type === 'subjective' ? score : 0); // Objective score is already in finalTotalScore
+        finalTotalScore += score; 
         finalIndividualScores.push({ questionId: userAnswer.questionId, answer: userAnswer.answer, score });
-      });
+      };
 
       await ExamResult.findByIdAndUpdate(
         submission._id,
@@ -656,11 +683,25 @@ const saveScore = async (req, res) => {
     await ExamResult.findByIdAndUpdate(examId, { score: totalScore });
 
     // Update individual question scores
+    const submission = await ExamResult.findById(examId);
+    if (!submission) {
+      return res.status(404).json({ message: "Submission not found" });
+    }
+
+    // Update individual scores on the correct submission
     for (const { questionId, score } of individualScores) {
-      await ExamResult.updateOne(
-        { "userAnswers.questionId": questionId },
-        { $set: { "userAnswers.$.score": score } }
+      // Find the index of the answer to update
+      const answerIndex = submission.userAnswers.findIndex(
+        (ans) => ans.questionId.toString() === questionId
       );
+
+      if (answerIndex > -1) {
+        // Use the positional $ operator with the _id to guarantee correctness
+        await ExamResult.updateOne(
+          { _id: examId, "userAnswers.questionId": questionId },
+          { $set: { "userAnswers.$.score": score } }
+        );
+      }
     }
 
     res.status(200).json({ message: "Scores saved successfully!" });

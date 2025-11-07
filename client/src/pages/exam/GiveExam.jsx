@@ -302,12 +302,12 @@ const GiveExam = () => {
                   <input
                     type="radio"
                     name={`question-${questionIndex}`}
-                    value={option}
+                    value={optionIndex}
                     checked={
-                      selectedOptions[questionIndex] === option
+                      selectedOptions[questionIndex] === optionIndex
                     }
                     onChange={() =>
-                      handleOptionChange(questionIndex, option)
+                      handleOptionChange(questionIndex, optionIndex)
                     }
                     className="form-radio w-5 h-5 text-blue-600 border-gray-300 focus:ring focus:ring-blue-400"
                   />
@@ -414,7 +414,7 @@ const GiveExam = () => {
       )}
       {start && start && (
         <div className="fixed inset-0 bg-black bg-opacity-100 flex items-center justify-center z-50" onContextMenu={handleContextMenu}>
-          <div className="bg-white rounded-lg p-6 w-[95%] relative shadow-xl">
+          <div className="bg-white rounded-lg p-6 w-[30%] relative shadow-xl">
             {/* Close Button */}
 
             <h2 className="text-xl font-semibold mb-4">Confirm Start</h2>
