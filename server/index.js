@@ -30,7 +30,7 @@ const chatRoutes = require("./routes/chatRoutes");
 const Message=require("./models/messageModel")
 const Wishlist=require("./routes/wishlistRoutes");
 const companyRoute = require("./routes/companyRoutes");
-
+const adminManagementRoute = require('./routes/adminManagementRoute');
 const socketIo = require("socket.io");
 const session = require("express-session");
 const passport = require("passport");
@@ -102,6 +102,7 @@ app.use("/api/v1/notification",notificationRoute)
 app.use("/api/v1/ats",AtsRoute)
 app.use("/api/v1/chat", chatRoutes);
 app.use("/api/v1/wishlist",Wishlist);
+app.use('/api/v1/admin/management',adminManagementRoute);
 const connectDb = async () => {
   try {
     await mongoose.connect(`${process.env.MONGO_URI}`);

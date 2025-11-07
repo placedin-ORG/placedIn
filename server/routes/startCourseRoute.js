@@ -147,53 +147,120 @@ router.post("/updateUser", async (req, res) => {
   }
 });
 
+// Replace your existing /fetchuser with this improved version
+// Replace /fetchuser with this merged-preserve-progress version
 router.post("/fetchuser", async (req, res) => {
   const { userId, courseId } = req.body;
 
-  // Fetch the course data
-  const courseDoc = await Course.findById(courseId);
-  if (!courseDoc) {
-    return res.status(404).json({ status: false, message: "Course not found" });
+  try {
+    // 1) Fetch course and user
+    const courseDoc = await Course.findById(courseId);
+    if (!courseDoc) {
+      return res.status(404).json({ status: false, message: "Course not found" });
+    }
+
+    const userDoc = await User.findOne({ _id: userId, "ongoingCourses.courseId": courseId });
+    if (!userDoc) {
+      return res.status(404).json({ status: false, message: "User not found or course not started" });
+    }
+
+    // find user's existing course entry to preserve progress flags
+    const existingCourse = userDoc.ongoingCourses.find((c) => c.courseId === courseId);
+
+    // 2) Merge helper: prefer existing flags, otherwise use defaults
+    const buildMergedChapters = () => {
+      return courseDoc.chapters.map((chapter, i) => {
+        const existingChapter = existingCourse?.chapters?.[i];
+
+        const mergedTopics = (chapter.topics || []).map((topic, j) => {
+          const existingTopic = existingChapter?.topics?.[j];
+          return {
+            name: topic.name,
+            content: topic.content,
+            videoUrl: topic.videoUrl,
+            videoDuration: topic.videoDuration || null,
+            // preserve existing flags if present, otherwise keep default
+            isCompleted: existingTopic?.isCompleted ?? false,
+            isCurrent: existingTopic?.isCurrent ?? (i === 0 && j === 0),
+          };
+        });
+
+        // merge quiz questions content (keep correctAnswer if in course doc)
+        const mergedQuizQuestions = (chapter.quiz || []).map((quizItem, qidx) => {
+          const existingQuizQ = existingChapter?.quiz?.quizQuestions?.[qidx];
+          return {
+            question: quizItem.question,
+            options: quizItem.options,
+            // prefer existing stored correctAnswer only if it exists there,
+            // otherwise use the course doc's one (if present)
+            correctAnswer: existingQuizQ?.correctAnswer ?? quizItem.correctAnswer ?? null,
+          };
+        });
+
+        return {
+          title: chapter.title,
+          isCompleted: existingChapter?.isCompleted ?? false,
+          isCurrent: existingChapter?.isCurrent ?? (i === 0),
+          topics: mergedTopics,
+          quiz: {
+            quizQuestions: mergedQuizQuestions,
+            isCurrent: existingChapter?.quiz?.isCurrent ?? false,
+            isCompleted: existingChapter?.quiz?.isCompleted ?? false,
+          },
+        };
+      });
+    };
+
+    // 3) Final exam: preserve result, isCompleted/isCurrent if exist
+    const buildMergedFinalExam = () => {
+      const existingFinal = existingCourse?.finalExam;
+      const mergedFinalQuestions = (courseDoc.questions || []).map((q, idx) => {
+        const existingQ = existingFinal?.questions?.[idx];
+        return {
+          questionText: q.questionText ?? q.question,
+          options: q.options ?? [],
+          correctAnswer: existingQ?.correctAnswer ?? q.correctAnswer ?? null,
+          image: q.image ?? null,
+          level: q.level ?? null,
+        };
+      });
+
+      return {
+        isCurrent: existingFinal?.isCurrent ?? false,
+        isCompleted: existingFinal?.isCompleted ?? false,
+        questions: mergedFinalQuestions,
+        // preserve existing result structure if present
+        result: existingFinal?.result ?? { answers: [], accuracy: null },
+      };
+    };
+
+    const newChapters = buildMergedChapters();
+    const newFinalExam = buildMergedFinalExam();
+
+    // 4) Update user's ongoingCourses.$ with merged data (chapters + finalExam)
+    const userAfterUpdate = await User.findOneAndUpdate(
+      { _id: userId, "ongoingCourses.courseId": courseId },
+      {
+        $set: {
+          "ongoingCourses.$.chapters": newChapters,
+          "ongoingCourses.$.finalExam": newFinalExam,
+        },
+      },
+      { new: true }
+    );
+
+    return res.json({
+      status: true,
+      message: "Chapters merged and preserved user progress",
+      data: userAfterUpdate,
+    });
+  } catch (err) {
+    console.error("Error in /fetchuser:", err);
+    return res.status(500).json({ status: false, message: "Server error" });
   }
-
-  const courseData = courseDoc.toObject();
-
- 
-  const userChapters = courseData.chapters.map((chapter, i) => ({
-    title: chapter.title,
-    isCompleted: false,
-    isCurrent: i === 0, 
-    topics: (chapter.topics || []).map((topic, j) => ({
-      name: topic.name,
-      content: topic.content,
-      videoUrl: topic.videoUrl,
-      videoDuration: topic.videoDuration || null,
-      isCompleted: false,
-      isCurrent: i === 0 && j === 0, 
-    })),
-    quiz: {
-      quizQuestions: chapter.quiz || [], 
-      isCurrent: false,
-      isCompleted: false,
-    },
-  }));
-
-  const user = await User.findOneAndUpdate(
-    { _id: userId, "ongoingCourses.courseId": courseId },
-    { $set: { "ongoingCourses.$.chapters": userChapters } },
-    { new: true }
-  );
-
-  if (!user) {
-    return res.status(404).json({ status: false, message: "User not found" });
-  }
-
-  res.json({
-    status: true,
-    message: "Chapters updated successfully for this user",
-    data: user,
-  });
 });
+
+
 
 
 router.post("/openquiz", async (req, res) => {

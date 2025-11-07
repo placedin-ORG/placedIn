@@ -5,7 +5,6 @@ const Exam=require("../models/ExamModel");
 const { uploadFile } = require("../utils/cloudinary");
 const { isAuth } = require("../middlewares/auth");
   
-
 router.post("/createCourse", async (req, res) => {
   try {
     const {
@@ -20,17 +19,22 @@ router.post("/createCourse", async (req, res) => {
       id,
       discountAmount,
       courseCategory,
-      adminId
+      adminId,
+      setLive,
     } = req.body;
-    console.log("Data of chapters",chapters);
 
-    let thumbnail = courseThumbnail;
-    const base64Data = courseThumbnail?.split(";base64,").pop(); // Remove metadata
-    if (base64Data) {
+    let finalThumbnailUrl = courseThumbnail; // Default to what we received
+
+    const isBase64 =
+      courseThumbnail &&
+      courseThumbnail.startsWith("data:") &&
+      courseThumbnail.includes(";base64,");
+
+    if (isBase64) {
+      const base64Data = courseThumbnail.split(";base64,").pop();
       const buffer = Buffer.from(base64Data, "base64");
-
       const image = await uploadFile(buffer, "placedIn/teacher/course");
-      thumbnail = image.url;
+      finalThumbnailUrl = image.url;
     }
 
     if (id === null) {
@@ -44,8 +48,9 @@ router.post("/createCourse", async (req, res) => {
         questions,
         discountAmount,
         examDuration,
-        courseThumbnail: thumbnail,
+        courseThumbnail: finalThumbnailUrl, // <-- FIX
         courseCategory,
+        setLive: setLive,
       });
       await newCourse.save();
       return res.json({ status: true });
@@ -61,8 +66,9 @@ router.post("/createCourse", async (req, res) => {
           chapters,
           questions,
           examDuration,
-          courseThumbnail: thumbnail,
+          courseThumbnail: finalThumbnailUrl, // <-- FIX
           courseCategory,
+          setLive: setLive,
         },
         { new: true } // Ensures the response is the updated document
       );
@@ -77,6 +83,8 @@ router.post("/createCourse", async (req, res) => {
     }
   } catch (err) {
     console.log(err);
+    // Always send a response in case of an error
+    res.status(500).json({ status: false, message: "Server error" });
   }
 });
 
