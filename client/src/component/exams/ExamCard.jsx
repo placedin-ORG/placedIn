@@ -2,30 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { BsFillPersonFill } from "react-icons/bs";
 import { FaCalendarAlt, FaClock } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 // import { setCurrentCourse } from "../redux/UserSlice";
-import { useNavigate } from "react-router-dom";
-import API from "../../utils/API";
 import Button from "../Button";
 
 const ExamCard = ({ exam, isUser = false, completed = false }) => {
-  const navigate = useNavigate();
-  // const user = useSelector((state) => state);
-  const dispatch = useDispatch();
-
-  const startLearning = async () => {
-    try {
-      if (isUser) {
-        navigate(`/intro/exam/${exam._id}`);
-      } else {
-        console.log(exam._id);
-        navigate(`/intro/exam/${exam._id}`);
-        window.location.reload();
-      }
-    } catch (err) {
-      console.log(err);
-    }
-  };
 
   // Function to format the date for better readability
   const formatDate = (dateString) => {
@@ -40,9 +22,13 @@ const ExamCard = ({ exam, isUser = false, completed = false }) => {
     return new Date(dateString).toLocaleString();
   };
 
+  const destination = isUser && (completed || exam?.publishResult)
+    ? `/exam/result/${exam._id}`
+    : `/intro/exam/${exam._id}`;
+
   return (
-    <div
-      onClick={startLearning}
+    <Link
+      to={destination}
       key={exam?._id}
       className="bg-white border border-gray-300 w-full max-w-[22rem] transition-all duration-500 ease-in-out hover:shadow-custom rounded-lg p-4 flex flex-col justify-between cursor-pointer"
     >
@@ -111,35 +97,31 @@ const ExamCard = ({ exam, isUser = false, completed = false }) => {
           {isUser ? (
             <>
               {completed || exam?.publishResult ? (
-                <button
+                <div
                   className={
                     "px-4 py-1 bg-primary text-white rounded-md hover:bg-primary-light disabled:opacity-60 disabled:cursor-not-allowed"
                   }
-                  onClick={() => startLearning(exam._id)}
-                  disabled={!exam?.publishResult}
                 >
                   View Results
-                </button>
+                </div>
               ) : (
-                <button
+                <div
                   className={
                     "px-4 py-1 bg-primary text-white rounded-md hover:bg-primary-light"
                   }
-                  onClick={() => startLearning(exam._id)}
                 >
                   View
-                </button>
+                </div>
               )}
             </>
           ) : (
             <Button
               title="View"
               className={"bg-emerald-500 !px-2 !py-1 font-semibold"}
-              onClick={() => startLearning()}
             />
           )}
-        </div>
       </div>
+    </Link>
   );
 };
 
