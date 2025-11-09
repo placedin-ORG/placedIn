@@ -206,7 +206,7 @@ const CourseIntro = () => {
     ],
   };
   const [showMore, setShowMore] = useState(false);
-  const maxDescriptionLength = 100; // Adjust as needed
+  const maxDescriptionLength = 250; // Adjust as needed
   let truncatedDescription = "";
   let optimizedImage = "";
   if (course !== null) {
