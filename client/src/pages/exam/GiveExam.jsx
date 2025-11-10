@@ -15,6 +15,8 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 // import "react-quill/dist/quill.bubble.css";
 import ExamResult from "./ExamResult";
+import FaceProctor from "../../component/FaceProctor";
+
 const GiveExam = () => {
   const navigate = useNavigate();
   const { userId, ExamId } = useParams();
@@ -30,6 +32,10 @@ const GiveExam = () => {
   const [remainingTime, setRemainingTime] = useState(null);
   const [cond, setcond] = useState(false);
   const [isSubmit, setIsSubmit] = useState(false);
+  const [violationCount, setViolationCount] = useState(0);
+  const [showProctor, setShowProctor] = useState(false);
+
+
   const finalConfirmation = () => {
     setShowModal(true); // Show the confirmation modal
   };
@@ -41,6 +47,7 @@ const GiveExam = () => {
 
   const handleStart = () => {
     const elem = document.documentElement;
+    setShowProctor(true);
     if (elem.requestFullscreen) {
       elem.requestFullscreen();
     } else if (elem.mozRequestFullScreen) {
@@ -234,6 +241,28 @@ const GiveExam = () => {
 
   {/* Remaining Time */}
   <Toast />
+
+  {showProctor && !isExamSubmitted && (
+  <FaceProctor
+    onFlag={ (message) => {
+      console.warn("⚠️ Proctor flag:", message);
+      toast.warning(message);   
+
+       // Increment local violation count
+      setViolationCount((prev) => {
+        const newCount = prev + 1;
+
+        // Auto submit if 3 violations
+        if (newCount >= 3) {
+          toast.error("❌ Too many violations! Your exam is being auto-submitted.");
+          setTimeout(() => handleSubmitExam("auto"), 2000);
+        }
+
+        return newCount;
+      });
+    }}
+  />
+)}
   {remainingTime !== null && (
     <div className="fixed top-0 left-0 right-0 h-12 bg-blue-600 text-white text-center py-2 z-50">
       <span className="text-lg font-semibold">
