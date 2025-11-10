@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useLocation, Link } from "react-router-dom";
 import { FaCheckCircle, FaTimesCircle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
@@ -61,6 +61,54 @@ const GiveExam = () => {
     }
     setStart(false);
   };
+
+  const handleCloseFullscreen = useCallback(() => {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.mozCancelFullScreen) {
+      document.mozCancelFullScreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen();
+    }
+  }, []);
+
+  const handleSubmitExam = useCallback(async (submitType) => {
+    // If the exam is already being submitted, do nothing.
+  if (isSubmittedRef.current) return;
+  
+  // Set the guard immediately
+  isSubmittedRef.current = true;
+
+    setShowModal(false);
+    setIsExamSubmitted(true);
+    if (submitType === "submit") {
+      handleCloseFullscreen();
+    }
+
+    //console.log(selectedOptions);
+    try {
+      const finalAnswers = {
+        objective: selectedOptionsRef.current,
+        subjective: subjectiveAnswersRef.current,
+      };
+      const response = await API.post("/exam/submit-exam", {
+        userId,
+        ExamId,
+        userAnswers: finalAnswers,
+      });
+      if (response.data.message === "Exam submitted successfully") {
+        setExamData(null);
+        setIsSubmit(true);
+        //  setExamResult(data.data.updatedData)
+        setRemainingTime(null);
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  }, [userId, ExamId, handleCloseFullscreen]);
+
   useEffect(() => {
     if (examData && !isExamSubmitted && !start) {
       const durationInMs = examData.duration * 60 * 1000;
@@ -72,7 +120,7 @@ const GiveExam = () => {
         if (timeLeft <= 0) {
           clearInterval(timer);
           setRemainingTime(0);
-          handleSubmitExam(); // Automatically submit the exam
+          handleSubmitExam("auto"); // Automatically submit the exam
         } else {
           setRemainingTime(Math.ceil(timeLeft / 1000)); // Update remaining time in seconds
         }
@@ -80,7 +128,8 @@ const GiveExam = () => {
 
       return () => clearInterval(timer); // Cleanup interval on unmount or examData changes
     }
-  }, [examData, start]);
+  }, [examData, start, isExamSubmitted, handleSubmitExam]);
+
   useEffect(() => {
     const call = async () => {
       const data = await API.post("/exam/speceficExam", {
@@ -124,6 +173,7 @@ const GiveExam = () => {
 
   const selectedOptionsRef = useRef(selectedOptions); // Ref to track selectedOptions
   const subjectiveAnswersRef = useRef(subjectiveAnswers); // Ref for subjectiveAnswers
+  const isSubmittedRef = useRef(false);     
 
   // Sync the ref whenever subjectiveAnswers changes
   useEffect(() => {
@@ -158,8 +208,8 @@ const GiveExam = () => {
       };
       // Attach Event Listeners
       document.addEventListener("fullscreenchange", handleFullscreenChange);
- window.addEventListener("beforeunload", handleBeforeUnload);
- window.addEventListener("blur", handleWindowBlur);
+      window.addEventListener("beforeunload", handleBeforeUnload);
+      window.addEventListener("blur", handleWindowBlur);
       return () => {
         document.removeEventListener(
           "fullscreenchange",
@@ -169,47 +219,23 @@ const GiveExam = () => {
         window.removeEventListener("blur", handleWindowBlur);
       };
     }
-  }, [isExamSubmitted,start]);
-  const handleCloseFullscreen = () => {
-    if (document.exitFullscreen) {
-      document.exitFullscreen();
-    } else if (document.mozCancelFullScreen) {
-      document.mozCancelFullScreen();
-    } else if (document.webkitExitFullscreen) {
-      document.webkitExitFullscreen();
-    } else if (document.msExitFullscreen) {
-      document.msExitFullscreen();
-    }
-  };
+  }, [isExamSubmitted, start, handleSubmitExam]);
 
-  const handleSubmitExam = async (submitType) => {
-    setShowModal(false);
-    setIsExamSubmitted(true);
-    if (submitType === "submit") {
-      handleCloseFullscreen();
-    }
+  const handleProctorFlag = useCallback((message) => {
+    console.warn("⚠️ Proctor flag:", message);
+    toast.warning(message);
 
-    console.log(selectedOptions);
-    try {
-      const finalAnswers = {
-        objective: selectedOptionsRef.current,
-        subjective: subjectiveAnswersRef.current,
-      };
-      const response = await API.post("/exam/submit-exam", {
-        userId,
-        ExamId,
-        userAnswers: finalAnswers,
-      });
-      if (response.data.message === "Exam submitted successfully") {
-        setExamData(null);
-        setIsSubmit(true);
-        //  setExamResult(data.data.updatedData)
-        setRemainingTime(null);
+    setViolationCount((prev) => {
+      const newCount = prev + 1;
+      if (newCount === 3) {
+        toast.error("❌ Too many violations! Your exam is being auto-submitted.");
+        // Use the memoized handleSubmitExam
+        setTimeout(() => handleSubmitExam("auto"), 2000); 
       }
-    } catch (err) {
-      console.log(err);
-    }
-  };
+      return newCount;
+    });
+  }, [handleSubmitExam]);
+
   const [doItLater, setDoItLater] = useState({});
 
   // Handle "Do It Later" click
@@ -244,23 +270,7 @@ const GiveExam = () => {
 
   {showProctor && !isExamSubmitted && (
   <FaceProctor
-    onFlag={ (message) => {
-      console.warn("⚠️ Proctor flag:", message);
-      toast.warning(message);   
-
-       // Increment local violation count
-      setViolationCount((prev) => {
-        const newCount = prev + 1;
-
-        // Auto submit if 3 violations
-        if (newCount >= 3) {
-          toast.error("❌ Too many violations! Your exam is being auto-submitted.");
-          setTimeout(() => handleSubmitExam("auto"), 2000);
-        }
-
-        return newCount;
-      });
-    }}
+    onFlag={handleProctorFlag}
   />
 )}
   {remainingTime !== null && (
@@ -315,12 +325,12 @@ const GiveExam = () => {
           key={questionIndex}
           className="bg-white border border-gray-300 hover:shadow rounded-lg p-6 mb-6 transform transition-all duration-300 scroll-mt-12"
         >
-          <p className="text-lg md:text-xl font-semibold text-gray-800 mb-4">
+          <div className="text-lg md:text-xl font-semibold text-gray-800 mb-4">
             <span className="text-blue-500 font-bold">
               Q{questionIndex + 1}:
             </span>{" "}
             {parse(question.questionText)}
-          </p>
+          </div>
           {question.type === "objective" ? (
             <div className="space-y-4">
               {question.options.map((option, optionIndex) => (
@@ -433,7 +443,7 @@ const GiveExam = () => {
               </button>
               <button
                 className="px-4 py-2 bg-orange-400 text-white rounded-md hover:bg-orange-500"
-                onClick={handleSubmitExam("submit")}
+                onClick={() => handleSubmitExam("submit")}
               >
                 Confirm
               </button>
