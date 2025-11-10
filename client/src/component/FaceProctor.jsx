@@ -259,4 +259,4 @@ const FaceProctor = ({ onFlag }) => {
   );
 };
 
-export default FaceProctor;
+export default React.memo(FaceProctor);
