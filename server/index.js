@@ -42,6 +42,18 @@ require("dotenv").config();
 const cloudinary = require("cloudinary");
 const app = express();
 
+app.use(cors({
+  origin: ["https://bharathmegaminds.com", "http://localhost:3000", "http://localhost:5173"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+}));
+
+// ✅ Must come right after CORS middleware
+app.options("*", cors());
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+
 // Session middleware
 app.use(
   session({
@@ -59,17 +71,6 @@ app.use(
 // Passport middleware
 app.use(passport.initialize());
 app.use(passport.session());
-
-
-app.use(cors({
-  origin: ["https://bharathmegaminds.com", "http://localhost:3000", "http://localhost:5173"],
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true,
-}));
-
-// ✅ Must come right after CORS middleware
-app.options("*", cors());
 
 const server = http.createServer(app);
 
@@ -89,8 +90,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 const port = process.env.PORT;
-app.use(express.json({ limit: "50mb", extended: true }));
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: "50mb" }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/v1", QuizRoute);
 app.use("/api/v1/create", CourseRoute);
