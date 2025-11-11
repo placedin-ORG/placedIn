@@ -232,7 +232,7 @@ const GiveExam = () => {
 
     setViolationCount((prev) => {
       const newCount = prev + 1;
-      if (newCount === 3) {
+      if (newCount === 4) {
         toast.error("❌ Too many violations! Your exam is being auto-submitted.");
         // Use the memoized handleSubmitExam
         setTimeout(() => handleSubmitExam("auto"), 3000); 
