@@ -206,123 +206,139 @@ const FaceProctor = forwardRef(({ onFlag, userId, ExamId }, ref) => {
   };
 
   // === FACE DETECTION LOOP ===
-  const startDetectionLoop = async () => {
-     const detectLoop = async () => {
-      if (!mountedRef.current) return;
+ const startDetectionLoop = async () => {
+  const detectionStartTime = Date.now();
+  
+   let lastDetectionTime = Date.now();
 
-      try {
-        const video = videoRef.current;
-        if (!video || video.videoWidth === 0) {
-          requestAnimationFrame(detectLoop);
-          return;
-        }
+  // ✅ small debounce for multi-face to avoid false alerts on motion blur
+  let multiFaceStreak = 0;
 
-        const options = new faceapi.TinyFaceDetectorOptions({
-          inputSize: 416,
-          scoreThreshold: 0.4,
-        });
+  const detectLoop = async () => {
+    if (!mountedRef.current) return;
 
-        let detections = await faceapi
-          .detectAllFaces(video, options)
-          .withFaceLandmarks();
+    try {
+      const video = videoRef.current;
+      if (!video || video.videoWidth === 0) {
+        requestAnimationFrame(detectLoop);
+        return;
+      }
 
-        // Filter duplicates
-        detections = detections.filter((d, i, arr) => {
-          return !arr.some(
-            (other, j) =>
-              i !== j &&
-              Math.abs(d.detection.box.x - other.detection.box.x) < 40 &&
-              Math.abs(d.detection.box.y - other.detection.box.y) < 40
+      const options = new faceapi.TinyFaceDetectorOptions({
+        inputSize: 416,
+        scoreThreshold: 0.4,
+      });
+
+      let detections = await faceapi
+        .detectAllFaces(video, options)
+        .withFaceLandmarks();
+
+      // ✅ 1) De-duplicate overlapping/near-identical boxes (simple + fast)
+      //    This prevents "multiple faces" when there's just one face moving.
+      const dedup = [];
+      for (const d of detections) {
+        const bx = d.detection.box;
+        const isDup = dedup.some((o) => {
+          const bo = o.detection.box;
+          return (
+            Math.abs(bx.x - bo.x) < 40 &&
+            Math.abs(bx.y - bo.y) < 40 &&
+            Math.abs(bx.width - bo.width) < 40 &&
+            Math.abs(bx.height - bo.height) < 40
           );
         });
+        if (!isDup) dedup.push(d);
+      }
+      detections = dedup;
 
-        // === No Face Detected ===
-        if (detections.length === 0) {
+      const currentTime = Date.now();
+
+      // === No Face Detected ===
+      if (detections.length === 0) {
+        multiFaceStreak = 0; // reset streak
+        // Skip early 2s warmup
+        if (currentTime - detectionStartTime > 2000) {
           if (lastViolation.current !== "No face detected") {
             onFlag && onFlag("No face detected");
             lastViolation.current = "No face detected";
           }
-          lastCenter.current = null;
         }
+        lastCenter.current = null;
+      }
 
-        // === Multiple Faces ===
-        else if (detections.length > 1) {
+      // === Multiple Faces (with tiny debounce) ===
+      else if (detections.length > 1) {
+        multiFaceStreak += 1;
+        if (multiFaceStreak >= 2) { // require 2 consecutive frames
           if (lastViolation.current !== "Multiple faces detected") {
             onFlag && onFlag("Multiple faces detected");
             toast.error("⚠️ Multiple faces detected!");
             lastViolation.current = "Multiple faces detected";
           }
         }
+        lastCenter.current = null;
+      }
 
-        // === Movement or Head Turn ===
-        else {
-          const d = detections[0];
-          const { x, y, width, height } = d.detection.box;
-          const center = { cx: x + width / 2, cy: y + height / 2 };
+      // === Single Face Detected ===
+      else {
+        multiFaceStreak = 0; // reset streak
+        lastDetectionTime = currentTime;
 
-          // Movement threshold
-          const relX = video.videoWidth * 0.12;
-          const relY = video.videoHeight * 0.12;
+        const d = detections[0];
+        const { x, y, width, height } = d.detection.box;
+        const center = { cx: x + width / 2, cy: y + height / 2 };
 
-          if (lastCenter.current) {
-            const dx = Math.abs(center.cx - lastCenter.current.cx);
-            const dy = Math.abs(center.cy - lastCenter.current.cy);
-            if (
-              (dx > relX || dy > relY) &&
-              lastViolation.current !== "Face moved suddenly"
-            ) {
-              onFlag && onFlag("Face moved suddenly");
-              toast.warning("Face moved suddenly!");
-              lastViolation.current = "Face moved suddenly";
-            }
+        // Movement threshold (10% of frame size for better responsiveness)
+        const relX = video.videoWidth * 0.1;
+        const relY = video.videoHeight * 0.1;
+
+        if (lastCenter.current) {
+          const dx = Math.abs(center.cx - lastCenter.current.cx);
+          const dy = Math.abs(center.cy - lastCenter.current.cy);
+          if ((dx > relX || dy > relY) && lastViolation.current !== "Face moved suddenly") {
+            onFlag && onFlag("Face moved suddenly");
+            toast.warning("⚠️ Face moved suddenly!");
+            lastViolation.current = "Face moved suddenly";
           }
-          lastCenter.current = center;
+        }
+        lastCenter.current = center;
 
-          // === Head turn detection ===
-          const landmarks = d.landmarks;
-          if (landmarks) {
-            const leftEye = landmarks.getLeftEye();
-            const rightEye = landmarks.getRightEye();
-            const nose = landmarks.getNose();
+        // === Head turn detection (stable, relative to eye distance) ===
+        const landmarks = d.landmarks;
+        if (landmarks) {
+          const leftEye = landmarks.getLeftEye();
+          const rightEye = landmarks.getRightEye();
+          const nose = landmarks.getNose();
 
-            if (leftEye.length && rightEye.length && nose.length > 3) {
-              // Eye positions
-              const leftEyeOuter = leftEye[0];
-              const rightEyeOuter = rightEye[rightEye.length - 1];
-              const eyeDistance = Math.abs(
-                rightEyeOuter.x - leftEyeOuter.x
-              );
+          if (leftEye.length && rightEye.length && nose.length > 3) {
+            const leftEyeOuter = leftEye[0];
+            const rightEyeOuter = rightEye[rightEye.length - 1];
+            const eyeDistance = Math.abs(rightEyeOuter.x - leftEyeOuter.x);
+            const noseTip = nose[3];
+            const faceCenterX = (leftEyeOuter.x + rightEyeOuter.x) / 2;
+            const deviation = Math.abs(noseTip.x - faceCenterX);
+            const deviationRatio = deviation / eyeDistance;
 
-              // Nose midpoint (roughly center)
-              const noseTip = nose[3];
-              const faceCenterX =
-                (leftEyeOuter.x + rightEyeOuter.x) / 2;
-
-              // Deviation of nose from face center relative to eye distance
-              const deviation = Math.abs(noseTip.x - faceCenterX);
-              const deviationRatio = deviation / eyeDistance;
-
-              // ✅ Dynamic threshold (0.25 ≈ ~25°, 0.45 ≈ ~45°, 0.6 ≈ ~75°)
-              if (
-                deviationRatio > 0.45 &&
-                lastViolation.current !== "Face turned away"
-              ) {
-                onFlag && onFlag("Face turned away from screen");
-                toast.warning("⚠️ Face turned away from screen!");
-                lastViolation.current = "Face turned away";
-              }
+            if (deviationRatio > 0.45 && lastViolation.current !== "Face turned away") {
+              onFlag && onFlag("Face turned away from screen");
+              toast.warning("⚠️ Face turned away from screen!");
+              lastViolation.current = "Face turned away";
             }
           }
         }
-      } catch (err) {
-        console.error("FaceProctor detection error:", err);
       }
+    } catch (err) {
+      console.error("FaceProctor detection error:", err);
+    }
 
-      setTimeout(() => requestAnimationFrame(detectLoop), 300);
-    };
-
+    // ⚡ Run every frame for responsiveness
     requestAnimationFrame(detectLoop);
   };
+
+  // 🔁 Start continuous detection loop
+  requestAnimationFrame(detectLoop);
+};
+
 
   // Expose stopRecording() to parent
   useImperativeHandle(ref, () => ({
