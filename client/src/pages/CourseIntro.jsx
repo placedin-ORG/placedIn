@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { useRazorpay } from "react-razorpay";
-import Review from "../pages/review"
+import Review from "../pages/Review"
 import {
   FaClock,
   FaList,
