@@ -51,8 +51,8 @@ app.use(cors({
 
 // ✅ Must come right after CORS middleware
 app.options("*", cors());
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+app.use(express.json({ limit: "1gb" }));
+app.use(express.urlencoded({ extended: true, limit: "1gb" }));
 
 // Session middleware
 app.use(
@@ -90,7 +90,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 const port = process.env.PORT;
-app.use(bodyParser.json({ limit: "50mb" }));
+app.use(bodyParser.json({ limit: "1gb" }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/v1", QuizRoute);
 app.use("/api/v1/create", CourseRoute);
