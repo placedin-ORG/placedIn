@@ -63,9 +63,13 @@ app.use(passport.session());
 
 app.use(cors({
   origin: ["https://bharathmegaminds.com", "http://localhost:3000", "http://localhost:5173"],
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
 }));
+
+// ✅ Must come right after CORS middleware
+app.options("*", cors());
 
 const server = http.createServer(app);
 
