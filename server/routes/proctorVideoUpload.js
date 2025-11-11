@@ -7,7 +7,10 @@ const mongoose = require("mongoose");
 
 
 const storage = multer.memoryStorage();
-const upload = multer({ storage });
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 1024 * 1024 * 1024 }, // 1 GB limit
+});
 
 router.post("/upload-proctor-video", upload.single("video"), async (req, res) => {
   try {
