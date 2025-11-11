@@ -20,8 +20,6 @@ import FaceProctor from "../../component/FaceProctor";
 const GiveExam = () => {
   const navigate = useNavigate();
   const { userId, ExamId } = useParams();
-  // const userId="67457ed3b6632562e2f2d60a";
-  // const ExamId="6748776f11d6f5a4525824aa"
   const [examData, setExamData] = useState(null);
   const [examResult, setExamResult] = useState(null);
   const [subjectiveAnswers, setSubjectiveAnswers] = useState({});
@@ -34,6 +32,8 @@ const GiveExam = () => {
   const [isSubmit, setIsSubmit] = useState(false);
   const [violationCount, setViolationCount] = useState(0);
   const [showProctor, setShowProctor] = useState(false);
+  const proctorRef = useRef(null); // NEW — control FaceProctor recording
+
 
 
   const finalConfirmation = () => {
@@ -86,6 +86,11 @@ const GiveExam = () => {
     if (submitType === "submit") {
       handleCloseFullscreen();
     }
+      // 🛑 Stop proctor recording when exam ends
+      if (proctorRef.current) {
+        console.log("⛔ Stopping proctor recording...");
+        proctorRef.current.stopRecording();
+      }
 
     //console.log(selectedOptions);
     try {
@@ -230,7 +235,7 @@ const GiveExam = () => {
       if (newCount === 3) {
         toast.error("❌ Too many violations! Your exam is being auto-submitted.");
         // Use the memoized handleSubmitExam
-        setTimeout(() => handleSubmitExam("auto"), 2000); 
+        setTimeout(() => handleSubmitExam("auto"), 3000); 
       }
       return newCount;
     });
@@ -247,6 +252,7 @@ const GiveExam = () => {
   };
 
   const handleContextMenu = (event) => {
+
     event.preventDefault();
     toast.warning('right click is prevented')
   };
@@ -270,7 +276,10 @@ const GiveExam = () => {
 
   {showProctor && !isExamSubmitted && (
   <FaceProctor
-    onFlag={handleProctorFlag}
+      userId={userId}
+      ExamId={ExamId} 
+      ref={proctorRef} 
+      onFlag={handleProctorFlag}
   />
 )}
   {remainingTime !== null && (
@@ -458,6 +467,15 @@ const GiveExam = () => {
 
             <h2 className="text-xl font-semibold mb-4">Confirm Start</h2>
             <p className="text-gray-700 mb-6">confirm for full screen</p>
+           <p className="text-gray-700 mb-3">
+            Your <span className="font-medium">camera will remain active</span> throughout the exam for proctoring.
+            </p>
+
+          <p className="text-gray-700 mb-6">
+          Avoid any kind of <span className="font-medium text-red-500">violations</span> such as:
+          looking away frequently, multiple faces in camera, or leaving your seat.
+          Multiple violations may lead to <span className="font-medium">automatic submission</span> of your exam.
+          </p>
             <div className="flex justify-end space-x-3">
               <button
                 className="px-4 py-2 bg-orange-400 text-white rounded-md hover:bg-orange-500"
