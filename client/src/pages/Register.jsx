@@ -114,7 +114,7 @@ const Register = () => {
   };
 
   const handleSocialLogin = (provider) => {
-    window.location.href = `${import.meta.env.VITE_APP_BASE_URL}/auth/${provider}`;
+    window.location.href = `${import.meta.env.VITE_APP_BASE_URL}/api/v1/auth/${provider}`;
   };
 
   return (

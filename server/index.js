@@ -65,7 +65,7 @@ app.use(cors());
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: ["http://localhost:3000", "http://localhost:5173"],
+    origin: ["http://localhost:3000", "http://localhost:5173", "https://bharathmegaminds.com"],
     methods: ["GET", "POST"]
   },
 });
@@ -117,7 +117,7 @@ const connectDb = async () => {
 connectDb()
   .then(() => {
     server.listen(port, () => {
-      console.log(`Server is running on http://localhost:${port}`);
+      console.log(`Server is running on http://bharathmegaminds.com/:${port}`);
     });
   })
   .catch(() => {
