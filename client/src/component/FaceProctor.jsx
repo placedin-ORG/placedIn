@@ -189,7 +189,15 @@ const FaceProctor = forwardRef(({ onFlag, userId, ExamId }, ref) => {
       formData.append("userId", userId);
       formData.append("ExamId", ExamId);
 
-      const res = await API.post("/proctor/upload-proctor-video", formData);
+      const res = await API.post(
+      "/proctor/upload-proctor-video",
+      formData,
+      {
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity,
+        timeout: 0, // no timeout for large uploads
+      }
+    );
 
       if (res.status === 200) {
         toast.success("🎬 Proctor video uploaded successfully!");
