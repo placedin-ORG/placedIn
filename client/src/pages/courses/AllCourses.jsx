@@ -33,7 +33,7 @@ const AllCourses = () => {
         const { data } = await API.get("/create/courses/all");
 
         setCourses(data.courses);
-        console.log(data.courses);
+        console.log( "Data of courses",data.courses);
         setFilteredCourses(data.courses);
         setLoading(false); // Initialize filtered courses
       } catch (error) {

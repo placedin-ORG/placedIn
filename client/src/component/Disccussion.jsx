@@ -13,13 +13,13 @@ const Disccussion = ({ courseId, userId, username }) => {
     API.get(`/discussion/${courseId}/comments`)
       .then((response) => {
         setComments(response.data);
-        console.log(response.data);
+        console.log( " comments data",response.data);
       })
       .catch((error) => console.error("Error fetching comments:", error));
   }, [courseId]);
 
   const handleCommentSubmit = () => {
-    if (!newComment.trim()) return; // Prevent empty comments
+    if (!newComment.trim()) return; 
 
     const commentData = {
       username: username,
@@ -29,8 +29,8 @@ const Disccussion = ({ courseId, userId, username }) => {
 
     API.post(`/discussion/${courseId}/comments`, commentData)
       .then((response) => {
-        setComments([...comments, response.data]); // Update comments state with new comment
-        setNewComment(""); // Clear the input field
+        setComments([...comments, response.data]);
+        setNewComment(""); 
       })
       .catch((error) => console.error("Error posting comment:", error));
   };
@@ -46,6 +46,7 @@ const Disccussion = ({ courseId, userId, username }) => {
         {Array.isArray(comments) &&
           comments.map((comment, index) => {
             const isUserComment = comment.userId === userId;
+            const hasReply = comment.reply && comment.reply.text;
 
             return (
               <div
@@ -74,6 +75,15 @@ const Disccussion = ({ courseId, userId, username }) => {
                     {comment.username}
                   </p>
                   <p className="text-gray-700">{comment.comment}</p>
+                  {hasReply && (
+              <div className="mt-3 ml-10 border-l-2 border-blue-400 pl-4 bg-blue-50/70 rounded-md py-2">
+                <p className="text-sm text-gray-600 italic">Teacher’s Reply:</p>
+                <p className="text-gray-800 font-medium">{comment.reply.text}</p>
+                <span className="block text-xs text-gray-500 mt-1">
+                  {new Date(comment.reply.date).toLocaleString()}
+                </span>
+              </div>
+            )}
                 </div>
               </div>
             );

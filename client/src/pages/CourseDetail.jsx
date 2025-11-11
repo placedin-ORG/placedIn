@@ -1,21 +1,27 @@
-import React, { useEffect, useState, useRef } from "react";
-import { FaAngleDown, FaAngleUp, FaLock, FaLockOpen } from "react-icons/fa";
+import React, { useEffect, useState } from "react";
+// --- I've added a Checkmark icon ---
+import {
+  FaAngleDown,
+  FaAngleUp,
+  FaLock,
+  FaLockOpen,
+  FaCheckCircle,
+} from "react-icons/fa";
+// ---
 import { useSelector, useDispatch } from "react-redux";
-import { useParams } from "react-router-dom";
-import { updateOnGoing } from "../redux/UserSlice";
+import { useParams, useNavigate } from "react-router-dom";
+import { updateOnGoing, setCurrentCourse } from "../redux/UserSlice";
 import { persistor } from "../redux/store";
-import Player from "@vimeo/player";
 import Video from "../component/Video";
 import Quiz from "../component/Quiz";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import Navbar from "../component/Navbar";
-import FinalExam from "./FinalExam";
 import API from "../utils/API";
+import Navbar from "../component/Navbar";
 import Disccussion from "../component/Disccussion";
 import Rating from "../component/Rating";
 import Footer from "../component/Layout/Footer";
 import confetti from "canvas-confetti";
+import formatSecondsToHMS from "../utils/durationHelper";
+
 const CourseDetail = () => {
   const [celebrate, setCelebrate] = useState(false);
   const [discussion, setDiscussion] = useState(false);
@@ -31,15 +37,30 @@ const CourseDetail = () => {
   const [isVideoWatched, setIsVideoWatched] = useState(false);
   const { id } = useParams();
   const currentCourse = useSelector((state) => state.user.user);
-  console.log(currentCourse);
+  console.log(" value of currentb course", currentCourse);
+
+  console.log("selected quiz", courseData);
 
   useEffect(() => {
+    if (!currentCourse?._id) return;
+    const reduxCourse = currentCourse?.ongoingCourses?.find(
+      (course) => course.courseId === id
+    );
+
+    // if (reduxCourse) {
+    //   setCourseData(reduxCourse);
+    //   dispatch(setCurrentCourse({ course: reduxCourse }));
+    //   console.log(" Loaded from Redux:", reduxCourse);
+    //   return;
+    // }
+
     const call = async () => {
       const fetchedData = await API.post("/learn/fetchuser", {
         userId: currentCourse._id,
         courseId: id,
       });
       const data = fetchedData.data.data.ongoingCourses;
+
       let latest = null;
 
       for (let i = 0; i < data.length; i++) {
@@ -49,10 +70,13 @@ const CourseDetail = () => {
             doConfetii();
           }
           latest = data[i];
+          console.log("fetched course data:", data[i]);
           setCourseData(data[i]);
+          dispatch(setCurrentCourse({ course: data[i] }));
           break;
         }
       }
+
       let result = null;
       latest.chapters.forEach((chapter, chapterIndex) => {
         chapter.topics.forEach((topic, topicIndex) => {
@@ -71,7 +95,7 @@ const CourseDetail = () => {
       setSelectedTopic(result);
     };
     call();
-  }, []);
+  }, [currentCourse, id]);
 
   const doConfetii = () => {
     fireConfetti();
@@ -85,7 +109,12 @@ const CourseDetail = () => {
     });
   };
   const handleTopicClick = (topic, index, topics, chapterIndex) => {
-    console.log({ topic, index, topics, chapterIndex });
+    console.log(" data of selected tpoic", {
+      topic,
+      index,
+      topics,
+      chapterIndex,
+    });
     if (topic.isCurrent) {
       setSelectedTopic({
         topic: topic,
@@ -93,13 +122,15 @@ const CourseDetail = () => {
         topics: topics,
         chapterIndex: chapterIndex,
       });
-
-      setSelectedQuiz(null);
+      console.log("selected topic", selectedTopic),
+        setSelectedQuiz(null);
     }
     // Clear quiz when a topic is selected
   };
 
   const handleQuizClick = (quiz, index) => {
+    console.log("value of quiz", quiz);
+
     if (quiz.isCurrent) {
       setSelectedQuiz({
         questions: quiz.quizQuestions,
@@ -149,6 +180,7 @@ const CourseDetail = () => {
         (course) => course.courseId === id
       );
       setCourseData(course);
+      console.log("course data 2", courseData);
       const chapter = course.chapters[selectedTopic.chapterIndex];
       if (!chapter) return;
       setSelectedTopic({
@@ -191,13 +223,6 @@ const CourseDetail = () => {
       );
       setCourseData(course);
       const chapter = course.chapters[chapterIndex + 1];
-      // setSelectedTopic({
-      //   topic: chapter.topics[0],
-      //   index: 0,
-      //   chapterIndex: chapterIndex + 1,
-      //   topics: chapter.topics,
-      // });
-      // setSelectedQuiz(null);
     } else {
       const updatedData = await API.post("/learn/openFinalExam", {
         userId: currentCourse._id,
@@ -220,7 +245,7 @@ const CourseDetail = () => {
   const handleFinalExam = async () => {
     try {
       const userId = currentCourse._id;
-      console.log(courseData);
+      console.log(" in final exam", courseData);
       if (courseData.finalExam.isCompleted) {
         navigate(`/finalExam/${userId}/${courseData.courseId}`);
       } else {
@@ -262,9 +287,9 @@ const CourseDetail = () => {
 
     return "😁"; // Happy face at 100%
   };
+
   return (
     <>
-      {/* <button onClick={()=>clear()}>clear</button> */}
       <Navbar />
       <div className="w-full flex justify-center py-4 bg-gray-100">
         <div className="flex space-x-6">
@@ -335,138 +360,175 @@ const CourseDetail = () => {
           )}
           {courseData && (
             <div className="min-h-screen bg-gray-50 flex flex-col">
-              {/* Top Section - Course Title and Description */}
               <div className="flex flex-col lg:flex-row relative container mx-auto p-4 lg:p-8">
-                {/* Left Section (Sticky Sidebar for Course Content) */}
-                <aside className="w-full lg:w-1/4 bg-white p-6 shadow-md rounded-lg lg:sticky top-6 h-fit lg:h-screen overflow-y-auto scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-gray-300">
-                  <h2 className="text-xl font-semibold mb-6 border-b pb-2 text-gray-900">
+                <aside className="w-full lg:w-1/4 bg-white p-4 shadow-lg rounded-lg lg:sticky top-6 h-fit max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-gray-300">
+                  <h2 className="text-xl font-bold mb-4 border-b border-gray-200 pb-3 text-gray-800">
                     Course Content
                   </h2>
-                  {courseData.chapters.map((chapter, chapterIndex) => (
-                    <div key={chapterIndex} className="mb-6">
-                      {/* Chapter Header */}
+                  <div className="space-y-2">
+                    {courseData.chapters.map((chapter, chapterIndex) => (
                       <div
-                        className="flex justify-between items-center mb-2 cursor-pointer group"
-                        onClick={() => toggleChapter(chapterIndex)}
+                        key={chapterIndex}
+                        className="border-b border-gray-200 last:border-b-0 pb-2"
                       >
-                        <h3 className="text-lg font-medium text-gray-800 group-hover:text-primary-dark">
-                          {chapter.title}
-                        </h3>
-                        <button className="text-black hover:text-primary-dark focus:outline-none">
-                          {expandedChapter === chapterIndex ? (
-                            <FaAngleUp />
-                          ) : (
-                            <FaAngleDown />
-                          )}
-                        </button>
-                      </div>
-
-                      {/* Chapter Topics */}
-                      {expandedChapter === chapterIndex && (
-                        <div className="pl-4 mt-2">
-                          {chapter.topics.map((topic, topicIndex) => (
-                            <div
-                              key={topicIndex}
-                              className={`cursor-pointer mb-3 p-2 rounded-md transition-all ${
-                                selectedTopic &&
-                                selectedTopic.topic.name === topic.name
-                                  ? "bg-primary-light text-white"
-                                  : "text-gray-700 hover:bg-gray-100"
-                              }`}
-                              onClick={() =>
-                                handleTopicClick(
-                                  topic,
-                                  topicIndex,
-                                  chapter.topics,
-                                  chapterIndex
-                                )
-                              }
-                            >
-                              <div className="flex justify-between items-center">
-                                <span className="text-sm flex items-center gap-2">
-                                  {topic.name}
-                                  {topic.isCurrent ? (
-                                    <FaLockOpen />
-                                  ) : (
-                                    <FaLock />
-                                  )}
-                                </span>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    toggleTopicContent(topicIndex);
-                                  }}
-                                  className="text-white  focus:outline-none"
-                                >
-                                  {expandedTopic === topicIndex ? (
-                                    <FaAngleUp />
-                                  ) : (
-                                    <FaAngleDown />
-                                  )}
-                                </button>
-                              </div>
-                              {expandedTopic === topicIndex && (
-                                <p className="text-sm text-gray-600 mt-2 leading-relaxed">
-                                  {topic.content.length > 150
-                                    ? `${topic.content.substring(0, 150)}...`
-                                    : topic.content}
-                                  {topic.content.length > 150 && (
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        toggleTopicContent(topicIndex);
-                                      }}
-                                      className="text-primary-light ml-2 focus:outline-none"
-                                    >
-                                      {expandedTopic === topicIndex
-                                        ? "Read Less"
-                                        : "Read More"}
-                                    </button>
-                                  )}
-                                </p>
-                              )}
-                            </div>
-                          ))}
-
-                          {/* Quiz Button */}
-                          <div className="mt-4">
-                            <button
-                              onClick={() =>
-                                handleQuizClick(chapter.quiz, chapterIndex)
-                              }
-                              className={`text-sm font-medium px-4 py-2 rounded-md ${
-                                chapter.quiz.isCurrent
-                                  ? "bg-primary-light text-white hover:bg-primary-dark"
-                                  : "bg-gray-300 text-gray-600 cursor-not-allowed"
-                              }`}
-                              disabled={!chapter.quiz.isCurrent}
-                            >
-                              {chapter.quiz.isCurrent ? "View Quiz" : "Locked"}
-                            </button>
+                        {/* === Chapter Header === */}
+                        <div
+                          className="flex justify-between items-center p-2 cursor-pointer group"
+                          onClick={() => toggleChapter(chapterIndex)}
+                        >
+                          <div className="flex flex-col">
+                            <h3 className="text-md font-semibold text-gray-800 group-hover:text-primary-dark">
+                              {chapter.title}
+                            </h3>
+                            <span className="text-xs text-gray-500">
+                              {chapter.topics.length} lectures
+                            </span>
                           </div>
+                          <button className="text-gray-500 group-hover:text-primary-dark focus:outline-none">
+                            {expandedChapter === chapterIndex ? (
+                              <FaAngleUp />
+                            ) : (
+                              <FaAngleDown />
+                            )}
+                          </button>
                         </div>
-                      )}
-                    </div>
-                  ))}
 
-                  {/* Final Exam Section */}
-                  {courseData.finalExam.isCurrent && (
-                    <div className="mt-6 border-t pt-4">
-                      <h2 className="text-lg font-semibold text-gray-900 mb-2">
-                        Final Exam
-                      </h2>
-                      <button
-                        onClick={() => handleFinalExam()}
-                        className="text-sm font-medium px-4 py-2 bg-primary-light text-white rounded-md hover:bg-primary-dark transition-all"
-                      >
-                        {courseData.finalExam.isCompleted
-                          ? "View Result"
-                          : "Start Final Exam"}
-                        {/* Start Final Exam */}
-                      </button>
-                    </div>
-                  )}
+                        {/* === Chapter Topics & Quiz === */}
+                        {expandedChapter === chapterIndex && (
+                          <div className="pl-2 mt-2 space-y-1">
+                            {chapter.topics.map((topic, topicIndex) => {
+                              const isSelected =
+                                selectedTopic?.topic.name === topic.name &&
+                                selectedTopic?.chapterIndex === chapterIndex;
+
+                              const isLocked = !topic.isCurrent;
+                              const isCompleted = topic.isCompleted;
+
+                              return (
+                                <div
+                                  key={topicIndex}
+                                  className={`flex items-center justify-between p-3 rounded-md transition-all duration-200 ${
+                                    isSelected
+                                      ? "bg-primary-light text-white shadow-md"
+                                      : isLocked
+                                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                      : isCompleted
+                                      ? "bg-white text-gray-500"
+                                      : "text-gray-700 hover:bg-gray-100"
+                                  } ${
+                                    !isLocked && !isSelected
+                                      ? "cursor-pointer"
+                                      : ""
+                                  }`}
+                                  onClick={() =>
+                                    handleTopicClick(
+                                      topic,
+                                      topicIndex,
+                                      chapter.topics,
+                                      chapterIndex
+                                    )
+                                  }
+                                >
+                                  <div className="flex items-center space-x-2">
+                                    {isCompleted ? (
+                                      <FaCheckCircle className="text-green-500" />
+                                    ) : isLocked ? (
+                                      <FaLock className="text-red-400" />
+                                    ) : (
+                                      <FaLockOpen className="text-green-500" />
+                                    )}
+                                    <span
+                                      className={`text-sm ${
+                                        isCompleted ? "line-through" : ""
+                                      } ${
+                                        isSelected ? "font-medium" : ""
+                                      }`}
+                                    >
+                                      {topic.name}
+                                    </span>
+                                  </div>
+                                  <span
+                                    className={`text-xs ${
+                                      isSelected ? "text-white" : "text-gray-500"
+                                    }`}
+                                  >
+                                    {formatSecondsToHMS(
+                                      topic?.videoDuration
+                                    )}
+                                  </span>
+                                </div>
+                              );
+                            })}
+
+                            {/* === Quiz Button === */}
+                            {chapter.quiz && (
+                              <div
+                                onClick={() =>
+                                  handleQuizClick(chapter.quiz, chapterIndex)
+                                }
+                                className={`flex items-center justify-between p-3 rounded-md transition-all duration-200 ${
+                                  selectedQuiz?.chapterIndex === chapterIndex
+                                    ? "bg-primary-dark text-white shadow-md"
+                                    : !chapter.quiz.isCurrent
+                                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                    : chapter.quiz.isCompleted
+                                    ? "bg-white text-gray-500"
+                                    : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                                } ${
+                                  chapter.quiz.isCurrent ? "cursor-pointer" : ""
+                                }`}
+                              >
+                                <div className="flex items-center space-x-2">
+                                  {chapter.quiz.isCompleted ? (
+                                    <FaCheckCircle className="text-green-500" />
+                                  ) : !chapter.quiz.isCurrent ? (
+                                    <FaLock className="text-red-400" />
+                                  ) : (
+                                    <FaLockOpen className="text-green-500" />
+                                  )}
+                                  <span
+                                    className={`text-sm ${
+                                      chapter.quiz.isCompleted
+                                        ? "line-through"
+                                        : ""
+                                    } ${
+                                      selectedQuiz?.chapterIndex === chapterIndex
+                                        ? "font-medium"
+                                        : "font-semibold"
+                                    }`}
+                                  >
+                                    Chapter Quiz
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+
+                    {/* === Final Exam Button === */}
+                    {courseData.finalExam.isCurrent && (
+                      <div className="border-t border-gray-200 pt-2">
+                        <div
+                          onClick={handleFinalExam}
+                          className={`flex items-center justify-center p-3 rounded-md transition-all duration-200 cursor-pointer ${
+                            courseData.finalExam.isCompleted
+                              ? "bg-green-600 text-white hover:bg-green-700"
+                              : "bg-primary-dark text-white hover:bg-primary-light"
+                          }`}
+                        >
+                          <span className="text-sm font-medium">
+                            {courseData.finalExam.isCompleted
+                              ? "View Final Result"
+                              : "Start Final Exam"}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </aside>
+
                 {/* Right Section (Selected Topic Video & Content) */}
                 <div className="w-full lg:w-3/4 lg:pl-6 mt-10 lg:mt-0">
                   {selectedTopic ? (

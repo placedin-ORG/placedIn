@@ -7,6 +7,7 @@ import { setLogin } from "../redux/UserSlice";
 import API from "../utils/API";
 import { tst } from "../utils/utils";
 import Navbar from "../component/Navbar";
+import { FaGoogle, FaGithub } from "react-icons/fa";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -44,6 +45,10 @@ const Login = () => {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSocialLogin = (provider) => {
+    window.location.href = `${import.meta.env.VITE_APP_BASE_URL}/auth/${provider}`;
   };
 
   const handleSubmit = async (e) => {
@@ -150,8 +155,31 @@ const Login = () => {
             </div>
           </form>
 
+          <div className="relative flex py-5 items-center">
+            <div className="flex-grow border-t border-gray-400"></div>
+            <span className="flex-shrink mx-4 text-gray-400">OR</span>
+            <div className="flex-grow border-t border-gray-400"></div>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={() => handleSocialLogin("google")}
+              className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 py-2 rounded-md hover:bg-gray-50"
+            >
+              <FaGoogle />
+              <span>Continue with Google</span>
+            </button>
+            <button
+              onClick={() => handleSocialLogin("github")}
+              className="w-full flex items-center justify-center gap-2 bg-gray-800 text-white py-2 rounded-md hover:bg-gray-700"
+            >
+              <FaGithub />
+              <span>Continue with GitHub</span>
+            </button>
+          </div>
+
           {/* Navigation to Register */}
-          <div className="text-center">
+          <div className="pt-2 text-center">
             <span className="text-gray-700">Don't Have an Account? </span>
             <button
               className="text-primary hover:underline"

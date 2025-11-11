@@ -9,6 +9,7 @@ const mongoose = require("mongoose");
 const CourseRoute = require("./routes/createRoute");
 const UserRoute = require("./routes/userRoutes");
 const adminAuthRoute = require("./routes/adminAuthRoute");
+const proctorVideoUpload = require("./routes/proctorVideoUpload");
 const schedule = require("node-schedule");
 const User = require("./models/userModel");
 const StartCourseRoute = require("./routes/startCourseRoute");
@@ -29,13 +30,37 @@ const AtsRoute=require("./routes/atsRoute");
 const chatRoutes = require("./routes/chatRoutes");
 const Message=require("./models/messageModel")
 const Wishlist=require("./routes/wishlistRoutes");
-
+const companyRoute = require("./routes/companyRoutes");
+const adminManagementRoute = require('./routes/adminManagementRoute');
 const socketIo = require("socket.io");
+const session = require("express-session");
+const passport = require("passport");
+require("./config/passport"); // Passport configuration
 
 const http=require('http')
 require("dotenv").config();
 const cloudinary = require("cloudinary");
 const app = express();
+
+// Session middleware
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // use secure cookies in production
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+    },
+  })
+);
+
+// Passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
+
+
 app.use(cors());
 const server = http.createServer(app);
 const io = socketIo(server, {
@@ -46,8 +71,8 @@ const io = socketIo(server, {
 });
 
 // Initialize Google Gemini AI
-const genAI = new GoogleGenerativeAI("AIzaSyCLgsSfQhcXZdUj9inr7n6fB0E5DZpHK0w"); // Replace with your actual API key
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+//const genAI = new GoogleGenerativeAI("AIzaSyCLgsSfQhcXZdUj9inr7n6fB0E5DZpHK0w"); // Replace with your actual API key
+//const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -71,15 +96,18 @@ app.use("/api/v1/purchase", purchaseRoutes);
 app.use("/api/v1/certificate", certificateRoute);
 app.use("/api/v1/ranking", rankingRoute);
 app.use("/api/v1/teacher", teacherRoute);
+app.use("/api/v1/company", companyRoute);
 app.use("/api/v1/internship",internShipRoute)
 app.use("/api/v1/job",jobRoute)
 app.use("/api/v1/notification",notificationRoute)
 app.use("/api/v1/ats",AtsRoute)
 app.use("/api/v1/chat", chatRoutes);
 app.use("/api/v1/wishlist",Wishlist);
+app.use('/api/v1/admin/management',adminManagementRoute);
+app.use("/api/v1/proctor",proctorVideoUpload);
 const connectDb = async () => {
   try {
-    await mongoose.connect(`${process.env.MONGO_URI}/placedInDB`);
+    await mongoose.connect(`${process.env.MONGO_URI}`);
     console.log("mongoose connection successfull");
   } catch (error) {
     console.log(error.message);

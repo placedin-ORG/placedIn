@@ -5,26 +5,19 @@ import { setCurrentCourse } from "../redux/UserSlice";
 import { useNavigate } from "react-router-dom";
 import API from "../utils/API";
 import Button from "./Button";
+import { FaStar, FaRegStar } from "react-icons/fa";
+import { BsFillPersonFill } from "react-icons/bs"
 
 const CourseCard = ({ course, isUser = false }) => {
+  console.log("course value in course card",course);
   const navigate = useNavigate();
   // const user = useSelector((state) => state);
   const dispatch = useDispatch();
 
+
+
   const startLearning = async () => {
     try {
-      // const response = await API.post("/learn/startLearning", {
-      //   _id,
-      //   userId: user.user.user._id,
-      // });
-      // console.log(response.data.user)
-      // if (response.data.status) {
-      //   dispatch(
-      //     setCurrentCourse({
-      //       course: response.data.updatedUse,
-      //     })
-      //   );
-      //   console.log(_id);
 
       if (isUser) {
         navigate(`/courseDetail/${course.courseId}`);
@@ -41,9 +34,23 @@ const CourseCard = ({ course, isUser = false }) => {
       console.log(err);
     }
   };
+
+  const calculateAverageRating = () => {
+    if (course) {
+      if (course.reviews?.length === 0) return 0;
+      const totalRating = course.reviews?.reduce(
+        (acc, cur) => acc + cur.rating,
+        0
+      );
+      return totalRating / course.reviews?.length;
+    }
+  };
+
+  const averageRating = calculateAverageRating();
   return (
     <>
       <div
+        onClick={() => startLearning()}
         key={course._id}
         className="bg-white border border-gray-300 w-full max-w-[22rem] transition-all duration-500 ease-in-out hover:shadow-custom rounded-lg p-4 flex flex-col justify-between"
       >
@@ -61,6 +68,37 @@ const CourseCard = ({ course, isUser = false }) => {
         <h3 className="text-lg font-semibold text-gray-800 truncate">
           {course.title || course?.courseName}
         </h3>
+        {/* { tecaher name} */}
+
+        <h3 className=" flex items-center gap-2 text-lg font-sans text-gray-500 font-semibold">
+           <BsFillPersonFill />
+          {course?.teacher?.name}
+        </h3>
+
+         {/** Ratings */}
+                            <div className="flex items-center rounded-lg gap-2  w-full max-w-sm">
+                            <span className=" text-yellow-700 font-extrabold  mt-[10px] ">{averageRating .toFixed(1)}</span>
+
+                             <div className="flex justify-start">
+                             {Array.from({ length: 5 }).map((_, index) =>
+                               index < averageRating ? (
+                                    <FaStar
+                                      key={index}
+                                      className="text-yellow-500 text-xl pt-2"
+                                    />
+                                  ) : (
+                                    <FaRegStar
+                                      key={index}
+                                      className="text-gray-400 text-xl pt-2"
+                                    />
+                                  )
+                                )}
+                              </div>
+                              <div className=" flex items-center mt-[10px]  text-gray-500 font-semibold ">
+                               ({course.reviews?.length}) 
+                              </div>
+                            </div>
+
 
         {/* Edit Button */}
         <div className="mt-4 flex justify-between items-end gap-3">

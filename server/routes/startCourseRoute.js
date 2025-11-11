@@ -7,11 +7,11 @@ router.post("/fetchCourse", async (req, res) => {
   try {
     const { id, userId } = req.body;
 
-    const course = await Course.findById(id);
+    const course = await Course.findById(id).populate("teacher");
     const relatedCourses = await Course.find({
       category: course?.category,
       _id: { $ne: id },
-    });
+    }).populate("teacher");
     if (userId !== null) {
       const user = await User.findOne({
         _id: userId,
@@ -147,14 +147,121 @@ router.post("/updateUser", async (req, res) => {
   }
 });
 
+// Replace your existing /fetchuser with this improved version
+// Replace /fetchuser with this merged-preserve-progress version
 router.post("/fetchuser", async (req, res) => {
   const { userId, courseId } = req.body;
-  const data = await User.findOne({
-    _id: userId,
-    "ongoingCourses.courseId": courseId,
-  });
-  res.json({ status: true, data });
+
+  try {
+    // 1) Fetch course and user
+    const courseDoc = await Course.findById(courseId);
+    if (!courseDoc) {
+      return res.status(404).json({ status: false, message: "Course not found" });
+    }
+
+    const userDoc = await User.findOne({ _id: userId, "ongoingCourses.courseId": courseId });
+    if (!userDoc) {
+      return res.status(404).json({ status: false, message: "User not found or course not started" });
+    }
+
+    // find user's existing course entry to preserve progress flags
+    const existingCourse = userDoc.ongoingCourses.find((c) => c.courseId === courseId);
+
+    // 2) Merge helper: prefer existing flags, otherwise use defaults
+    const buildMergedChapters = () => {
+      return courseDoc.chapters.map((chapter, i) => {
+        const existingChapter = existingCourse?.chapters?.[i];
+
+        const mergedTopics = (chapter.topics || []).map((topic, j) => {
+          const existingTopic = existingChapter?.topics?.[j];
+          return {
+            name: topic.name,
+            content: topic.content,
+            videoUrl: topic.videoUrl,
+            videoDuration: topic.videoDuration || null,
+            // preserve existing flags if present, otherwise keep default
+            isCompleted: existingTopic?.isCompleted ?? false,
+            isCurrent: existingTopic?.isCurrent ?? (i === 0 && j === 0),
+          };
+        });
+
+        // merge quiz questions content (keep correctAnswer if in course doc)
+        const mergedQuizQuestions = (chapter.quiz || []).map((quizItem, qidx) => {
+          const existingQuizQ = existingChapter?.quiz?.quizQuestions?.[qidx];
+          return {
+            question: quizItem.question,
+            options: quizItem.options,
+            // prefer existing stored correctAnswer only if it exists there,
+            // otherwise use the course doc's one (if present)
+            correctAnswer: existingQuizQ?.correctAnswer ?? quizItem.correctAnswer ?? null,
+          };
+        });
+
+        return {
+          title: chapter.title,
+          isCompleted: existingChapter?.isCompleted ?? false,
+          isCurrent: existingChapter?.isCurrent ?? (i === 0),
+          topics: mergedTopics,
+          quiz: {
+            quizQuestions: mergedQuizQuestions,
+            isCurrent: existingChapter?.quiz?.isCurrent ?? false,
+            isCompleted: existingChapter?.quiz?.isCompleted ?? false,
+          },
+        };
+      });
+    };
+
+    // 3) Final exam: preserve result, isCompleted/isCurrent if exist
+    const buildMergedFinalExam = () => {
+      const existingFinal = existingCourse?.finalExam;
+      const mergedFinalQuestions = (courseDoc.questions || []).map((q, idx) => {
+        const existingQ = existingFinal?.questions?.[idx];
+        return {
+          questionText: q.questionText ?? q.question,
+          options: q.options ?? [],
+          correctAnswer: existingQ?.correctAnswer ?? q.correctAnswer ?? null,
+          image: q.image ?? null,
+          level: q.level ?? null,
+        };
+      });
+
+      return {
+        isCurrent: existingFinal?.isCurrent ?? false,
+        isCompleted: existingFinal?.isCompleted ?? false,
+        questions: mergedFinalQuestions,
+        // preserve existing result structure if present
+        result: existingFinal?.result ?? { answers: [], accuracy: null },
+      };
+    };
+
+    const newChapters = buildMergedChapters();
+    const newFinalExam = buildMergedFinalExam();
+
+    // 4) Update user's ongoingCourses.$ with merged data (chapters + finalExam)
+    const userAfterUpdate = await User.findOneAndUpdate(
+      { _id: userId, "ongoingCourses.courseId": courseId },
+      {
+        $set: {
+          "ongoingCourses.$.chapters": newChapters,
+          "ongoingCourses.$.finalExam": newFinalExam,
+        },
+      },
+      { new: true }
+    );
+
+    return res.json({
+      status: true,
+      message: "Chapters merged and preserved user progress",
+      data: userAfterUpdate,
+    });
+  } catch (err) {
+    console.error("Error in /fetchuser:", err);
+    return res.status(500).json({ status: false, message: "Server error" });
+  }
 });
+
+
+
 
 router.post("/openquiz", async (req, res) => {
   try {
@@ -510,4 +617,65 @@ router.post("/examresult", async (req, res) => {
     console.log(err);
   }
 });
+
+router.post("/fetchAllComments", async (req, res) => {
+  try {
+   
+    const {user}=req.body;
+    const userId=user._id;
+
+    let data = await Course.find({teacher:userId}); 
+
+
+    if (!data || data.length === 0) {
+      return res.json({ status: false, message: "No comments found" });
+    }
+
+    return res.json({
+      status: true,
+      data,
+      message: "Comments fetched successfully",
+    });
+  } catch (error) {
+    console.error("Error fetching comments:", error);
+    return res.status(500).json({
+      status: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+});
+
+// POST /learn/replyComment
+router.post("/replyComment", async (req, res) => {
+  try {
+    const { courseId, commentIndex, replyText } = req.body;
+
+    // Find the course
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ status: false, message: "Course not found" });
+    }
+
+    // Find the comment by index
+    if (!course.discussion[commentIndex]) {
+      return res.status(404).json({ status: false, message: "Comment not found" });
+    }
+
+    // Add reply
+    course.discussion[commentIndex].reply = {
+      text: replyText,
+      date: new Date(),
+    };
+
+    await course.save();
+
+    res.json({ status: true, message: "Reply added successfully", data: course });
+  } catch (err) {
+    console.error("Error in replyComment:", err);
+    res.status(500).json({ status: false, message: "Server error" });
+  }
+});
+
+
 module.exports = router;

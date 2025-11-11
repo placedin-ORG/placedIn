@@ -1,4 +1,31 @@
 const mongoose = require("mongoose");
+
+const reviewSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User", // <-- for populate()
+      required: true,
+    },
+    rating: {
+      type: Number,
+      min: 1,
+      max: 5,
+      required: true,
+    },
+    comment: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { _id: false } // not required but keeps nested docs cleaner
+);
+
 const courseSchema = new mongoose.Schema(
   {
     paid: {
@@ -10,16 +37,7 @@ const courseSchema = new mongoose.Schema(
       ref: "Admin",
       required: true,
     },
-    rating: [
-      {
-        userId: {
-          type: String,
-        },
-        rating: {
-          type: Number,
-        },
-      },
-    ],
+    reviews: [reviewSchema],
     studentEnrolled: {
       type: Number,
     },
@@ -46,6 +64,11 @@ const courseSchema = new mongoose.Schema(
           type: mongoose.Schema.Types.ObjectId,
           ref: "User", // Assuming you have a User model
         },
+
+      reply: {
+      text: String,
+      date: { type: Date, default: Date.now },
+      },
         timestamp: {
           type: Date,
           default: Date.now,
@@ -73,6 +96,7 @@ const courseSchema = new mongoose.Schema(
             name: { type: String },
             videoUrl: { type: String },
             content: { type: String },
+            videoDuration:{type:String},
           },
         ],
         quiz: [

@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { useRazorpay } from "react-razorpay";
+import Review from "../pages/review"
 import {
   FaClock,
   FaList,
@@ -12,6 +13,7 @@ import {
   FaShare,
   FaShieldAlt,
 } from "react-icons/fa";
+import { BsFillPersonFill } from "react-icons/bs"
 import Slider from "react-slick";
 import { FaStar, FaRegStar } from "react-icons/fa";
 import "slick-carousel/slick/slick.css";
@@ -26,6 +28,9 @@ import "react-toastify/dist/ReactToastify.css";
 import Toast from "../component/Toast";
 import Skeleto from "../component/loading/SkeletonLoading";
 import { tst } from "../utils/utils";
+import { FaAngleDown, FaAngleUp, FaLock, FaLockOpen, FaCheckCircle } from "react-icons/fa";
+import formatSecondsToHMS from "../utils/durationHelper"; // Assuming you have this utility from previous code
+
 const CustomPrevArrow = ({ onClick }) => (
   <button
     onClick={onClick}
@@ -35,7 +40,6 @@ const CustomPrevArrow = ({ onClick }) => (
     <FaArrowLeft />
   </button>
 );
-
 const CustomNextArrow = ({ onClick }) => (
   <button
     onClick={onClick}
@@ -45,6 +49,7 @@ const CustomNextArrow = ({ onClick }) => (
     <FaArrowRight />
   </button>
 );
+
 const CourseIntro = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -55,6 +60,7 @@ const CourseIntro = () => {
   const [start, setStart] = useState(false);
   const user = useSelector((state) => state);
   const { error, isLoading, Razorpay } = useRazorpay();
+  const [expandedChapters, setExpandedChapters] = useState({}); // For sidebar preview expansion
 
   useEffect(() => {
     const call = async () => {
@@ -64,10 +70,9 @@ const CourseIntro = () => {
           id,
           userId: user.user.user._id,
         });
-
         if (data.data.status) {
           setCourse(data.data.course);
-          console.log(data.data.course);
+          console.log("fetches course data", data.data.course);
           console.log(data.data.relatedCourses.length);
           if (data.data.relatedCourses.length !== 0) {
             setRelatedCourses(data.data.relatedCourses);
@@ -124,7 +129,6 @@ const CourseIntro = () => {
         color: "#3399cc",
       },
     };
-
     const rzpay = new Razorpay(options);
     rzpay.on("payment.failed", async function (response) {
       const payload = {
@@ -136,12 +140,10 @@ const CourseIntro = () => {
         success: false,
       };
       await handlePurchase(payload);
-
       toast.error("Payment falied \n Error Code: " + response.error.code);
     });
     rzpay.open();
   };
-
   const startLearning = async () => {
     if (user.user.user === null) {
       navigate("/register");
@@ -152,18 +154,15 @@ const CourseIntro = () => {
       await handleEnroll();
     }
   };
-
   const handlePurchase = async (payload) => {
     try {
       const { data } = await API.post("/purchase/create", payload);
       console.log(data);
-
       tst.success("Purchase info saved");
     } catch (error) {
       tst.error(error);
     }
   };
-
   const handleEnroll = async () => {
     try {
       if (!start) {
@@ -177,7 +176,6 @@ const CourseIntro = () => {
           })
         );
       }
-
       navigate(`/courseDetail/${id}`);
     } catch (error) {
       console.log(error);
@@ -192,7 +190,6 @@ const CourseIntro = () => {
     // arrows: true, // Show navigation arrows
     nextArrow: <CustomNextArrow />,
     prevArrow: <CustomPrevArrow />,
-
     responsive: [
       {
         breakpoint: 1024, // Below 1024px
@@ -209,7 +206,7 @@ const CourseIntro = () => {
     ],
   };
   const [showMore, setShowMore] = useState(false);
-  const maxDescriptionLength = 100; // Adjust as needed
+  const maxDescriptionLength = 250; // Adjust as needed
   let truncatedDescription = "";
   let optimizedImage = "";
   if (course !== null) {
@@ -218,23 +215,41 @@ const CourseIntro = () => {
       course.description.length > maxDescriptionLength && !showMore
         ? `${course.description.substring(0, maxDescriptionLength)}...`
         : course.description;
-
     optimizedImage =
       course.courseThumbnail &&
       `${course.courseThumbnail}?w_800,h_600,c_fill,q_auto,f_auto`;
   }
   const calculateAverageRating = () => {
     if (course) {
-      if (course.rating.length === 0) return 0;
-      const totalRating = course.rating.reduce(
+      if (course.reviews?.length === 0) return 0;
+      const totalRating = course.reviews?.reduce(
         (acc, cur) => acc + cur.rating,
         0
       );
-      return totalRating / course.rating.length;
+      return totalRating / course.reviews?.length;
     }
   };
-
   const averageRating = calculateAverageRating();
+
+  // Toggle chapter expansion for sidebar preview
+  const toggleChapter = (chapterIndex) => {
+    setExpandedChapters(prev => ({ ...prev, [chapterIndex]: !prev[chapterIndex] }));
+  };
+
+  // Get embed URL utility (from previous code)
+  const getEmbedUrl = (url) => {
+    if (url.includes("youtube.com") || url.includes("youtu.be")) {
+      const videoId =
+        url.split("v=")[1]?.split("&")[0] || url.split("youtu.be/")[1];
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+    if (url.includes("drive.google.com")) {
+      const fileId = url.split("d/")[1].split("/")[0];
+      return `https://drive.google.com/file/d/${fileId}/preview`;
+    }
+    return url;
+  };
+
   return (
     <>
       <Navbar />
@@ -247,7 +262,7 @@ const CourseIntro = () => {
             <div>
               <div className="w-full flex flex-col lg:flex-row">
                 {/* Text Section */}
-                <div className="lg:w-5/6 w-full flex items-center justify-center py-5">
+                <div className="lg:w-5/6 w-full flex items-center  py-5">
                   <div className="px-5 lg:px-36 flex flex-col gap-3">
                     <div className="flex items-center gap-1">
                       <p className="px-5 py-1 bg-green-100 text-green-500 rounded-2xl w-fit font-semibold">
@@ -261,7 +276,6 @@ const CourseIntro = () => {
                           "Free Course"
                         )}
                       </p>
-
                       {course.discountAmount > 0 && (
                         <p>
                           <span className="text-gray-600 line-through">
@@ -272,36 +286,29 @@ const CourseIntro = () => {
                     </div>
                     {/** Ratings */}
                     <div className="flex items-center space-y-4 justify-start    rounded-lg  w-full max-w-sm">
-                      <div className="flex   justify-start space-x-1">
+                      <div className="flex items-center  justify-start space-x-1">
+                        <p className=" text-yellow-600 font-semibold">{averageRating.toFixed(1)}</p>
                         {Array.from({ length: 5 }).map((_, index) =>
                           index < averageRating ? (
                             <FaStar
                               key={index}
-                              className="text-yellow-500 text-3xl"
+                              className="text-yellow-500 text-xl"
                             />
                           ) : (
                             <FaRegStar
                               key={index}
-                              className="text-gray-400 text-3xl"
+                              className="text-gray-400 text-xl"
                             />
                           )
                         )}
+                        <p className="font-semibold text-green-500"> ({course.reviews?.length} rating)</p>
+                        <p className="pl-2 font-medium text-gray-700">{course.studentEnrolled} students enrolled</p>
                       </div>
                     </div>
                     <h1 className="text-red-500 font-semibold text-3xl lg:text-5xl">
                       {course.title}
                     </h1>
-                    <p className="text-base lg:text-lg font-semibold text-slate-600">
-                      {truncatedDescription}
-                      {course.description.length > maxDescriptionLength && (
-                        <button
-                          onClick={() => setShowMore(!showMore)}
-                          className="text-red-500 light font-bold ml-2"
-                        >
-                          {showMore ? "See Less" : "See More"}
-                        </button>
-                      )}
-                    </p>
+                    
                     <span className="text-red-500 text-sm lg:text-lg flex items-center gap-1 mt-3">
                       <FaClock /> :{" "}
                       <span className="text-slate-600 font-semibold">
@@ -309,7 +316,7 @@ const CourseIntro = () => {
                           ? `${Math.floor(
                               course.examDuration / 60
                             )} hours of learning`
-                          : `${course.examDuration} minutes of learning`}
+                          : `${course.examDuration} minutes of exam`}
                       </span>
                     </span>
                     <button
@@ -323,7 +330,6 @@ const CourseIntro = () => {
                     </p>
                   </div>
                 </div>
-
                 {/* Image Section */}
                 <div className="hidden lg:block lg:w-1/2 pr-5">
                   <div className="h-96 w-full overflow-hidden rounded-r-3xl">
@@ -335,17 +341,15 @@ const CourseIntro = () => {
                   </div>
                 </div>
               </div>
-
               <div className="px-14 mt-4 ">
                 <p className="font-semibold">Key Highlights</p>
                 <p className="text-3xl font-bold flex items-center gap-2 mt-2">
                   What You will{" "}
                   <span className="text-primary-light">Learn</span>
                 </p>
-
                 {/*
-    what you will learn
-    */}
+what you will learn
+*/}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mt-6">
                   {course.chapters.map((elem, index) => (
                     <div
@@ -357,9 +361,104 @@ const CourseIntro = () => {
                   ))}
                 </div>
 
+
+                {/* Course Content Sidebar Preview */}
+                <div className="mt-8 p-6 bg-white rounded-lg shadow-md">
+                  <h2 className="text-2xl font-bold mb-4">Course Content</h2>
+                  <div className="space-y-2">
+                    {course.chapters.map((chapter, chapterIndex) => (
+                      <div
+                        key={chapterIndex}
+                        className="border-b border-gray-200 last:border-b-0 pb-2"
+                      >
+                        {/* Chapter Header */}
+                        <div
+                          className="flex justify-between items-center p-2 cursor-pointer group"
+                          onClick={() => toggleChapter(chapterIndex)}
+                        >
+                          <div className="flex flex-col">
+                            <h3 className="text-md font-semibold text-gray-800 group-hover:text-primary-dark">
+                              {chapter.title}
+                            </h3>
+                            <span className="text-xs text-gray-500">
+                              {chapter.topics.length} lectures
+                            </span>
+                          </div>
+                          <button className="text-gray-500 group-hover:text-primary-dark focus:outline-none">
+                            {expandedChapters[chapterIndex] ? (
+                              <FaAngleUp />
+                            ) : (
+                              <FaAngleDown />
+                            )}
+                          </button>
+                        </div>
+                        {/* Chapter Topics & Quiz */}
+                        {expandedChapters[chapterIndex] && (
+                          <div className="pl-2 mt-2 space-y-1">
+                            {chapter.topics.map((topic, topicIndex) => {
+                              const isCompleted = false; // Preview, no user state
+                              const isLocked = false; // Preview
+                              return (
+                                <div
+                                  key={topicIndex}
+                                  className={`flex items-center justify-between p-3 rounded-md transition-all duration-200 ${
+                                    isLocked
+                                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                      : isCompleted
+                                      ? "bg-white text-gray-500"
+                                      : "text-gray-700 hover:bg-gray-100"
+                                  }`}
+                                >
+                                  <div className="flex items-center text-black space-x-2">
+                                    {/* {isCompleted ? (
+                                      <FaCheckCircle className="text-green-500" />
+                                    ) : isLocked ? (
+                                      <FaLock className="text-red-400" />
+                                    ) : (
+                                      <FaLockOpen className="text-green-500" />
+                                    )} */}
+                                    <span
+                                      className={`text-sm ${
+                                        isCompleted ? "line-through" : ""
+                                      }`}
+                                    >
+                                      {topic.name}
+                                    </span>
+                                  </div>
+                                  <span className="text-xs text-gray-500">
+                                    {formatSecondsToHMS(topic?.videoDuration)}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                            {/* Quiz */}
+                            {chapter.quiz && chapter.quiz.length > 0 && (
+                              <div className="flex items-center justify-between p-3 rounded-md transition-all duration-200 bg-gray-200 text-gray-800 hover:bg-gray-300">
+                                <div className="flex items-center space-x-2">
+                                  <FaList className="text-blue-500" />
+                                  <span className="text-sm font-semibold">Chapter Quiz ({chapter.quiz.length} questions)</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Full Course Description (Quill-rendered) */}
+                <div className="mt-8 p-6 bg-white rounded-lg shadow-md">
+                  <h2 className="text-2xl font-bold mb-4">Course Description</h2>
+                  <div 
+                    className="prose max-w-none"
+                    dangerouslySetInnerHTML={{ __html: course.description }} 
+                  />
+                </div>
+
                 {/*
-    certification
-    */}
+certification
+*/}
                 <div className="px-5 lg:px-20 mt-7 py-5 rounded-3xl">
                   <p className="font-mono text-lg lg:text-xl">CERTIFICATE</p>
                   <h1 className="text-xl lg:text-3xl font-semibold">
@@ -382,7 +481,6 @@ const CourseIntro = () => {
                           </p>
                         </div>
                       </div>
-
                       {/* Share Your Achievement */}
                       <div className="flex gap-3">
                         <FaShare className="text-3xl lg:text-5xl text-primary-light" />
@@ -397,7 +495,6 @@ const CourseIntro = () => {
                           </p>
                         </div>
                       </div>
-
                       {/* Stand Out to Recruiters */}
                       <div className="flex gap-3">
                         <FaReceipt className="text-3xl lg:text-5xl text-primary-light" />
@@ -412,7 +509,6 @@ const CourseIntro = () => {
                         </div>
                       </div>
                     </div>
-
                     {/* Image Section */}
                     <div className="hidden lg:block lg:w-1/2">
                       <img
@@ -423,10 +519,31 @@ const CourseIntro = () => {
                     </div>
                   </div>
                 </div>
+                {/* {instructor bio} */}
+                <div className=" p-3">
+                  <h1 className="font-bold text-3xl mt-2">Instructor</h1>
+                  <div className=" flex flex-col gap-3 mt-4">
+                    <p className="text-xl flex items-center gap-2 text-green-500  font-semibold">
+                      <BsFillPersonFill/>
+                      {course.teacher.name}</p>
+                    <p className="text-xl ">A teacher who loves to teach about <span className="text-xl text-green-500 font-bold"> {course.courseCategory} </span></p>
+                    <div className="flex flex-col lg:flex-row gap-7 items-center ">
+                      <img
+                        src= {course.teacher.avatar}
+                        className=" h-28 w-28 rounded-full"
+                      />
+                      <div className="  mt-2 w-1/2 break-words whitespace-pre-wrap ">
+                        {course.teacher.bio}
+                        
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
+                <Review courseId={id} avgRating={averageRating}/>
                 {/**
- Similar Courses
- */}
+Similar Courses
+*/}
                 {relatedCourses && (
                   <div className="mt-10">
                     <p className="text-sm font-mono tracking-wide text-gray-500 uppercase">
@@ -438,11 +555,11 @@ const CourseIntro = () => {
                       </span>{" "}
                       Similar Courses
                     </h1>
-                    <div className="mt-12 w-full mb-6 flex gap-2 border overflow-x-auto px-4">
+                    <div className="mt-12 w-full mb-6 flex gap-3 border overflow-x-auto px-4">
                       {relatedCourses?.map((course, index) => (
                         <div
                           key={index}
-                          className=" flex-shrink-0 h-full border hover:shadow-xl transition duration-300 rounded-xl bg-white overflow-hidden"
+                          className=" flex-shrink-0 h-full min-w-[330px] border hover:shadow-xl transition duration-300 rounded-xl bg-white overflow-hidden"
                         >
                           <CourseCard course={course} />
                         </div>
@@ -455,10 +572,8 @@ const CourseIntro = () => {
           )}
         </div>
       )}
-
       <Footer />
     </>
   );
 };
-
 export default CourseIntro;

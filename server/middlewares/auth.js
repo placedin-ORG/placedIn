@@ -8,7 +8,6 @@ const isAuth = (req, res, next) => {
   }
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    // console.log(decoded);
     req.user = decoded;
     next();
   } catch (err) {
@@ -17,8 +16,9 @@ const isAuth = (req, res, next) => {
 };
 
 const authoriseRoles = (...roles) => {
+  
   return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
+    if (!roles.includes(req.user.user.role)) {
       return res.status(403).json({
         success: false,
         message: `Permission denied for ${req.user.role}`,

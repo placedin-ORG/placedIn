@@ -17,6 +17,7 @@ import AllCourses from "./pages/courses/AllCourses";
 import ScrollToTop from "./component/ScrollToTop";
 import ForgotPassword from "./pages/auth/forgot-password/page";
 import ResetPassword from "./pages/auth/reset-password/page";
+import SocialAuthCallback from "./pages/auth/SocialAuthCallback";
 import GiveExam from "./pages/exam/GiveExam";
 import ProtectedRoutes from "./component/routes/ProtectedRoutes";
 import AllExams from "./pages/exam/AllExams";
@@ -74,7 +75,15 @@ function App() {
         <Route path="/auth/email-sent" element={<EmailSentPage />} />
         <Route path="/auth/forgot-password" element={<ForgotPassword />} />
         <Route path="/auth/reset-password/:token" element={<ResetPassword />} />
-        <Route path="/resultExam" element={<ExamResult />} />
+        <Route path="/social-auth" element={<SocialAuthCallback />} />
+        <Route
+         path="/exam/result/:ExamId" 
+         element={
+          <ProtectedRoutes>
+            <ExamResult />
+          </ProtectedRoutes>
+         } 
+        />
         <Route path="/internship-portal" element={<InternshipPortal/>}/>
         <Route path="/internshipDetail/:id" element={<InternshipDetail/>}/>
         <Route path="/jobDetail" element={<JobDetail/>}/>
@@ -173,7 +182,7 @@ function App() {
             </ProtectedRoutes>
           }
         />
-        <Route path="/" element={<UserLayout />}>
+        <Route path="/">
           <Route
             path="examInstruction/:userId/:ExamId"
             element={

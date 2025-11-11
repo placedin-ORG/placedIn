@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useLocation, Link } from "react-router-dom";
 import { FaCheckCircle, FaTimesCircle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
@@ -15,11 +15,11 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 // import "react-quill/dist/quill.bubble.css";
 import ExamResult from "./ExamResult";
+import FaceProctor from "../../component/FaceProctor";
+
 const GiveExam = () => {
   const navigate = useNavigate();
   const { userId, ExamId } = useParams();
-  // const userId="67457ed3b6632562e2f2d60a";
-  // const ExamId="6748776f11d6f5a4525824aa"
   const [examData, setExamData] = useState(null);
   const [examResult, setExamResult] = useState(null);
   const [subjectiveAnswers, setSubjectiveAnswers] = useState({});
@@ -30,6 +30,12 @@ const GiveExam = () => {
   const [remainingTime, setRemainingTime] = useState(null);
   const [cond, setcond] = useState(false);
   const [isSubmit, setIsSubmit] = useState(false);
+  const [violationCount, setViolationCount] = useState(0);
+  const [showProctor, setShowProctor] = useState(false);
+  const proctorRef = useRef(null); // NEW — control FaceProctor recording
+
+
+
   const finalConfirmation = () => {
     setShowModal(true); // Show the confirmation modal
   };
@@ -41,6 +47,7 @@ const GiveExam = () => {
 
   const handleStart = () => {
     const elem = document.documentElement;
+    setShowProctor(true);
     if (elem.requestFullscreen) {
       elem.requestFullscreen();
     } else if (elem.mozRequestFullScreen) {
@@ -54,6 +61,59 @@ const GiveExam = () => {
     }
     setStart(false);
   };
+
+  const handleCloseFullscreen = useCallback(() => {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.mozCancelFullScreen) {
+      document.mozCancelFullScreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen();
+    }
+  }, []);
+
+  const handleSubmitExam = useCallback(async (submitType) => {
+    // If the exam is already being submitted, do nothing.
+  if (isSubmittedRef.current) return;
+  
+  // Set the guard immediately
+  isSubmittedRef.current = true;
+
+    setShowModal(false);
+    setIsExamSubmitted(true);
+    if (submitType === "submit") {
+      handleCloseFullscreen();
+    }
+      // 🛑 Stop proctor recording when exam ends
+      if (proctorRef.current) {
+        console.log("⛔ Stopping proctor recording...");
+        proctorRef.current.stopRecording();
+      }
+
+    //console.log(selectedOptions);
+    try {
+      const finalAnswers = {
+        objective: selectedOptionsRef.current,
+        subjective: subjectiveAnswersRef.current,
+      };
+      const response = await API.post("/exam/submit-exam", {
+        userId,
+        ExamId,
+        userAnswers: finalAnswers,
+      });
+      if (response.data.message === "Exam submitted successfully") {
+        setExamData(null);
+        setIsSubmit(true);
+        //  setExamResult(data.data.updatedData)
+        setRemainingTime(null);
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  }, [userId, ExamId, handleCloseFullscreen]);
+
   useEffect(() => {
     if (examData && !isExamSubmitted && !start) {
       const durationInMs = examData.duration * 60 * 1000;
@@ -65,7 +125,7 @@ const GiveExam = () => {
         if (timeLeft <= 0) {
           clearInterval(timer);
           setRemainingTime(0);
-          handleSubmitExam(); // Automatically submit the exam
+          handleSubmitExam("auto"); // Automatically submit the exam
         } else {
           setRemainingTime(Math.ceil(timeLeft / 1000)); // Update remaining time in seconds
         }
@@ -73,7 +133,8 @@ const GiveExam = () => {
 
       return () => clearInterval(timer); // Cleanup interval on unmount or examData changes
     }
-  }, [examData, start]);
+  }, [examData, start, isExamSubmitted, handleSubmitExam]);
+
   useEffect(() => {
     const call = async () => {
       const data = await API.post("/exam/speceficExam", {
@@ -117,6 +178,7 @@ const GiveExam = () => {
 
   const selectedOptionsRef = useRef(selectedOptions); // Ref to track selectedOptions
   const subjectiveAnswersRef = useRef(subjectiveAnswers); // Ref for subjectiveAnswers
+  const isSubmittedRef = useRef(false);     
 
   // Sync the ref whenever subjectiveAnswers changes
   useEffect(() => {
@@ -151,8 +213,8 @@ const GiveExam = () => {
       };
       // Attach Event Listeners
       document.addEventListener("fullscreenchange", handleFullscreenChange);
- window.addEventListener("beforeunload", handleBeforeUnload);
- window.addEventListener("blur", handleWindowBlur);
+      window.addEventListener("beforeunload", handleBeforeUnload);
+      window.addEventListener("blur", handleWindowBlur);
       return () => {
         document.removeEventListener(
           "fullscreenchange",
@@ -162,47 +224,23 @@ const GiveExam = () => {
         window.removeEventListener("blur", handleWindowBlur);
       };
     }
-  }, [isExamSubmitted,start]);
-  const handleCloseFullscreen = () => {
-    if (document.exitFullscreen) {
-      document.exitFullscreen();
-    } else if (document.mozCancelFullScreen) {
-      document.mozCancelFullScreen();
-    } else if (document.webkitExitFullscreen) {
-      document.webkitExitFullscreen();
-    } else if (document.msExitFullscreen) {
-      document.msExitFullscreen();
-    }
-  };
+  }, [isExamSubmitted, start, handleSubmitExam]);
 
-  const handleSubmitExam = async (submitType) => {
-    setShowModal(false);
-    setIsExamSubmitted(true);
-    if (submitType === "submit") {
-      handleCloseFullscreen();
-    }
+  const handleProctorFlag = useCallback((message) => {
+    console.warn("⚠️ Proctor flag:", message);
+    toast.warning(message);
 
-    console.log(selectedOptions);
-    try {
-      const finalAnswers = {
-        objective: selectedOptionsRef.current,
-        subjective: subjectiveAnswersRef.current,
-      };
-      const response = await API.post("/exam/submit-exam", {
-        userId,
-        ExamId,
-        userAnswers: finalAnswers,
-      });
-      if (response.data.message === "Exam submitted successfully") {
-        setExamData(null);
-        setIsSubmit(true);
-        //  setExamResult(data.data.updatedData)
-        setRemainingTime(null);
+    setViolationCount((prev) => {
+      const newCount = prev + 1;
+      if (newCount === 4) {
+        toast.error("❌ Too many violations! Your exam is being auto-submitted.");
+        // Use the memoized handleSubmitExam
+        setTimeout(() => handleSubmitExam("auto"), 3000); 
       }
-    } catch (err) {
-      console.log(err);
-    }
-  };
+      return newCount;
+    });
+  }, [handleSubmitExam]);
+
   const [doItLater, setDoItLater] = useState({});
 
   // Handle "Do It Later" click
@@ -214,6 +252,7 @@ const GiveExam = () => {
   };
 
   const handleContextMenu = (event) => {
+
     event.preventDefault();
     toast.warning('right click is prevented')
   };
@@ -234,6 +273,15 @@ const GiveExam = () => {
 
   {/* Remaining Time */}
   <Toast />
+
+  {showProctor && !isExamSubmitted && (
+  <FaceProctor
+      userId={userId}
+      ExamId={ExamId} 
+      ref={proctorRef} 
+      onFlag={handleProctorFlag}
+  />
+)}
   {remainingTime !== null && (
     <div className="fixed top-0 left-0 right-0 h-12 bg-blue-600 text-white text-center py-2 z-50">
       <span className="text-lg font-semibold">
@@ -286,12 +334,12 @@ const GiveExam = () => {
           key={questionIndex}
           className="bg-white border border-gray-300 hover:shadow rounded-lg p-6 mb-6 transform transition-all duration-300 scroll-mt-12"
         >
-          <p className="text-lg md:text-xl font-semibold text-gray-800 mb-4">
+          <div className="text-lg md:text-xl font-semibold text-gray-800 mb-4">
             <span className="text-blue-500 font-bold">
               Q{questionIndex + 1}:
             </span>{" "}
             {parse(question.questionText)}
-          </p>
+          </div>
           {question.type === "objective" ? (
             <div className="space-y-4">
               {question.options.map((option, optionIndex) => (
@@ -302,12 +350,12 @@ const GiveExam = () => {
                   <input
                     type="radio"
                     name={`question-${questionIndex}`}
-                    value={option}
+                    value={optionIndex}
                     checked={
-                      selectedOptions[questionIndex] === option
+                      selectedOptions[questionIndex] === optionIndex
                     }
                     onChange={() =>
-                      handleOptionChange(questionIndex, option)
+                      handleOptionChange(questionIndex, optionIndex)
                     }
                     className="form-radio w-5 h-5 text-blue-600 border-gray-300 focus:ring focus:ring-blue-400"
                   />
@@ -404,7 +452,7 @@ const GiveExam = () => {
               </button>
               <button
                 className="px-4 py-2 bg-orange-400 text-white rounded-md hover:bg-orange-500"
-                onClick={handleSubmitExam("submit")}
+                onClick={() => handleSubmitExam("submit")}
               >
                 Confirm
               </button>
@@ -414,11 +462,20 @@ const GiveExam = () => {
       )}
       {start && start && (
         <div className="fixed inset-0 bg-black bg-opacity-100 flex items-center justify-center z-50" onContextMenu={handleContextMenu}>
-          <div className="bg-white rounded-lg p-6 w-[95%] relative shadow-xl">
+          <div className="bg-white rounded-lg p-6 w-[30%] relative shadow-xl">
             {/* Close Button */}
 
             <h2 className="text-xl font-semibold mb-4">Confirm Start</h2>
             <p className="text-gray-700 mb-6">confirm for full screen</p>
+           <p className="text-gray-700 mb-3">
+            Your <span className="font-medium">camera will remain active</span> throughout the exam for proctoring.
+            </p>
+
+          <p className="text-gray-700 mb-6">
+          Avoid any kind of <span className="font-medium text-red-500">violations</span> such as:
+          looking away frequently, multiple faces in camera, or leaving your seat.
+          Multiple violations may lead to <span className="font-medium">automatic submission</span> of your exam.
+          </p>
             <div className="flex justify-end space-x-3">
               <button
                 className="px-4 py-2 bg-orange-400 text-white rounded-md hover:bg-orange-500"
