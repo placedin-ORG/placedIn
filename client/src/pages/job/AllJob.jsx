@@ -9,7 +9,7 @@ import { useLocation } from "react-router-dom";
 const ITEMS_PER_PAGE = 10;
 import toast from 'react-hot-toast'
 import {useSelector} from "react-redux";
-import JobCard from "../../component/Job/JobPortal/JobCard";
+import JobCard from "../../component/job/jobPortal/JobCard";
 
 const AllJob=()=>{
     const user=useSelector((state)=>state.user.user);
