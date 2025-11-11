@@ -81,7 +81,7 @@ const examResultSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Exam",
       required: true,
-    }, // Reference to Exam
+    },
     userAnswers: [
       {
         questionId: { type: mongoose.Schema.Types.ObjectId, required: true }, // Reference to the question in the Exam schema
@@ -92,6 +92,10 @@ const examResultSchema = new mongoose.Schema(
         answer: { type: mongoose.Schema.Types.Mixed, required: true }, // Answer provided by the user (text or option index)
       },
     ],
+
+    proctorVideoUrl: {
+      type: String,
+    },
     score: { type: Number, default: 0 }, // Score obtained by the user
     publishResult: { type: Boolean, default: false }, // Whether the result has been published
   },

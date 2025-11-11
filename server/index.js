@@ -9,6 +9,7 @@ const mongoose = require("mongoose");
 const CourseRoute = require("./routes/createRoute");
 const UserRoute = require("./routes/userRoutes");
 const adminAuthRoute = require("./routes/adminAuthRoute");
+const proctorVideoUpload = require("./routes/proctorVideoUpload");
 const schedule = require("node-schedule");
 const User = require("./models/userModel");
 const StartCourseRoute = require("./routes/startCourseRoute");
@@ -103,6 +104,7 @@ app.use("/api/v1/ats",AtsRoute)
 app.use("/api/v1/chat", chatRoutes);
 app.use("/api/v1/wishlist",Wishlist);
 app.use('/api/v1/admin/management',adminManagementRoute);
+app.use("/api/v1/proctor",proctorVideoUpload);
 const connectDb = async () => {
   try {
     await mongoose.connect(`${process.env.MONGO_URI}`);
