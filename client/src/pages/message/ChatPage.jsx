@@ -16,7 +16,7 @@ import moment from "moment";
 import Navbar from "../../component/Navbar";
 import { useSelector } from "react-redux";
 
-const socket = io("http://localhost:5000");
+const socket = io(import.meta.env.VITE_APP_BASE_URL);
 
 const ChatPage = () => {
   const user = useSelector((state) => state.user.user);
@@ -344,8 +344,8 @@ const ChatPage = () => {
                               {isImage && (
                                 <div className="mb-2">
                                   <img
-                                    src={`http://localhost:5000${msg.file}`}
-                                    onClick={() => window.open(`http://localhost:5000${msg.file}`, "_blank")}
+                                    src={`${import.meta.env.VITE_APP_BASE_URL}${msg.file}`}
+                                    onClick={() => window.open(`${import.meta.env.VITE_APP_BASE_URL}${msg.file}`, "_blank")}
                                     alt="Uploaded file"
                                     className="w-full max-h-32 md:max-h-40 object-cover rounded cursor-pointer"
                                   />
@@ -355,7 +355,7 @@ const ChatPage = () => {
                               {/* File download link */}
                               {isFile && (
                                 <a
-                                  href={`http://localhost:5000${msg.file}`}
+                                  href={`${import.meta.env.VITE_APP_BASE_URL}${msg.file}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className={`flex items-center mb-2 ${isFromCurrentUser ? "text-blue-100" : "text-blue-500"}`}
