@@ -61,8 +61,14 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 
-app.use(cors());
+app.use(cors({
+  origin: ["https://bharathmegaminds.com", "http://localhost:3000", "http://localhost:5173"],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
+
 const server = http.createServer(app);
+
 const io = socketIo(server, {
   cors: {
     origin: ["http://localhost:3000", "http://localhost:5173", "https://bharathmegaminds.com"],
