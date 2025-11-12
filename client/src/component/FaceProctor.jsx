@@ -1,6 +1,7 @@
 import React, {
   useEffect,
   useRef,
+  useState,
   useImperativeHandle,
   forwardRef,
 } from "react";
@@ -156,20 +157,21 @@ const FaceProctor = forwardRef(({ onFlag, userId, ExamId }, ref) => {
           });
 
           try {
+        
             // Upload first (keep camera light ON)
             await uploadVideo(blob);
 
-            // ✅ Stop camera AFTER successful upload
-            cleanupCamera();
-            console.log("✅ Upload done — camera stopped.");
+            // // ✅ Stop camera AFTER successful upload
+            // cleanupCamera();
+            // console.log("✅ Upload done — camera stopped.");
           } catch (error) {
             console.error("❌ Upload failed:", error);
             toast.error("Upload failed. Camera will now stop.");
             // Even if upload fails, release camera
             cleanupCamera();
+          } finally {
+            mediaRecorderRef.current = null;
           }
-
-          mediaRecorderRef.current = null;
         },
         { once: true }
       );
@@ -182,36 +184,51 @@ const FaceProctor = forwardRef(({ onFlag, userId, ExamId }, ref) => {
   };
 
   // === VIDEO UPLOAD ===
-  const uploadVideo = async (blob) => {
-    try {
-      const formData = new FormData();
-      formData.append("video", blob, `exam_${Date.now()}.webm`);
-      formData.append("userId", userId);
-      formData.append("ExamId", ExamId);
+ const uploadVideo = async (blob) => {
+  try {
+    const formData = new FormData();
+    formData.append("video", blob, `exam_${Date.now()}.webm`);
+    formData.append("userId", userId);
+    formData.append("ExamId", ExamId);
 
-      const res = await API.post(
-      "/proctor/upload-proctor-video",
-      formData,
-      {
-        maxContentLength: Infinity,
-        maxBodyLength: Infinity,
-        timeout: 0, // no timeout for large uploads
-      }
-    );
+    // 🟡 Mark upload start
+    localStorage.setItem("uploadingVideo", "true");
 
-      if (res.status === 200) {
-        toast.success("🎬 Proctor video uploaded successfully!");
-        console.log("Uploaded video URL:", res.data.url);
-      } else {
-        toast.error("❌ Video upload failed");
-        console.error(res.data);
-      }
-    } catch (err) {
-      toast.error("Upload error: " + err.message);
-      console.error("Video upload failed:", err);
-      throw err;
+    const res = await API.post("/proctor/upload-proctor-video", formData, {
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity,
+      timeout: 0, // no timeout for large uploads
+
+    });
+
+    if (res.status === 200) {
+      toast.success("🎬 Proctor video uploaded successfully!");
+       cleanupCamera();
+      console.log("Uploaded video URL:", res.data.url);
+
+      setTimeout(() => {
+        try {
+          window.close();
+        } catch {
+          toast.info("✅ Upload completed — you can now safely close this tab.");
+        }
+      }, 3000);
+    } else {
+      toast.error("❌ Video upload failed");
+      console.error(res.data);
     }
-  };
+  } catch (err) {
+    toast.error("Upload error: " + err.message);
+    console.error("Video upload failed:", err);
+    throw err;
+  } finally {
+    
+    setTimeout(() => {
+      localStorage.removeItem("uploadingVideo");
+    }, 1000); 
+  }
+};
+
 
   // === FACE DETECTION LOOP ===
  const startDetectionLoop = async () => {
@@ -327,7 +344,7 @@ const FaceProctor = forwardRef(({ onFlag, userId, ExamId }, ref) => {
             const deviation = Math.abs(noseTip.x - faceCenterX);
             const deviationRatio = deviation / eyeDistance;
 
-            if (deviationRatio > 0.45 && lastViolation.current !== "Face turned away") {
+            if (deviationRatio > 0.50 && lastViolation.current !== "Face turned away") {
               onFlag && onFlag("Face turned away from screen");
               toast.warning("⚠️ Face turned away from screen!");
               lastViolation.current = "Face turned away";
@@ -384,6 +401,9 @@ const FaceProctor = forwardRef(({ onFlag, userId, ExamId }, ref) => {
           filter: "brightness(1.1) contrast(1.1)",
         }}
       />
+
+     
+
       <p
         style={{
           fontSize: 11,
