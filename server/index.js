@@ -43,7 +43,7 @@ const cloudinary = require("cloudinary");
 const app = express();
 
 app.use(cors({
-  origin: ["https://bharathmegaminds.com", "http://localhost:3000", "http://localhost:5173", "https://teacher.bharathmegaminds.com"],
+  origin: ["https://bharathmegaminds.com", "http://localhost:3000", "http://localhost:5173", "https://teacher.bharathmegaminds.com","https://api.bharathmegaminds.com"],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
@@ -76,7 +76,7 @@ const server = http.createServer(app);
 
 const io = socketIo(server, {
   cors: {
-    origin: ["http://localhost:3000", "http://localhost:5173", "https://bharathmegaminds.com", "https://teacher.bharathmegaminds.com"],
+    origin: ["http://localhost:3000", "http://localhost:5173", "https://bharathmegaminds.com", "https://teacher.bharathmegaminds.com","https://api.bharathmegaminds.com"],
     methods: ["GET", "POST"]
   },
 });
