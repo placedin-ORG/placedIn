@@ -26,6 +26,7 @@ import axios from "axios";
 import ExamCard from "../../component/exams/ExamCard";
 import { useRazorpay } from "react-razorpay";
 import { tst } from "../../utils/utils";
+import parse from "html-react-parser"; 
 
 const CustomPrevArrow = ({ onClick }) => (
   <button
@@ -294,17 +295,6 @@ const ExamIntro = () => {
                     <h1 className="text-red-500 font-semibold text-3xl lg:text-5xl">
                       {exam.examTitle}
                     </h1>
-                    <p className="text-base lg:text-lg font-semibold text-slate-600">
-                      {truncatedDescription}
-                      {exam.description.length > maxDescriptionLength && (
-                        <button
-                          onClick={() => setShowMore(!showMore)}
-                          className="text-red-500 light font-bold ml-2"
-                        >
-                          {showMore ? "See Less" : "See More"}
-                        </button>
-                      )}
-                    </p>
 
                     {/* Date and Duration Display */}
                     <div className="flex flex-col gap-2 mt-3">
@@ -378,6 +368,18 @@ const ExamIntro = () => {
                         </p>
                       )}
                     </div>
+
+                    <p className="text-base lg:text-lg font-semibold text-slate-600">
+                      {parse(truncatedDescription)}
+                      {exam.description.length > maxDescriptionLength && (
+                        <button
+                          onClick={() => setShowMore(!showMore)}
+                          className="text-red-500 light font-bold ml-2"
+                        >
+                          {showMore ? "See Less" : "See More"}
+                        </button>
+                      )}
+                    </p>
 
                     <p className="font-semibold text-slate-600 flex gap-1 items-center text-sm lg:text-base mt-4">
                       <FaPhone /> For enquiry call: 91XXXXXXXXXX
