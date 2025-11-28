@@ -1,47 +1,43 @@
 import React, { useState } from "react";
-import { useParams, useLocation } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const ExamInstructionPage = () => {
   const navigate = useNavigate();
   const { userId, ExamId } = useParams();
-  console.log(ExamId);
   const [showModal, setShowModal] = useState(false);
-  // const location = useLocation();
-  // const { id } = location.state
+
   const handleFinalExam = () => {
     setShowModal(true); // Show the confirmation modal
   };
 
-  const confirmStart = () => {
+  const confirmStart = async () => {
     setShowModal(false); // Close the modal
+
+    // 1. Request camera access
     try {
-      const url = `${window.location.origin}/exam/${userId}/${ExamId}`;
-      window.open(url, "_blank"); // Open the final exam in a new tab
-      navigate(`/allExams`); // Navigate back to course details
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      // Immediately stop the tracks to release the camera for the next page
+      stream.getTracks().forEach(track => track.stop());
+    } catch (err) {
+      console.error("Camera permission denied:", err);
+      toast.error("Camera access is required to start the exam.");
+      return; // Stop if permission is denied
+    }
+
+    // 2. REMOVED: Fullscreen request is moved to GiveExam.jsx
+
+    // 3. Open the exam in a new tab and navigate the old tab away
+    try {
+      const url = `/exam/${userId}/${ExamId}`;
+      window.open(url, "_blank", "noopener,noreferrer");
+      navigate(`/allExams`); // Or navigate to another appropriate page
     } catch (err) {
       console.log(err);
+      toast.error("Could not open the exam window. Please check your browser's pop-up settings.");
     }
   };
 
-  // const handleFinalExam=async()=>{
-  //     try{
-
-  //       navigate(`/finalExam/${userId}/${courseId}`);
-  //         const elem = document.documentElement;
-  //       if (elem.requestFullscreen) {
-  //         elem.requestFullscreen();
-  //       } else if (elem.mozRequestFullScreen) {
-  //         elem.mozRequestFullScreen();
-  //       } else if (elem.webkitRequestFullscreen) {
-  //         elem.webkitRequestFullscreen();
-  //       } else if (elem.msRequestFullscreen) {
-  //         elem.msRequestFullscreen();
-  //       }
-  //     }catch(err){
-  //       console.log(err);
-  //     }
-  //   }
   return (
     <>
       <div className="w-full h-screen bg-slate-100 flex items-center justify-center p-6 md:p-12">

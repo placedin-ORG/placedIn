@@ -35,7 +35,7 @@ router.get("/completed-exams", isAuth, getUserCompletedExams);
 
 router.get("/submissions/:id", isAuth, getExamSubmissions);
 
-router.get("/calculate-results/:id", isAuth, calculateResults);
+router.post("/calculate-score", isAuth, calculateResults);
 
 router.get("/submissions-detail/:id", isAuth, getSubmissionById);
 router.put("/save-score/:id", isAuth, saveScore);
