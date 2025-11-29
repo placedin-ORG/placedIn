@@ -145,7 +145,7 @@ const AllCourses = () => {
         </div>
 
         {/* Course Cards */}
-        {filteredCourses?.length === 0 ? (
+        {filteredCourses?.length === 0 && !loading ? (
           <div className="mt-16 flex flex-col items-center">
             <img
               src={cannot}
@@ -164,7 +164,7 @@ const AllCourses = () => {
             {loading ? (
               <Xskeletonn />
             ) : (
-              <div className="mt-16 grid grid-cols-1 place-items-center sm:grid-cols-2 lg:grid-cols-3 gap-10">
+              <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 items-stretch">
                 {paginatedCourses.map((course, index) => (
                   <CourseCard course={course} key={index} />
                 ))}

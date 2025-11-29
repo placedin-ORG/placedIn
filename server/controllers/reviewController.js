@@ -29,9 +29,14 @@ exports.addReview = async (req, res) => {
   }
 };
 
+
 exports.getReviews = async (req, res) => {
   try {
     const { courseId } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 6;
+    const skip = (page - 1) * limit;
+
     const course = await Course.findById(courseId).populate(
       "reviews.userId",
       "name avatar"
@@ -39,9 +44,24 @@ exports.getReviews = async (req, res) => {
 
     if (!course) return res.status(404).json({ message: "Course not found" });
 
+    // Calculate rating distribution
+    const ratingDistribution = {};
+    course.reviews.forEach(review => {
+      ratingDistribution[review.rating] = (ratingDistribution[review.rating] || 0) + 1;
+    });
+
+    // Paginate reviews (sort by latest first)
+    const paginatedReviews = course.reviews
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(skip, skip + limit);
+
     res.json({
       totalReviews: course.reviews.length,
-      reviews: course.reviews,
+      reviews: paginatedReviews,
+      ratingDistribution,
+      currentPage: page,
+      totalPages: Math.ceil(course.reviews.length / limit),
+      hasMore: skip + limit < course.reviews.length
     });
   } catch (err) {
     res.status(500).json({ message: err.message });

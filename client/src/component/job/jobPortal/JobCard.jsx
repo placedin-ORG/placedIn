@@ -48,7 +48,7 @@ const JobCard=({job,studentData})=>{
         <img
           src={job.thumbnail}
           alt={`${job.title} thumbnail`}
-          className="w-full h-40 object-cover"
+          className="w-full h-50 object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent  group-hover:opacity-100 transition-opacity duration-300">
           <div className="p-4 flex items-center justify-between text-white">

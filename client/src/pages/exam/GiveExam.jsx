@@ -18,6 +18,7 @@ import FaceProctor from "../../component/FaceProctor";
 import Toast from "../../component/Toast";
 import ExamResult from "./ExamResult";
 import SimpleCalculator from "../../component/SimpleCalculator"; // Import our custom calculator
+import FinalExamResult from "../courses/FinalExamResult";
 
 // --- Constants for Question Status ---
 const STATUS = {
@@ -30,7 +31,8 @@ const STATUS = {
 
 const GiveExam = () => {
   const navigate = useNavigate();
-  const { userId, ExamId } = useParams();
+  const { userId, ExamId, courseId } = useParams();
+  const isFinalExam = !!courseId;
   const [examData, setExamData] = useState(null);
   const [isExamSubmitted, setIsExamSubmitted] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -62,28 +64,39 @@ const GiveExam = () => {
   useEffect(() => {
     const call = async () => {
       try {
-        const { data } = await API.post("/exam/speceficExam", {
-          ExamId,
-          userId,
-        });
-        if (data.msg === "exam found") {
-          setExamData(data.exam);
+        let response;
+
+        if (isFinalExam) {
+          response = await API.post("/learn/final-exam", { userId, courseId });
+        } else {
+          response = await API.post("/exam/speceficExam", { ExamId, userId });
+        }
+
+        if (response.data.msg === "exam found") {
+          setExamData({
+            duration: isFinalExam ? response.data.exam.duration : response.data.exam.duration,
+            questions: response.data.exam.questions,
+          });
+
           const initialStatuses = {};
-          data.exam.questions.forEach((_, index) => {
+          response.data.exam.questions.forEach((_, index) => {
             initialStatuses[index] = STATUS.NOT_VISITED;
           });
           initialStatuses[0] = STATUS.NOT_ANSWERED;
           setQuestionStatuses(initialStatuses);
-        } else if (data.msg === "user found") {
+
+        } else if (response.data.msg === "user found") {
           setIsExamSubmitted(true);
         }
+
       } catch (err) {
-        console.error("Failed to fetch exam", err);
-        toast.error("Could not load the exam.");
+        toast.error("Could not load exam.");
       }
     };
+
     call();
-  }, [ExamId, userId]);
+  }, []);
+
 
   // --- Fullscreen and Proctoring Logic ---
   const handleStart = () => {
@@ -125,10 +138,13 @@ const GiveExam = () => {
           objective: selectedOptionsRef.current,
           subjective: subjectiveAnswersRef.current,
         };
-        await API.post("/exam/submit-exam", {
+        const url = isFinalExam ? "/learn/submit-final-exam" : "/exam/submit-exam";
+
+        await API.post(url, {
           userId,
+          courseId,
           ExamId,
-          userAnswers: finalAnswers,
+          userAnswers: finalAnswers
         });
 
         // 2. Set state to render the ExamResult component
@@ -310,8 +326,9 @@ const GiveExam = () => {
 
   // 3. Conditionally render ExamResult if the exam has been submitted
   if (isExamSubmitted) {
-    return <ExamResult />;
+    return isFinalExam ? <FinalExamResult /> : <ExamResult />;
   }
+
 
   return (
     <>
@@ -354,10 +371,13 @@ const GiveExam = () => {
         {showProctor && (
           <FaceProctor
             userId={userId}
-            ExamId={ExamId}
+            ExamId={isFinalExam ? null : ExamId}
+            courseId={isFinalExam ? courseId : null}
+            isFinalExam={isFinalExam}
             ref={proctorRef}
             onFlag={handleProctorFlag}
           />
+
         )}
         {remainingTime !== null && (
           <div className="relative flex items-center justify-center fixed top-0 left-0 right-0 h-12 bg-blue-600 text-white text-center py-2 z-50">

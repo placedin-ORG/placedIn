@@ -30,7 +30,7 @@ const ExamCard = ({ exam, isUser = false, completed = false }) => {
     <Link
       to={destination}
       key={exam?._id}
-      className="bg-white border border-gray-300 w-full max-w-[22rem] transition-all duration-500 ease-in-out hover:shadow-custom rounded-lg p-4 flex flex-col justify-between cursor-pointer"
+      className="bg-white border pointer border-gray-300 w-full max-w-[22rem] transition-all duration-500 ease-in-out hover:shadow-custom rounded-lg p-4 flex flex-col justify-between cursor-pointer"
     >
       <div>
         {/* Thumbnail */}

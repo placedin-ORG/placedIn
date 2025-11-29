@@ -96,7 +96,7 @@ function App() {
           path="/finalExam/:userId/:courseId"
           element={
             <ProtectedRoutes>
-              <FinalExam />
+              <GiveExam />
             </ProtectedRoutes>
           }
         />
