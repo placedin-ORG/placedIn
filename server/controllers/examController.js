@@ -119,35 +119,17 @@ const submitExam = async (req, res) => {
           throw new Error(
             `Invalid question or type mismatch for index ${index}`
           );
-        }
+        }        
         answersArray.push({ questionId: question._id, answer });
       });
     }
-
-    // Calculate score for objective questions
-    let score = 0;
-    answersArray.forEach(({ questionId, answer }) => {
-      const question = exam.questions.find(
-        (q) => q._id.toString() === questionId.toString()
-      );
-      if (question.type === "objective") {
-        // --- LOGS ADDED ---
-        const isCorrect = Number(answer) === Number(question.correctAnswer); // <-- SIMPLIFIED LOGIC
-        console.log(
-          `[submitExam] Q: ${questionId} | User Answer: ${answer} (${typeof answer}) | Correct Answer: ${question.correctAnswer} (${typeof question.correctAnswer}) | IsCorrect: ${isCorrect}`
-        ); // <-- NEW LOG
-        if (isCorrect) {
-          score += question.weightage || 1;
-        }
-      }
-    });
 
     // Save the submission
     const submission = new ExamResult({
       userId,
       ExamId,
       userAnswers: answersArray,
-      score,
+      score: 0,
     });
 
     await submission.save();
@@ -155,7 +137,6 @@ const submitExam = async (req, res) => {
     res.status(201).json({
       message: "Exam submitted successfully",
       submissionId: submission._id,
-      score,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -540,66 +521,57 @@ const getSubmissionById = async (req, res) => {
 };
 
 // Save the score
-
 const calculateResults = async (req, res) => {
   try {
-    const ExamId = req.params.id;
-    const examData = await Exam.findById(ExamId);
+    // We expect the specific submission ID to be passed in the body
+    const { submissionId } = req.body;
+
+    // 1. Fetch Specific Submission & Exam Data
+    const submission = await ExamResult.findById(submissionId);
+    if (!submission) {
+      return res.status(404).json({ message: "Submission not found" });
+    }
+
+    const examData = await Exam.findById(submission.ExamId);
     if (!examData) {
-      return res.status(404).json({ message: "Exam not found" });
-    }
-    const submissions = await ExamResult.find({ ExamId });
-    if (submissions.length === 0) {
-      return res.status(200).json({ message: "No submissions to calculate." });
+      return res.status(404).json({ message: "Exam data not found" });
     }
 
-    const allSubmissionsToEvaluate = [];
-    const objectiveScores = {}; // Store pre-calculated objective scores by submission ID
+    // --- PHASE 1: PREPARATION (Subjective Gathering Only) ---
+    // We do NOT calculate objective scores here (Optimization).
 
-    // First, calculate all objective scores and prepare subjective answers for a single batch AI call
-    for (const submission of submissions) {
-      let objectiveScore = 0;
-      const subjectiveAnswers = [];
+    const subjectiveAnswersForAI = [];
 
-      for (const userAnswer of submission.userAnswers) {
-        const question = examData.questions.find(
-          (q) => q._id.toString() === userAnswer.questionId.toString()
-        );
-        if (!question) continue;
+    for (const userAnswer of submission.userAnswers) {
+      const question = examData.questions.find(
+        (q) => q._id.toString() === userAnswer.questionId.toString()
+      );
+      if (!question) continue;
 
-        if (question.type === "objective") {
-          // --- LOGS ADDED (LOOP 1) ---
-          const isCorrect = Number(userAnswer.answer) === Number(question.correctAnswer);
-          console.log(
-            `[calculateResults-Loop1] Q: ${question._id} | User Answer: ${userAnswer.answer} (${typeof userAnswer.answer}) | Correct Answer: ${question.correctAnswer} (${typeof question.correctAnswer}) | IsCorrect: ${isCorrect}`
-          ); // <-- NEW LOG
-          if (isCorrect) {
-            objectiveScore += question.weightage || 1;
-          }
-        } else if (question.type === "subjective") {
-          subjectiveAnswers.push({
-            questionId: userAnswer.questionId,
-            questionText: question.questionText,
-            answer: userAnswer.answer,
-            weightage: question.weightage,
-          });
-        }
-      }
-      
-      objectiveScores[submission._id.toString()] = objectiveScore;
-
-      if (subjectiveAnswers.length > 0) {
-        allSubmissionsToEvaluate.push({
-          submissionId: submission._id,
-          answers: subjectiveAnswers,
+      // Only gather subjective answers for the AI
+      if (question.type === "subjective") {
+        subjectiveAnswersForAI.push({
+          questionId: userAnswer.questionId,
+          questionText: question.questionText,
+          answer: userAnswer.answer,
+          weightage: question.weightage,
         });
       }
     }
 
-    const evaluatedSubjectiveScores = {}; // { submissionId: { questionId: score } }
+    // --- PHASE 2: AI EVALUATION (If needed) ---
 
-    // Now, evaluate all subjective answers from all submissions in ONE single API call
-    if (allSubmissionsToEvaluate.length > 0) {
+    let evaluatedSubjectiveScores = {}; // Structure: { submissionId: { questionId: score } }
+
+    if (subjectiveAnswersForAI.length > 0) {
+      // We wrap the single student in an array to match the EXACT prompt structure you requested
+      const payload = [
+        {
+          submissionId: submission._id,
+          answers: subjectiveAnswersForAI,
+        },
+      ];
+
       const prompt = `
         You are an AI exam evaluator. You will receive a JSON array of student submissions.
         For each submission, evaluate the list of subjective answers based on their corresponding questions and weightage.
@@ -612,66 +584,87 @@ const calculateResults = async (req, res) => {
         {"sub1":{"q1":6}}
 
         Input Data:
-        ${JSON.stringify(allSubmissionsToEvaluate)}
+        ${JSON.stringify(payload)}
       `;
 
       try {
         const modelResponse = await model.generateContent(prompt);
-        const responseText = modelResponse.response.text().replace(/```json/g, "").replace(/```/g, "").trim();
+        const responseText = modelResponse.response
+          .text()
+          .replace(/```json/g, "")
+          .replace(/```/g, "")
+          .trim();
         const parsedScores = JSON.parse(responseText);
-        
-        // Merge parsed scores into our structure
-        for (const subId in parsedScores) {
-          evaluatedSubjectiveScores[subId] = parsedScores[subId];
-          console.log(parsedScores[subId]);
-        }
 
+        // Store the result (which will look like { "submissionId": { "qId": 5 } })
+        evaluatedSubjectiveScores = parsedScores;
       } catch (aiError) {
-        console.error("Critical AI Error during batch evaluation:", aiError);
-        // If AI fails, we can't score subjective questions. We will proceed with objective scores only.
+        console.error("Critical AI Error during evaluation:", aiError);
+        // We proceed. Subjective scores will default to 0 in the next phase.
       }
     }
 
-    // Finally, loop through submissions one last time to update them in the database
-    for (const submission of submissions) {
-      const submissionIdStr = submission._id.toString();
-      let finalTotalScore = 0;
-      const finalIndividualScores = [];
+    // --- PHASE 3: FINAL CALCULATION (Loop 2 - The only calculation loop) ---
+    // Now we calculate Objective (Locally) + Subjective (From AI) in one pass.
 
-      // Reconstruct individual scores
-      for (const userAnswer of submission.userAnswers) {
-        const question = examData.questions.find(q => q._id.toString() === userAnswer.questionId.toString());
-        if (!question) continue;
+    let finalTotalScore = 0;
+    const finalIndividualScores = [];
+    const submissionIdStr = submission._id.toString();
 
-        let score = 0;
-        if (question.type === 'objective') {
-          // --- LOGS ADDED (LOOP 2) ---
-          const isCorrect = Number(userAnswer.answer) === Number(question.correctAnswer); // <-- SIMPLIFIED LOGIC
-           console.log(
-            `[calculateResults-Loop2] Q: ${question._id} | User Answer: ${userAnswer.answer} (${typeof userAnswer.answer}) | Correct Answer: ${question.correctAnswer} (${typeof question.correctAnswer}) | IsCorrect: ${isCorrect}`
-          ); // <-- NEW LOG
-          if (isCorrect) {
-            score = question.weightage || 1;
-          }
-        } else { // Subjective
-          score = evaluatedSubjectiveScores[submissionIdStr]?.[userAnswer.questionId.toString()] || 0;
-        }
-        
-        finalTotalScore += score; 
-        finalIndividualScores.push({ questionId: userAnswer.questionId, answer: userAnswer.answer, score });
-      };
-
-      await ExamResult.findByIdAndUpdate(
-        submission._id,
-        { score: finalTotalScore, userAnswers: finalIndividualScores },
-        { new: true }
+    for (const userAnswer of submission.userAnswers) {
+      const question = examData.questions.find(
+        (q) => q._id.toString() === userAnswer.questionId.toString()
       );
+      if (!question) continue;
+
+      let score = 0;
+
+      if (question.type === "objective") {
+        // Calculate Objective Score Locally
+        const isCorrect =
+          Number(userAnswer.answer) === Number(question.correctAnswer);
+
+        console.log(
+          `[calculateResult] Q: ${question._id} | User: ${userAnswer.answer} | Correct: ${question.correctAnswer} | IsCorrect: ${isCorrect}`
+        );
+
+        if (isCorrect) {
+          score = question.weightage || 1;
+        }
+      } else {
+        // Retrieve Subjective Score from AI Result
+        score =
+          evaluatedSubjectiveScores[submissionIdStr]?.[
+            userAnswer.questionId.toString()
+          ] || 0;
+      }
+
+      finalTotalScore += score;
+      finalIndividualScores.push({
+        questionId: userAnswer.questionId,
+        answer: userAnswer.answer,
+        score,
+      });
     }
 
-    res.status(200).json({ message: "All scores calculated and saved successfully!" });
+    // --- PHASE 4: UPDATE DATABASE ---
+
+    // We use the same submission object we fetched earlier
+    submission.score = finalTotalScore;
+    submission.userAnswers = finalIndividualScores;
+
+    await submission.save();
+
+    res.status(200).json({
+      message: "Score calculated successfully",
+      score: finalTotalScore,
+      submissionId: submission._id,
+    });
   } catch (error) {
     console.error("Error in calculateResults function:", error);
-    res.status(500).json({ message: "Failed to calculate scores due to a server error." });
+    res
+      .status(500)
+      .json({ message: "Failed to calculate scores due to a server error." });
   }
 };
 

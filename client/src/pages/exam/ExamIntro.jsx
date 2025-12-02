@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "../../component//Navbar";
-import { useParams } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import {
   FaClock,
@@ -10,7 +9,9 @@ import {
   FaReceipt,
   FaShare,
   FaShieldAlt,
-  FaCalendarAlt, // Import FaCalendarAlt
+  FaCalendarAlt,
+  FaArrowLeft,
+  FaArrowRight,
 } from "react-icons/fa";
 import { FaStar, FaRegStar } from "react-icons/fa";
 import "slick-carousel/slick/slick.css";
@@ -18,15 +19,13 @@ import "slick-carousel/slick/slick-theme.css";
 import Footer from "../../component/Layout/Footer";
 import SkeletonLoading from "../../component/loading/SkeletonLoading";
 import API from "../../utils/API";
-import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Toast from "../../component/Toast";
-import axios from "axios";
 import ExamCard from "../../component/exams/ExamCard";
 import { useRazorpay } from "react-razorpay";
 import { tst } from "../../utils/utils";
-import parse from "html-react-parser"; 
+import parse from "html-react-parser";
 
 const CustomPrevArrow = ({ onClick }) => (
   <button
@@ -47,20 +46,20 @@ const CustomNextArrow = ({ onClick }) => (
     <FaArrowRight />
   </button>
 );
+
 const ExamIntro = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { id } = useParams();
   const [exam, setExam] = useState(null);
   const [relatedExam, setRelatedExam] = useState(null);
-  const state = useSelector((state) => state.user.currentCourse);
   const [start, setStart] = useState(false);
   const [enrolled, setEnrolled] = useState(false);
   const [examGiven, setExamGiven] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [submissionDate, setSubmissionDate] = useState(null); 
+  const [submissionDate, setSubmissionDate] = useState(null);
   const user = useSelector((state) => state);
-  const { error, isLoading, Razorpay } = useRazorpay();
+  const { Razorpay } = useRazorpay();
 
   const getExamStatus = async () => {
     try {
@@ -86,10 +85,12 @@ const ExamIntro = () => {
         if (data.data.status) {
           setLoading(false);
           setExam(data.data.exam);
+
           if (data.data.examResult) {
             setExamGiven(true);
-            setSubmissionDate(data.data.examResult.createdAt); // Save the submission date
+            setSubmissionDate(data.data.examResult.createdAt);
           }
+
           if (
             data?.data?.exam?.enrolledStudents?.some(
               (student) => student.userId === user.user.user._id
@@ -107,6 +108,7 @@ const ExamIntro = () => {
         if (data.data.status) {
           setLoading(false);
           setExam(data.data.exam);
+
           if (data.data.relatedExams.length !== 0) {
             setRelatedExam(data.data.relatedExams);
           }
@@ -115,14 +117,13 @@ const ExamIntro = () => {
     };
     call();
   }, []);
-  // --> here <--
+
   const startLearning = async () => {
-    console.log(exam);
     if (user.user.user === null) {
       navigate("/register");
       return;
-    } 
-    
+    }
+
     if (exam.publishResult && examGiven) {
       navigate(`/exam/result/${id}`);
       return;
@@ -139,7 +140,7 @@ const ExamIntro = () => {
     }
   };
 
-  const handlePayment = async (address = "") => {
+  const handlePayment = async () => {
     const options = {
       key: import.meta.env.VITE_APP_RAZOR_API_KEY,
       amount: Math.ceil(exam.price - exam.discountAmount) * 100,
@@ -148,6 +149,7 @@ const ExamIntro = () => {
       description: "Test Transaction",
       image:
         "https://s3.ap-south-1.amazonaws.com/assets.ynos.in/startup-logos/YNOS382149.jpg",
+
       handler: async (res) => {
         const payload = {
           exam: exam._id,
@@ -157,31 +159,24 @@ const ExamIntro = () => {
           amount: exam.price - exam.discountAmount,
           success: true,
         };
-        await handlePurchase(payload);
+
+        await API.post("/purchase/create", payload);
         await API.put(`/exam/enroll-user/${exam._id}`);
         setEnrolled(true);
         toast.success("Payment successful");
       },
+
       prefill: {
         name: user?.user?.name,
         email: user?.user?.email,
       },
-      theme: {
-        color: "#3399cc",
-      },
-    };
 
-    const handlePurchase = async (payload) => {
-      try {
-        const { data } = await API.post("/purchase/create", payload);
-        tst.success("Purchase info saved");
-      } catch (error) {
-        tst.error(error);
-      }
+      theme: { color: "#3399cc" },
     };
 
     const rzpay = new Razorpay(options);
-    rzpay.on("payment.failed", async function (response) {
+
+    rzpay.on("payment.failed", async (response) => {
       const payload = {
         exam: exam._id,
         user: user.user.user._id,
@@ -190,42 +185,20 @@ const ExamIntro = () => {
         amount: exam.price - exam.discountAmount,
         success: false,
       };
-      await handlePurchase(payload);
 
-      toast.error("Payment falied \n Error Code: " + response.error.code);
+      await API.post("/purchase/create", payload);
+      toast.error("Payment failed");
     });
+
     rzpay.open();
   };
 
-  const settings = {
-    dots: true, // Show pagination dots
-    infinite: true, // Infinite loop scrolling
-    speed: 500, // Animation speed
-    slidesToShow: 3, // Number of slides to show
-    slidesToScroll: 1, // Number of slides to scroll per click
-    // arrows: true, // Show navigation arrows
-    nextArrow: <CustomNextArrow />,
-    prevArrow: <CustomPrevArrow />,
-
-    responsive: [
-      {
-        breakpoint: 1024, // Below 1024px
-        settings: {
-          slidesToShow: 2,
-        },
-      },
-      {
-        breakpoint: 600, // Below 600px
-        settings: {
-          slidesToShow: 1,
-        },
-      },
-    ],
-  };
   const [showMore, setShowMore] = useState(false);
-  const maxDescriptionLength = 100; // Adjust as needed
+  const maxDescriptionLength = 100;
+
   let truncatedDescription = "";
   let optimizedImage = "";
+
   if (exam !== null) {
     truncatedDescription =
       exam.description.length > maxDescriptionLength && !showMore
@@ -236,29 +209,23 @@ const ExamIntro = () => {
       exam.examThumbnail &&
       `${exam.examThumbnail}?w_800,h_600,c_fill,q_auto,f_auto`;
   }
-  // const calculateAverageRating = () => {
-  //   if(course){
-  //       if (course.rating.length === 0) return 0;
-  //   const totalRating = course.rating.reduce((acc, cur) => acc + cur.rating, 0);
-  //   return totalRating / course.rating.length;
-  //   }
 
-  // };
-
-  // const averageRating = calculateAverageRating();
   return (
     <>
       <Navbar />
+
       {loading ? (
         <SkeletonLoading />
       ) : (
         <div className="bg-slate-50">
           <Toast />
+
           {exam && (
             <div>
-              <div className="w-full flex flex-col lg:flex-row">
-                {/* Image Section (Moved to the left) */}
-                <div className="lg:w-1/2 w-full p-5">
+              {/* ---------------------- HERO SECTION ---------------------- */}
+              <div className="px-14 w-full flex flex-col lg:flex-row gap-10 mt-4">
+                {/* Image */}
+                <div className="lg:w-1/2 w-full">
                   <div className="h-auto w-full overflow-hidden rounded-xl shadow-lg">
                     <img
                       src={optimizedImage || exam.examThumbnail}
@@ -268,27 +235,22 @@ const ExamIntro = () => {
                   </div>
                 </div>
 
-                {/* Text Section (Moved to the right) */}
+                {/* Text */}
                 <div className="lg:w-1/2 w-full flex items-center justify-start py-5">
-                  <div className="px-5 lg:px-10 flex flex-col gap-3">
-                    <div className="flex items-center gap-1">
-                      <p className="px-5 py-1 bg-green-100 text-green-500 rounded-2xl w-fit font-semibold">
+                  <div className="px-5 lg:px-8 flex flex-col gap-4">
+                    <div className="flex items-center gap-3">
+                      <p className="px-5 py-1 bg-green-100 text-green-500 rounded-2xl font-semibold">
                         {exam.price > 0 ? (
-                          <p className="flex items-center justify-center gap-5">
-                            <span className="">
-                              ₹{exam.price - exam.discountAmount}{" "}
-                            </span>
-                          </p>
+                          <span>₹{exam.price - exam.discountAmount}</span>
                         ) : (
                           "Free"
                         )}
                       </p>
+
                       {exam.discountAmount > 0 && (
-                        <p>
-                          <span className="text-gray-600 line-through">
-                            ₹{exam.price}{" "}
-                          </span>
-                        </p>
+                        <span className="text-gray-600 line-through">
+                          ₹{exam.price}
+                        </span>
                       )}
                     </div>
 
@@ -296,23 +258,20 @@ const ExamIntro = () => {
                       {exam.examTitle}
                     </h1>
 
-                    {/* Date and Duration Display */}
                     <div className="flex flex-col gap-2 mt-3">
-                      <span className="text-red-500 text-sm lg:text-lg flex items-center gap-2">
-                        <FaCalendarAlt /> :{" "}
+                      <span className="text-red-500 text-lg flex items-center gap-2">
+                        <FaCalendarAlt />
                         <span className="text-slate-600 font-semibold">
-                          {new Date(exam.startDate).toLocaleDateString(
-                            "en-GB",
-                            {
-                              day: "numeric",
-                              month: "long",
-                              year: "numeric",
-                            }
-                          )}
+                          {new Date(exam.startDate).toLocaleDateString("en-GB", {
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                          })}
                         </span>
                       </span>
-                      <span className="text-red-500 text-sm lg:text-lg flex items-center gap-2">
-                        <FaClock /> :{" "}
+
+                      <span className="text-red-500 text-lg flex items-center gap-2">
+                        <FaClock />
                         <span className="text-slate-600 font-semibold">
                           {exam.duration >= 60
                             ? `${Math.floor(exam.duration / 60)} hours`
@@ -321,36 +280,25 @@ const ExamIntro = () => {
                       </span>
                     </div>
 
-                    {/* Button Logic */}
-                    <div className="flex flex-col items-start">
-                      {new Date(new Date(exam.startDate).toDateString()) <=
-                      new Date(new Date().toDateString()) ? (
-                        <button
-                          className="text-base lg:text-xl text-white bg-primary-light w-fit px-8 lg:px-16 rounded-xl py-1.5 font-semibold disabled:opacity-60 disabled:cursor-not-allowed mt-4"
-                          onClick={() => startLearning()}
-                          disabled={
-                            (!exam.publishResult && examGiven) ||
-                            (exam.publishResult && !examGiven)
-                          }
-                        >
-                          {exam.publishResult
-                            ? "View Results"
-                            : examGiven
-                            ? "Please Wait for Results"
-                            : enrolled
-                            ? "Start Test Now"
-                            : "Register for Exam"}
-                        </button>
-                      ) : (
-                        <button
-                          className="text-base lg:text-xl text-white bg-primary-light w-fit px-8 lg:px-16 rounded-xl py-1.5 font-semibold mt-4"
-                          onClick={() => startLearning()}
-                        >
-                          Register for Exam
-                        </button>
-                      )}
+                    {/* Button */}
+                    <div className="flex flex-col">
+                      <button
+                        className="text-lg text-white bg-primary-light px-14 rounded-xl py-2 font-semibold mt-4 disabled:opacity-60"
+                        onClick={() => startLearning()}
+                        disabled={
+                          (!exam.publishResult && examGiven) ||
+                          (exam.publishResult && !examGiven)
+                        }
+                      >
+                        {exam.publishResult
+                          ? "View Results"
+                          : examGiven
+                          ? "Please Wait for Results"
+                          : enrolled
+                          ? "Start Test Now"
+                          : "Register for Exam"}
+                      </button>
 
-                      {/* Predicted Result Date Display */}
                       {examGiven && !exam.publishResult && submissionDate && (
                         <p className="text-sm text-gray-600 mt-2">
                           Predicted result date:{" "}
@@ -359,44 +307,21 @@ const ExamIntro = () => {
                               new Date(submissionDate).setDate(
                                 new Date(submissionDate).getDate() + 5
                               )
-                            ).toLocaleDateString("en-GB", {
-                              day: "numeric",
-                              month: "long",
-                              year: "numeric",
-                            })}
+                            ).toLocaleDateString("en-GB")}
                           </span>
                         </p>
                       )}
                     </div>
-
-                    <p className="text-base lg:text-lg font-semibold text-slate-600">
-                      {parse(truncatedDescription)}
-                      {exam.description.length > maxDescriptionLength && (
-                        <button
-                          onClick={() => setShowMore(!showMore)}
-                          className="text-red-500 light font-bold ml-2"
-                        >
-                          {showMore ? "See Less" : "See More"}
-                        </button>
-                      )}
-                    </p>
-
-                    <p className="font-semibold text-slate-600 flex gap-1 items-center text-sm lg:text-base mt-4">
-                      <FaPhone /> For enquiry call: 91XXXXXXXXXX
-                    </p>
                   </div>
                 </div>
               </div>
 
-              <div className="px-14 mt-4 ">
-                <p className="font-semibold">Key Highlights</p>
-                <p className="text-3xl font-bold flex items-center gap-2 mt-2">
+              {/* ---------------------- WHAT YOU NEED ---------------------- */}
+              <div className="px-14 mt-8">
+                <p className="text-3xl font-bold">
                   What You will <span className="text-primary-light">Need</span>
                 </p>
 
-                {/*
-    what you will learn
-    */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mt-6">
                   {exam.topics.map((elem, index) => (
                     <div
@@ -408,98 +333,106 @@ const ExamIntro = () => {
                   ))}
                 </div>
 
-                {/*
-    certification
-    */}
-                <div className="px-5 lg:px-20 mt-7 py-5 rounded-3xl">
-                  <p className="font-mono text-lg lg:text-xl">CERTIFICATE</p>
-                  <h1 className="text-xl lg:text-3xl font-semibold">
-                    <span className="text-primary-light">Earn and Share</span>{" "}
-                    Your Certificate
-                  </h1>
-                  <div className="flex flex-col lg:flex-row mt-9 gap-6 lg:gap-11">
-                    {/* Text Section */}
-                    <div className="flex flex-col gap-4 lg:w-1/2">
-                      {/* Official & Verifiable */}
-                      <div className="flex gap-3">
-                        <FaShieldAlt className="text-3xl lg:text-5xl text-primary-light" />
-                        <div className="flex flex-col">
-                          <h1 className="font-semibold text-lg lg:text-2xl">
-                            Official & Verifiable
-                          </h1>
-                          <p className="text-slate-600 text-sm lg:text-base">
-                            Receive a signed and verifiable e-certificate from
-                            upGrad upon successfully completing the course.
-                          </p>
-                        </div>
-                      </div>
+                {/* ---------------------- DESCRIPTION ---------------------- */}
+                <div className="mt-6">
+                  <p className="text-3xl font-bold">Description</p>
 
-                      {/* Share Your Achievement */}
-                      <div className="flex gap-3">
-                        <FaShare className="text-3xl lg:text-5xl text-primary-light" />
-                        <div className="flex flex-col">
-                          <h1 className="font-semibold text-lg lg:text-2xl">
-                            Share Your Achievement
-                          </h1>
-                          <p className="text-slate-600 text-sm lg:text-base">
-                            Post your certificate on LinkedIn or add it to your
-                            resume! You can even share it on Instagram or
-                            Twitter.
-                          </p>
-                        </div>
-                      </div>
+                  <p className="text-lg font-semibold text-slate-600 mt-4">
+                    {parse(truncatedDescription)}
 
-                      {/* Stand Out to Recruiters */}
-                      <div className="flex gap-3">
-                        <FaReceipt className="text-3xl lg:text-5xl text-primary-light" />
-                        <div className="flex flex-col">
-                          <h1 className="font-semibold text-lg lg:text-2xl">
-                            Stand Out to Recruiters
-                          </h1>
-                          <p className="text-slate-600 text-sm lg:text-base">
-                            Use your certificate to enhance your professional
-                            credibility and stand out among your peers!
-                          </p>
-                        </div>
+                    {exam.description.length > maxDescriptionLength && (
+                      <button
+                        onClick={() => setShowMore(!showMore)}
+                        className="text-red-500 font-bold ml-2"
+                      >
+                        {showMore ? "See Less" : "See More"}
+                      </button>
+                    )}
+                  </p>
+                </div>
+
+                {/* ---------------------- CERTIFICATE SECTION ---------------------- */}
+                <div className="mt-10 py-5 rounded-3xl flex flex-col lg:flex-row gap-10 items-start">
+                  {/* Left: Text */}
+                  <div className="flex flex-col gap-2 lg:w-1/2">
+                    <p className="font-mono text-lg">CERTIFICATE</p>
+
+                    <h1 className="text-3xl font-semibold">
+                      <span className="text-primary-light">Earn and Share</span>{" "}
+                      Your Certificate
+                    </h1>
+
+                    {/* Official */}
+                    <div className="flex gap-3 mt-5">
+                      <FaShieldAlt className="text-4xl text-primary-light" />
+                      <div>
+                        <h1 className="font-semibold text-2xl">
+                          Official & Verifiable
+                        </h1>
+                        <p className="text-slate-600">
+                          Get a verifiable certificate after completion.
+                        </p>
                       </div>
                     </div>
 
-                    {/* Image Section */}
-                    <div className="hidden lg:block lg:w-1/2">
-                      <img
-                        src="https://th.bing.com/th/id/OIP.rxDrB65ZGXpz6L5nE22ecAHaFP?w=249&h=180&c=7&r=0&o=5&dpr=1.4&pid=1.7"
-                        className="w-full rounded-xl"
-                        alt="Certificate Preview"
-                      />
+                    {/* Share */}
+                    <div className="flex gap-3 mt-5">
+                      <FaShare className="text-4xl text-primary-light" />
+                      <div>
+                        <h1 className="font-semibold text-2xl">
+                          Share Your Achievement
+                        </h1>
+                        <p className="text-slate-600">
+                          Share on LinkedIn, resume, Instagram & more.
+                        </p>
+                      </div>
                     </div>
+
+                    {/* Recruiters */}
+                    <div className="flex gap-3 mt-5">
+                      <FaReceipt className="text-4xl text-primary-light" />
+                      <div>
+                        <h1 className="font-semibold text-2xl">
+                          Stand Out to Recruiters
+                        </h1>
+                        <p className="text-slate-600">
+                          Improve your credibility with recruiters.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right: Certificate Image */}
+                  <div className="lg:w-1/2 w-full">
+                    <img
+                      src="https://th.bing.com/th/id/OIP.rxDrB65ZGXpz6L5nE22ecAHaFP?w=249&h=180&c=7&r=0&o=5&dpr=1.4&pid=1.7"
+                      className="w-full rounded-xl shadow"
+                      alt="Certificate Preview"
+                    />
                   </div>
                 </div>
 
-                {/**
- Similar Courses
- */}
+                {/* ---------------------- RELATED COURSES ---------------------- */}
                 {relatedExam && (
                   <div className="mt-10">
-                    <p className="text-sm font-mono tracking-wide text-gray-500 uppercase">
+                    <p className="text-sm font-mono text-gray-500 uppercase tracking-wide">
                       Related Courses
                     </p>
-                    <h1 className="text-4xl font-bold text-gray-800 leading-snug">
-                      <span className="text-primary-light">
-                        Learn More with{" "}
-                      </span>{" "}
-                      Similar Courses
+
+                    <h1 className="text-4xl font-bold text-gray-800">
+                      <span className="text-primary-light">Learn More</span>{" "}
+                      with Similar Courses
                     </h1>
-                    <div className="mt-12 mb-6 flex gap-6 overflow-x-scroll px-4">
-                      {/* <Slider {...settings} className="space-x-6"> */}
-                      {relatedExam?.map((exam, index) => (
+
+                    <div className="mt-10 flex gap-6 overflow-x-scroll px-4">
+                      {relatedExam.map((exam, index) => (
                         <div
                           key={index}
-                          className="  flex-shrink-0 hover:shadow-xl transition duration-300 rounded-xl bg-white overflow-hidden"
+                          className="flex-shrink-0 hover:shadow-xl transition duration-300 rounded-xl bg-white overflow-hidden"
                         >
                           <ExamCard exam={exam} />
                         </div>
                       ))}
-                      {/* </Slider> */}
                     </div>
                   </div>
                 )}
