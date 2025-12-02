@@ -1,54 +1,64 @@
 import React, { useState } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 
-// Component to handle camera permission request and launch the exam
+// Define the states for the modal content
+const MODAL_STATE = {
+  CONFIRM: 'confirm',
+  ASKING: 'asking',
+  DENIED: 'denied',
+  GRANTED: 'granted',
+  ERROR: 'error',
+};
+
 const ExamInstructionPage = () => {
   const navigate = useNavigate();
   const { userId, ExamId } = useParams();
   
-  // State to control the confirmation/permission modal
   const [showModal, setShowModal] = useState(false);
-  
-  // State to hold the content of the modal (Pre-check or Permission Warning)
   const [modalContent, setModalContent] = useState('confirm'); 
 
-  // --- UI Handler: Shows the initial modal ---
   const handleFinalExam = () => {
-    // Reset to initial confirmation state
     setModalContent('confirm');
     setShowModal(true); 
   };
   
-  // --- Core Logic: Checks camera and launches exam ---
+  // --- Core Logic: Opens window synchronously, then checks camera asynchronously ---
   const checkCameraAndStart = async () => {
+    
+    // 1. Prepare to launch immediately to satisfy pop-up blockers
+    const url = `${window.location.origin}/exam/${userId}/${ExamId}`;
+    
+    // 💡 FIX: Open the window synchronously BEFORE ANY ASYNC CALLS (No await or setTimeout)
+    const newWindow = window.open(url, "_blank"); 
+    
+    // Update modal state for the current (parent) window
+    setModalContent('asking'); 
     setShowModal(true); 
-    setModalContent('loading'); // Show loading state while asking for camera
 
     try {
-      // 1. Attempt to get camera stream (triggers browser permission prompt)
+      // 2. Perform camera check asynchronously
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: true,
-        audio: false // Only request video for proctoring
+        audio: false
       });
 
-      // 2. If successful, stop the temporary stream and launch the exam
+      // 3. Permission Granted: Stop temporary stream
       stream.getTracks().forEach(track => track.stop());
       
-      setModalContent('granted'); // Set success message
+      setModalContent('granted'); 
       
-      // Add a small delay for user to see 'granted' message
+      // 4. Navigate parent window away and close modal after slight delay
       setTimeout(() => {
-        // Launch Exam in a new tab (as per your original logic)
-        const url = `${window.location.origin}/exam/${userId}/${ExamId}`;
-        window.open(url, "_blank"); 
-        
         setShowModal(false); 
         navigate(`/allExams`); 
-      }, 1500);
-
+      }, 1000); // 1 second delay
 
     } catch (err) {
-      // 3. If access is denied or blocked
+      // 5. Permission Denied/Error: Close the newly opened window and show error state
+      if (newWindow && !newWindow.closed) {
+          newWindow.close();
+      }
+      
       console.error("Camera access failed:", err);
       if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
         setModalContent('denied');
@@ -58,7 +68,7 @@ const ExamInstructionPage = () => {
     }
   };
 
-  // --- Modal Content Renderer ---
+  // --- Modal Content Renderer (Kept the same) ---
   const renderModalContent = () => {
     switch (modalContent) {
       case 'confirm':
@@ -103,7 +113,7 @@ const ExamInstructionPage = () => {
               Camera access was denied. You **must** enable your camera for proctoring to start the exam.
             </p>
             <p className="text-sm text-gray-500 mb-6 bg-gray-100 p-3 rounded text-left">
-                **Fix:** If the prompt doesn't appear when you click retry, click the **🔒 lock icon** in the URL bar and manually set the camera permission to **Allow** before retrying.
+              **Fix:** If the prompt doesn't appear when you click retry, click the **🔒 lock icon** in the URL bar and manually set the camera permission to **Allow** before retrying.
             </p>
             <button
               className="px-5 py-2 bg-orange-500 text-white font-medium rounded-lg hover:bg-orange-600 transition-all"
@@ -143,7 +153,7 @@ const ExamInstructionPage = () => {
   return (
     <>
       <div className="w-full h-screen bg-slate-100 flex items-center justify-center p-6 md:p-12">
-        {/* ... (Existing Exam Instructions UI) ... */}
+        {/* Outer Container */}
         <div className="flex flex-col md:flex-row items-center md:items-start w-full max-w-4xl border-2 rounded-3xl shadow-lg bg-white overflow-hidden">
           {/* Left Section - Instructions */}
           <div className="w-full md:w-1/2 p-6 md:p-10">

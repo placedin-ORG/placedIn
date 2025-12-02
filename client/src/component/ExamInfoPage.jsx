@@ -26,43 +26,43 @@ const ExamInfoPage = () => {
 
   const checkCameraAndLaunch = async () => {
     setModalState(MODAL_STATE.ASKING);
-    setShowModal(true); // Keep modal open during permission check
+    setShowModal(true); 
 
-    try {
-      // 1. Request camera stream (triggers browser prompt)
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: false, // Assuming only video is needed for proctoring
-      });
+    // --- FIX: Execute window.open synchronously with the button click ---
+    const url = `${import.meta.env.VITE_APP_CLIENT_URL}/finalExam/${userId}/${courseId}`;
+    const newWindow = window.open(url, "_blank"); 
+    
+    // Use an immediate function (IIFE) to run the camera check logic asynchronously
+    (async () => {
+        try {
+            // 1. Request camera stream (optional for state tracking, newWindow does the main check)
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+            stream.getTracks().forEach((track) => track.stop());
 
-      // 2. Permission Granted: Stop temporary stream
-      stream.getTracks().forEach((track) => track.stop());
+            setModalState(MODAL_STATE.GRANTED);
+            
+            // 2. After state update, close the modal and navigate
+            setTimeout(() => {
+                setShowModal(false);
+                navigate(`/courseDetail/${id}`); 
+            }, 1000);
 
-      setModalState(MODAL_STATE.GRANTED);
+        } catch (err) {
+            // Camera access failed 
+            console.error("Camera access failure:", err);
+            newWindow.close(); // Close the exam window if camera check fails in this window
+            
+            if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+              setModalState(MODAL_STATE.DENIED);
+            } else {
+              setModalState(MODAL_STATE.ERROR);
+            }
+        }
+    })(); // Execute the async camera check immediately after opening the window
 
-      // 3. Launch exam after a small delay
-      setTimeout(() => {
-        const url = `${
-          import.meta.env.VITE_APP_CLIENT_URL
-        }/finalExam/${userId}/${courseId}`;
-        console.log("value of url", url);
-        window.open(url, "_blank"); // Open the final exam in a new tab
-        
-        setShowModal(false);
-        navigate(`/courseDetail/${id}`); // Navigate back to course details
-      }, 1000);
-
-    } catch (err) {
-      console.error("Camera access failure:", err);
-      
-      // 4. Permission Denied/Error
-      if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
-        setModalState(MODAL_STATE.DENIED);
-      } else {
-        setModalState(MODAL_STATE.ERROR);
-      }
-    }
-  };
+    // Return here to prevent the main thread from waiting
+    return;
+};
 
   // Helper function to render the dynamic modal content
   const renderModalContent = () => {
