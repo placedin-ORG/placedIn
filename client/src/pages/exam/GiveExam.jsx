@@ -47,6 +47,8 @@ const GiveExam = () => {
   const [questionStatuses, setQuestionStatuses] = useState({});
   const [selectedOptions, setSelectedOptions] = useState({});
   const [subjectiveAnswers, setSubjectiveAnswers] = useState({});
+  const [currentSubjectiveText, setCurrentSubjectiveText] = useState("");
+
 
   const proctorRef = useRef(null);
   const isSubmittedRef = useRef(false);
@@ -475,6 +477,7 @@ const GiveExam = () => {
                         Answer:
                       </p>
                       <ReactQuill
+                        key={currentQuestionIndex}
                         className="h-full text-xl"
                         style={{ height: "15rem" }}
                         value={subjectiveAnswers[currentQuestionIndex] || ""}

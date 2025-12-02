@@ -19,12 +19,25 @@ const FaceProctor = forwardRef(({ onFlag, userId, ExamId, courseId, isFinalExam 
   const streamRef = useRef(null);
   const hasStoppedRef = useRef(false);
 
+  // Cloudinary chunked upload state
+  const uploadSessionIdRef = useRef(null);
+  const chunkIndexRef = useRef(0);
+  const isUploadingRef = useRef(false);
+  const uploadQueueRef = useRef([]);
+
+  // === CONFIG ===
+  const CONFIG = {
+    CHUNK_DURATION: 5000, // 5 seconds per chunk
+    MAX_RETRIES: 3,
+  };
+
   useEffect(() => {
     mountedRef.current = true;
     hasStoppedRef.current = false;
 
     const loadAndStart = async () => {
       try {
+        // Load face detection models
         if (
           !faceapi.nets.tinyFaceDetector.isLoaded ||
           !faceapi.nets.faceLandmark68Net.isLoaded
@@ -35,7 +48,15 @@ const FaceProctor = forwardRef(({ onFlag, userId, ExamId, courseId, isFinalExam 
           ]);
         }
 
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        // Get camera stream
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { 
+            width: 640, 
+            height: 480,
+            frameRate: 15
+          } 
+        });
+        
         if (!mountedRef.current) {
           stream.getTracks().forEach(t => t.stop());
           return;
@@ -43,19 +64,29 @@ const FaceProctor = forwardRef(({ onFlag, userId, ExamId, courseId, isFinalExam 
 
         streamRef.current = stream;
         videoRef.current.srcObject = stream;
-        startRecording(stream);
 
+        // Initialize Cloudinary upload session
+        await initializeCloudinarySession();
+
+        // Start chunked recording
+        startChunkedRecording(stream);
+
+        // Wait for video to play
         await new Promise(resolve => {
           videoRef.current.onplaying = () => resolve();
         });
 
+        // Setup canvas for face detection
         const canvas = faceapi.createCanvasFromMedia(videoRef.current);
         canvas.style.display = "none";
         document.getElementById("faceproctor-container")?.appendChild(canvas);
         canvasRef.current = canvas;
 
+        // Start face detection
         setTimeout(() => startDetectionLoop(), 2000);
+
       } catch (err) {
+        console.error("FaceProctor init error:", err);
         toast.error("Camera access denied");
         onFlag?.("Camera failed");
       }
@@ -67,12 +98,188 @@ const FaceProctor = forwardRef(({ onFlag, userId, ExamId, courseId, isFinalExam 
       mountedRef.current = false;
       if (!hasStoppedRef.current) {
         hasStoppedRef.current = true;
-        cleanupCameraOnly(); // on unmount (e.g. tab close)
+        cleanupCameraOnly();
       }
     };
   }, [onFlag]);
 
-  // Stop camera + UI immediately
+  // === INITIALIZE CLOUDINARY UPLOAD SESSION ===
+  const initializeCloudinarySession = async () => {
+    try {
+      const response = await API.post("/proctor/init-upload", {
+        userId,
+        ExamId: isFinalExam ? null : ExamId,
+        courseId: isFinalExam ? courseId : null,
+        isFinalExam,
+      });
+
+      if (response.data.uploadId) {
+        uploadSessionIdRef.current = response.data.uploadId;
+        localStorage.setItem("uploadingVideo", "true");
+        console.log("✅ Cloudinary upload session initialized:", uploadSessionIdRef.current);
+      } else {
+        throw new Error("Failed to get upload ID");
+      }
+    } catch (error) {
+      console.error("❌ Failed to initialize Cloudinary session:", error);
+      throw error;
+    }
+  };
+
+  // === CHUNKED RECORDING ===
+  const startChunkedRecording = (stream) => {
+    const options = {
+      mimeType: 'video/webm; codecs=vp9,opus',
+      videoBitsPerSecond: 300000, // 300 kbps for smaller chunks
+    };
+
+    let mediaRecorder;
+    
+    try {
+      mediaRecorder = new MediaRecorder(stream, options);
+    } catch (e) {
+      // Fallback for browsers that don't support VP9
+      mediaRecorder = new MediaRecorder(stream);
+    }
+
+    mediaRecorderRef.current = mediaRecorder;
+    let chunks = [];
+    let chunkStartTime = Date.now();
+
+    mediaRecorder.ondataavailable = (event) => {
+      if (event.data && event.data.size > 0) {
+        chunks.push(event.data);
+        
+        // Every 5 seconds, upload the accumulated chunks
+        if (Date.now() - chunkStartTime >= CONFIG.CHUNK_DURATION) {
+          const chunkBlob = new Blob(chunks, { type: 'video/webm' });
+          uploadChunkToCloudinary(chunkBlob, chunkIndexRef.current);
+          
+          // Reset for next chunk
+          chunks = [];
+          chunkIndexRef.current++;
+          chunkStartTime = Date.now();
+        }
+      }
+    };
+
+    mediaRecorder.onstop = () => {
+      // Upload final chunk if any remains
+      if (chunks.length > 0) {
+        const finalChunk = new Blob(chunks, { type: 'video/webm' });
+        uploadChunkToCloudinary(finalChunk, chunkIndexRef.current, true);
+      }
+      console.log("🛑 Recording stopped");
+    };
+
+    // Start recording with 1-second timeslices
+    mediaRecorder.start(1000);
+    console.log("🎥 Chunked recording started (5s chunks)");
+  };
+
+  // === UPLOAD CHUNK TO CLOUDINARY ===
+  // Update your FaceProctor component's uploadChunkToCloudinary function:
+
+const uploadChunkToCloudinary = async (chunkBlob, chunkIndex, isFinal = false) => {
+  if (!uploadSessionIdRef.current) {
+    console.error("No upload session ID");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("chunk", chunkBlob);
+  formData.append("uploadId", uploadSessionIdRef.current);
+  formData.append("chunkIndex", chunkIndex);
+  formData.append("isFinal", isFinal.toString());
+  formData.append("userId", userId);
+
+  if (isFinalExam) {
+    formData.append("courseId", courseId);
+    formData.append("isFinalExam", "true");
+  } else {
+    formData.append("ExamId", ExamId);
+    formData.append("isFinalExam", "false");
+  }
+
+  console.log(`📤 Uploading chunk ${chunkIndex} (${(chunkBlob.size / 1024).toFixed(1)}KB)`);
+
+  try {
+    const response = await API.post("/proctor/upload-chunk-simple", formData, {
+      timeout: 30000, // 30 seconds for potentially larger uploads
+    });
+
+    if (response.status === 200) {
+      console.log(`✅ Chunk ${chunkIndex} uploaded (${response.data.totalChunks} total)`);
+      
+      if (isFinal && response.data.videoUrl) {
+        console.log("🎬 Final video URL:", response.data.videoUrl);
+        
+        // Store the video URL in local storage for the parent component
+        localStorage.setItem(`proctorVideo_${userId}`, response.data.videoUrl);
+      }
+      if (isFinal && response.data.isComplete) {
+        localStorage.removeItem("uploadingVideo");
+      }
+      return response.data;
+    }
+  } catch (error) {
+    console.error(`❌ Failed to upload chunk ${chunkIndex}:`, error);
+    
+    // Retry logic
+    const maxRetries = 3;
+    for (let retry = 1; retry <= maxRetries; retry++) {
+      try {
+        console.log(`🔄 Retrying chunk ${chunkIndex} (attempt ${retry})`);
+        await new Promise(resolve => setTimeout(resolve, 2000 * retry));
+        
+        const retryResponse = await API.post("/proctor/upload-chunk-simple", formData, {
+          timeout: 30000,
+        });
+        
+        if (retryResponse.status === 200) {
+          console.log(`✅ Chunk ${chunkIndex} uploaded on retry ${retry}`);
+          return retryResponse.data;
+        }
+      } catch (retryError) {
+        console.error(`❌ Retry ${retry} failed for chunk ${chunkIndex}:`, retryError);
+      }
+    }
+    
+    toast.warning("Video upload issues detected, but recording continues...");
+  }
+};
+
+  // === STOP RECORDING (Called from parent) ===
+  const stopRecording = async () => {
+    if (hasStoppedRef.current) return;
+    hasStoppedRef.current = true;
+
+    // 1. Stop the media recorder
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      mediaRecorderRef.current.stop();
+    }
+
+    // 2. Immediately turn off camera (user sees immediate feedback)
+    cleanupCameraOnly();
+
+    // 3. Finalize the upload session
+    if (uploadSessionIdRef.current) {
+      try {
+        await API.post("/proctor/finalize-upload", {
+          uploadId: uploadSessionIdRef.current,
+          userId,
+          isFinalExam,
+          ...(isFinalExam ? { courseId } : { ExamId })
+        });
+        localStorage.removeItem("uploadingVideo");
+        console.log("✅ Upload session finalized");
+      } catch (error) {
+        console.error("❌ Failed to finalize upload:", error);
+      }
+    }
+  };
+
+  // === IMMEDIATE CAMERA CLEANUP ===
   const cleanupCameraOnly = () => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(t => t.stop());
@@ -82,94 +289,10 @@ const FaceProctor = forwardRef(({ onFlag, userId, ExamId, courseId, isFinalExam 
     if (canvasRef.current?.parentNode) {
       canvasRef.current.parentNode.removeChild(canvasRef.current);
     }
-    console.log("Camera OFF instantly");
+    console.log("📷 Camera OFF");
   };
 
-  const startRecording = (stream) => {
-    recordedChunksRef.current = [];
-    const recorder = new MediaRecorder(stream, {
-      mimeType: "video/webm; codecs=vp9",
-    });
-
-    recorder.ondataavailable = e => {
-      if (e.data.size > 0) recordedChunksRef.current.push(e.data);
-    };
-
-    mediaRecorderRef.current = recorder;
-    recorder.start();
-  };
-
-  // Called when user clicks "Submit"
-  const stopRecording = async () => {
-    if (hasStoppedRef.current) return;
-    hasStoppedRef.current = true;
-
-    const recorder = mediaRecorderRef.current;
-
-    // 1. Stop recording (this triggers onstop)
-    if (recorder && recorder.state !== "inactive") {
-      // Override onstop to upload in background
-      recorder.onstop = async () => {
-        const blob = new Blob(recordedChunksRef.current, { type: "video/webm" });
-
-        // Upload in background (fire and forget)
-        uploadVideoInBackground(blob);
-      };
-
-      recorder.stop();
-    }
-
-    // 2. Immediately turn off camera (user sees it's done)
-    cleanupCameraOnly();
-
-  };
-
-  // Background upload — doesn't block anything
-  const uploadVideoInBackground = async (blob) => {
-    const formData = new FormData();
-    formData.append("video", blob, `exam_${Date.now()}.webm`);
-    formData.append("userId", userId);
-    if (isFinalExam) {
-      formData.append("courseId", courseId);
-      formData.append("isFinalExam", true);
-    } else {
-      formData.append("ExamId", ExamId);
-      formData.append("isFinalExam", false);
-    }
-
-    localStorage.setItem("uploadingVideo", "true");
-
-    try {
-      const res = await API.post("/proctor/upload-proctor-video", formData, {
-        timeout: 0,
-        maxBodyLength: Infinity,
-      });
-
-      toast.update("uploading", {
-        render: "Proctor video uploaded successfully!",
-        type: "success",
-        autoClose: 5000,
-      });
-
-      if (!isFinalExam) {
-        setTimeout(() => {
-          try { window.close(); }
-          catch { toast.info("You can now close this tab."); }
-        }, 3000);
-      }
-    } catch (err) {
-      toast.update("uploading", {
-        render: "Upload failed (but exam submitted)",
-        type: "error",
-        autoClose: 8000,
-      });
-      console.error("Background upload failed:", err);
-    } finally {
-      setTimeout(() => localStorage.removeItem("uploadingVideo"), 1000);
-    }
-  };
-
-  // Full detection loop — unchanged
+  // === FACE DETECTION LOOP (Keep your existing code) ===
   const startDetectionLoop = () => {
     const detectionStartTime = Date.now();
     let lastDetectionTime = Date.now();
