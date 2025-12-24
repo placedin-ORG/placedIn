@@ -6,6 +6,7 @@ const {
     getWishlistedInternships,
 } = require("../controllers/wishlistController");
 
+
 router.post("/add", addToWishlist);
 router.post("/remove", removeFromWishlist);
 router.get("/wishlist-status/:internshipId/:studentId", getWishlistStatus);

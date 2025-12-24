@@ -1,7 +1,5 @@
 const express = require("express");
 const path = require("path");
-
-const { GoogleGenerativeAI } = require("@google/generative-ai");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const QuizRoute = require("./routes/quizRoute");
@@ -40,6 +38,7 @@ require("./config/passport"); // Passport configuration
 const http=require('http')
 require("dotenv").config();
 const cloudinary = require("cloudinary");
+const aiRoute = require("./routes/aiRoute");
 const app = express();
 
 app.use(cors({
@@ -81,9 +80,6 @@ const io = socketIo(server, {
   },
 });
 
-// Initialize Google Gemini AI
-//const genAI = new GoogleGenerativeAI("AIzaSyCLgsSfQhcXZdUj9inr7n6fB0E5DZpHK0w"); // Replace with your actual API key
-//const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -115,6 +111,7 @@ app.use("/api/v1/chat", chatRoutes);
 app.use("/api/v1/wishlist",Wishlist);
 app.use('/api/v1/admin/management',adminManagementRoute);
 app.use("/api/v1/proctor",proctorVideoUpload);
+app.use("/api/v1",aiRoute);
 const connectDb = async () => {
   try {
     await mongoose.connect(`${process.env.MONGO_URI}`);
