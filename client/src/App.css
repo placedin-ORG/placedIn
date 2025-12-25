@@ -146,8 +146,8 @@
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 1; /* Ensures snowflakes appear behind content */
-  overflow: hidden; /* Keeps snowflakes within bounds */
+  z-index: 1;
+  overflow: hidden;
 }
 
 /* Snowflake Style */
@@ -156,7 +156,7 @@
   /* top: -10px; */
   width: 8px;
   height: 8px;
-  background-color: gold; /* Green with transparency */
+  background-color: gold; 
   border-radius: 50%;
   animation: fall linear infinite;
 }
@@ -164,7 +164,7 @@
 /* Falling Animation */
 @keyframes fall {
   0% {
-    transform: translateY(0); /* Start at the top */
+    transform: translateY(0);
     opacity: 1;
   }
   100% {

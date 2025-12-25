@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import API from "../utils/API";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { Link } from "react-router-dom";
+
 
 
 const AiAssistance = () => {
@@ -38,10 +40,16 @@ const AiAssistance = () => {
   ]
 });
 
-      setMessages((prev) => [
-        ...prev,
-        { role: "ai", text: response.data.reply }
-      ]);
+     setMessages((prev) => [
+  ...prev,
+  {
+    role: "ai",
+    text: response.data.reply,
+    internalLink: response.data.internalLink || null,
+    source: response.data.source || "gemini"
+  }
+]);
+
     } catch (error) {
       setMessages((prev) => [
         ...prev,
@@ -82,41 +90,51 @@ const AiAssistance = () => {
                 msg.role === "user" ? "justify-end" : "justify-start"
               }`}
             >
-              {msg.role === "ai" ? (
-       <div className=" max-w-max px-5 py-4 rounded-xl bg-gray-100 text-gray-800 overflow-x-auto">
-     <div
-    className="
-      prose prose-sm max-w-none
-      prose-headings:font-semibold
-      break-words
-      prose-code:bg-gray-200
-      prose-code:px-1
-      prose-code:rounded
-      prose-code:break-all
-      prose-pre:whitespace-pre-wrap
-      prose-pre:break-all
-      prose-pre:max-w-full
-      prose-pre:rounded-lg
-      prose-pre:p-4
-      prose-pre:bg-gray-100
-      prose-pre:text-gray-800
-    "
-       >
-    <ReactMarkdown remarkPlugins={[remarkGfm]} skipHtml>
-      {msg.text}
-    </ReactMarkdown>
+{msg.role === "ai" ? (
+  <div className="max-w-max px-5 py-4 rounded-xl bg-gray-100 text-gray-800 overflow-x-auto">
+    <div
+      className="
+        prose prose-sm max-w-none
+        prose-headings:font-semibold
+        break-words
+        prose-code:bg-gray-200
+        prose-code:px-1
+        prose-code:rounded
+        prose-code:break-all
+        prose-pre:whitespace-pre-wrap
+        prose-pre:break-all
+        prose-pre:max-w-full
+        prose-pre:rounded-lg
+        prose-pre:p-4
+        prose-pre:bg-gray-100
+        prose-pre:text-gray-800
+      "
+    >
+<ReactMarkdown remarkPlugins={[remarkGfm]} skipHtml>
+  {msg.text}
+</ReactMarkdown>
+
+{msg.internalLink && (
+  <Link
+    to={msg.internalLink}
+    className="mt-3 inline-block text-sm font-medium text-blue-600 hover:underline"
+  >
+    👉 View related course
+  </Link>
+)}
+
+{msg.source === "internal-ai" && (
+  <div className="mt-1 text-xs text-green-600 font-semibold">
+    ✔ From our platform
   </div>
-        </div>
-
-
-          ) : (
+)}
+    </div>
+  </div>
+) : (
   <div className="max-w-[75%] px-4 py-2 rounded-lg bg-blue-600 text-white text-sm">
     {msg.text}
   </div>
-)}
-
-
-            </div>
+)}  </div>
           ))}
 
           {loading && (
