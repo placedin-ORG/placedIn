@@ -45,7 +45,9 @@ const AiAssistance = () => {
   {
     role: "ai",
     text: response.data.reply,
-    internalLink: response.data.internalLink || null,
+    courseLink: response.data.courseLink || null,
+    internshipLink:response.data.internshipLink || null,
+    examLink:response.data.examLink||null,
     source: response.data.source || "gemini"
   }
 ]);
@@ -83,59 +85,59 @@ const AiAssistance = () => {
             </p>
           )}
 
-          {messages.map((msg, index) => (
-            <div
-              key={index}
-              className={`flex ${
-                msg.role === "user" ? "justify-end" : "justify-start"
-              }`}
-            >
-{msg.role === "ai" ? (
-  <div className="max-w-max px-5 py-4 rounded-xl bg-gray-100 text-gray-800 overflow-x-auto">
-    <div
-      className="
-        prose prose-sm max-w-none
-        prose-headings:font-semibold
-        break-words
-        prose-code:bg-gray-200
-        prose-code:px-1
-        prose-code:rounded
-        prose-code:break-all
-        prose-pre:whitespace-pre-wrap
-        prose-pre:break-all
-        prose-pre:max-w-full
-        prose-pre:rounded-lg
-        prose-pre:p-4
-        prose-pre:bg-gray-100
-        prose-pre:text-gray-800
-      "
-    >
-<ReactMarkdown remarkPlugins={[remarkGfm]} skipHtml>
-  {msg.text}
-</ReactMarkdown>
-
-{msg.internalLink && (
-  <Link
-    to={msg.internalLink}
-    className="mt-3 inline-block text-sm font-medium text-blue-600 hover:underline"
+         {messages.map((msg, index) => (
+  <div
+    key={index}
+    className={`flex ${
+      msg.role === "user" ? "justify-end" : "justify-start"
+    }`}
   >
-    👉 View related course
+    {msg.role === "ai" ? (
+      msg.source === "not-available" ? (
+        <div className="max-w-[75%] px-5 py-4 rounded-xl bg-gray-100 text-gray-600 text-sm">
+          ❌ Sorry, we don’t have content related to this topic on our platform yet.
+        </div>
+      ) : (
+        <div className="max-w-[75%] px-5 py-4 rounded-xl bg-gray-100 text-gray-800">
+          <div
+            className="
+              prose prose-sm max-w-none
+              prose-headings:font-semibold
+              break-words
+            "
+          >
+            <ReactMarkdown remarkPlugins={[remarkGfm]} skipHtml>
+              {msg.text}
+            </ReactMarkdown>
+
+           {msg.courseLink && (
+  <Link to={msg.courseLink} className="block text-blue-600 text-sm mt-2">
+    📘 View related course
   </Link>
 )}
 
-{msg.source === "internal-ai" && (
-  <div className="mt-1 text-xs text-green-600 font-semibold">
-    ✔ From our platform
-  </div>
+{msg.internshipLink && (
+  <Link to={msg.internshipLink} className="block text-green-600 text-sm mt-1">
+    💼 View related internship
+  </Link>
 )}
-    </div>
+
+{msg.examLink && (
+  <Link to={msg.examLink} className="block text-purple-600 text-sm mt-1">
+    📝 View related exam
+  </Link>
+)}
+          </div>
+        </div>
+      )
+    ) : (
+      <div className="max-w-[75%] px-4 py-2 rounded-lg bg-blue-600 text-white text-sm">
+        {msg.text}
+      </div>
+    )}
   </div>
-) : (
-  <div className="max-w-[75%] px-4 py-2 rounded-lg bg-blue-600 text-white text-sm">
-    {msg.text}
-  </div>
-)}  </div>
-          ))}
+))}
+
 
           {loading && (
             <div className="text-sm text-gray-400">

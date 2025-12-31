@@ -1,5 +1,7 @@
 const axios = require("axios");
 const Course = require("../models/courseModel");
+const Internship=require("../models/internship");
+const {Exam} = require("../models/ExamModel");
 
 const aiController = async (req, res) => {
   try {
@@ -14,139 +16,119 @@ const aiController = async (req, res) => {
 
     const userQuestion = messages[messages.length - 1].text;
 
-    function normalize(text) {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9 ]/g, " ");
-}
-
+    // ---------- KEYWORD EXTRACTION ----------
     const stopWords = ["what", "is", "are", "the", "a", "an", "of", "to", "for"];
+
     const keywords = userQuestion
-  .toLowerCase()
-  .replace(/[^a-z0-9 ]/g, "")
-  .split(" ")
-  .filter(word => word.length > 2 && !stopWords.includes(word));
+      .toLowerCase()
+      .replace(/[^a-z0-9 ]/g, "")
+      .split(" ")
+      .filter(word => word.length > 2 && !stopWords.includes(word));
 
-if (keywords.length === 0) {
-  keywords.push(userQuestion.toLowerCase());
-}
-
-const regex = new RegExp(keywords.join("|"), "i");
-
-
-    const courses = await Course.find({
-      $or: [
-        { title: regex },
-        { courseCategory: regex }
-      ]
-    }).select("title courseCategory _id");
-
-   const relevantCourses = courses.filter(course => {
-  const courseText = normalize(
-    course.title
-  );
-
-  let matchCount = 0;
-
-  keywords.forEach(keyword => {
-    if (courseText.includes(keyword)) {
-      matchCount++;
+    if (keywords.length === 0) {
+      return res.status(200).json({
+        success: true,
+        reply: "Sorry, we don’t have content related to this topic on our platform yet.",
+        source: "not-available"
+      });
     }
-  });
 
- 
-  return matchCount >= 1;
-});
+    const regex = new RegExp(keywords.join("|"), "i");
 
-    if (relevantCourses.length > 0) {
-      const course = relevantCourses[0]; 
+ // ---------- SEARCH INTERNAL CONTENT ----------
+    const [courses, internships, exams] = await Promise.all([
+      Course.find({
+        $or: [{ title: regex }, { courseCategory: regex }]
+      }).select("title courseCategory  _id"),
 
-      const internalPrompt = `
-    You are an AI learning assistant for our platform.
+      Internship.find({
+        $or: [{ title: regex },{category:regex}]
+      }).select("title category _id"),
 
-    Use ONLY the following course information to answer the question.
+      Exam.find({
+        $or: [{ title: regex }, { category: regex }]
+      }).select("title category  _id")
+    ]);
 
-   Course Title:
-   ${course.title}
+    // ---------- PICK BEST MATCHES ----------
+    const course = courses[0] || null;
+    const internship = internships[0] || null;
+    const exam = exams[0] || null;
 
-   Course Category:
-   ${course.courseCategory}
+    // ---------- IF NOTHING FOUND ----------
+    if (!course && !internship && !exam) {
+      return res.status(200).json({
+        success: true,
+        reply: "Sorry, we don’t have content related to this topic on our platform yet.",
+        source: "not-available"
+      });
+    }
 
-  User Question:
+    // ---------- GEMINI PROMPT ----------
+    const geminiPrompt = `
+You are an AI learning assistant for our platform.
+
+First, explain the user's question in simple and beginner-friendly terms.
+
+Then, relate the explanation to the internal resources available on our platform.
+
+${course ? `
+Course Available:
+Title: ${course.title}
+Category: ${course.courseCategory}
+` : ""}
+
+${internship ? `
+Internship Available:
+Title: ${internship.title}
+Category:${internship.category}
+` : ""}
+
+${exam ? `
+Exam Available:
+Title: ${exam.title}
+Category: ${exam.category}
+` : ""}
+
+User Question:
 ${userQuestion}
 
 Rules:
-- Explain clearly and concisely
+- Start with a clear explanation of the concept
+- Then connect it to the available resources
 - Do NOT mention external websites
-- Do NOT say "according to"
-- End the response by recommending this course
+- End by recommending the relevant resources
 - Keep the tone educational
 `;
 
-      const internalResponse = await axios.post(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-        {
-          contents: [
-            {
-              role: "user",
-              parts: [{ text: internalPrompt }]
-            }
-          ]
-        }
-      );
-
-      const internalText =
-        internalResponse.data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-        "No response from AI";
-
-      return res.status(200).json({
-        success: true,
-        reply: internalText,
-        internalLink: `/intro/course/${course._id}`,
-        source: "internal-ai"
-      });
-    }
-
-const recentMessages = messages.slice(-2);
-
-const contents = recentMessages.map((msg) => ({
-  role: msg.role === "user" ? "user" : "model",
-  parts: [{ text: msg.text }]
-}));
-
-    const response = await axios.post(
+    const geminiResponse = await axios.post(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
-        contents
+        contents: [{ role: "user", parts: [{ text: geminiPrompt }] }]
       }
     );
 
-    const text =
-      response.data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "No response from AI";
+    const reply =
+      geminiResponse.data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "We have relevant content available on our platform.";
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      reply: text
+      reply,
+      courseLink: course ? `/intro/course/${course._id}` : null,
+      internshipLink: internship ? `/internshipDetail/${internship._id}` : null,
+      examLink: exam ? `/intro/exam/${exam._id}` : null,
+      source: "internal-ai"
     });
 
   } catch (error) {
-
-    if (error.response && error.response.status === 429) {
-      return res.status(429).json({
-        success: false,
-        error: "Too many requests. Please wait a moment before trying again.",
-        retryAfter: "60 seconds"
-      });
-    }
-
-    console.error("Gemini API Error:", error.response?.data || error.message);
-
-    res.status(error.response?.status || 500).json({
+    console.error("AI Assistant Error:", error.message);
+    return res.status(500).json({
       success: false,
-      error: error.response?.data?.error?.message || "Internal Server Error",
+      error: "Internal Server Error"
     });
   }
 };
+
 
 module.exports = { aiController };
