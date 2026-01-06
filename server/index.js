@@ -20,14 +20,14 @@ const purchaseRoutes = require("./routes/purchaseRoutes");
 const certificateRoute = require("./routes/certificateRoute");
 const rankingRoute = require("./routes/userRankingRoutes");
 const teacherRoute = require("./routes/teacherRoutes");
-const internShipRoute=require("./routes/internshipRoute")
-const jobRoute=require("./routes/jobRoute")
+const internShipRoute = require("./routes/internshipRoute")
+const jobRoute = require("./routes/jobRoute")
 const axios = require("axios");
-const notificationRoute=require("./routes/notificationRoute")
-const AtsRoute=require("./routes/atsRoute");
+const notificationRoute = require("./routes/notificationRoute")
+const AtsRoute = require("./routes/atsRoute");
 const chatRoutes = require("./routes/chatRoutes");
-const Message=require("./models/messageModel")
-const Wishlist=require("./routes/wishlistRoutes");
+const Message = require("./models/messageModel")
+const Wishlist = require("./routes/wishlistRoutes");
 const companyRoute = require("./routes/companyRoutes");
 const adminManagementRoute = require('./routes/adminManagementRoute');
 const socketIo = require("socket.io");
@@ -35,21 +35,21 @@ const session = require("express-session");
 const passport = require("passport");
 require("./config/passport"); // Passport configuration
 
-const http=require('http')
+const http = require('http')
 require("dotenv").config();
 const cloudinary = require("cloudinary");
 const aiRoute = require("./routes/aiRoute");
 const app = express();
 
 app.use(cors({
-  origin: ["https://bharathmegaminds.com", "http://localhost:3000", "http://localhost:5173", "https://teacher.bharathmegaminds.com","https://api.bharathmegaminds.com"],
+  origin: ["https://bharathmegaminds.com", "http://localhost:3000", "http://localhost:5173", "https://teacher.bharathmegaminds.com", "https://api.bharathmegaminds.com"],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
 }));
 
 // ✅ Must come right after CORS middleware
-app.options("*", cors());
+app.options("*", cors());
 app.use(express.json({ limit: "1gb" }));
 app.use(express.urlencoded({ extended: true, limit: "1gb" }));
 
@@ -75,7 +75,7 @@ const server = http.createServer(app);
 
 const io = socketIo(server, {
   cors: {
-    origin: ["http://localhost:3000", "http://localhost:5173", "https://bharathmegaminds.com", "https://teacher.bharathmegaminds.com","https://api.bharathmegaminds.com"],
+    origin: ["http://localhost:3000", "http://localhost:5173", "https://bharathmegaminds.com", "https://teacher.bharathmegaminds.com", "https://api.bharathmegaminds.com"],
     methods: ["GET", "POST"]
   },
 });
@@ -103,15 +103,16 @@ app.use("/api/v1/certificate", certificateRoute);
 app.use("/api/v1/ranking", rankingRoute);
 app.use("/api/v1/teacher", teacherRoute);
 app.use("/api/v1/company", companyRoute);
-app.use("/api/v1/internship",internShipRoute)
-app.use("/api/v1/job",jobRoute)
-app.use("/api/v1/notification",notificationRoute)
-app.use("/api/v1/ats",AtsRoute)
+app.use("/api/v1/internship", internShipRoute)
+app.use("/api/v1/job", jobRoute)
+app.use("/api/v1/notification", notificationRoute)
+app.use("/api/v1/ats", AtsRoute)
 app.use("/api/v1/chat", chatRoutes);
-app.use("/api/v1/wishlist",Wishlist);
-app.use('/api/v1/admin/management',adminManagementRoute);
-app.use("/api/v1/proctor",proctorVideoUpload);
-app.use("/api/v1",aiRoute);
+app.use("/api/v1/wishlist", Wishlist);
+app.use('/api/v1/admin/management', adminManagementRoute);
+app.use("/api/v1/proctor", proctorVideoUpload);
+app.use("/api/v1", aiRoute);
+
 const connectDb = async () => {
   try {
     await mongoose.connect(`${process.env.MONGO_URI}`);
@@ -130,22 +131,22 @@ connectDb()
   .catch(() => {
     console.log("Error Connecting to databse");
   })
-  
-  //Messaging
-  io.on('connection', (socket) => {
-    console.log('A user connected');
-    
-    // Handling sendMessage
-    socket.on("sendMessage", (message) => {
-      // Broadcast to all OTHER clients (not the sender)
-      socket.broadcast.emit("receiveMessage", message);
-    });
-    
-    // Handle user disconnect
-    socket.on('disconnect', () => {
-      console.log('User disconnected');
-    });
+
+//Messaging
+io.on('connection', (socket) => {
+  console.log('A user connected');
+
+  // Handling sendMessage
+  socket.on("sendMessage", (message) => {
+    // Broadcast to all OTHER clients (not the sender)
+    socket.broadcast.emit("receiveMessage", message);
   });
+
+  // Handle user disconnect
+  socket.on('disconnect', () => {
+    console.log('User disconnected');
+  });
+});
 // Function to parse the quiz into a structured format
 function parseQuizToQuestionsArray(quizString) {
   if (typeof quizString !== "string") {
