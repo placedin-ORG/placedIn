@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useMemo } from "react";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -20,6 +20,10 @@ const Profile = () => {
   const [selectedOption, setSelectedOption] = useState("");
   const [todayCoin, setTodayCoin] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const itemsPerPage = 10;
+  const [currentPage, setCurrentPage] = useState(1);
+
   useEffect(() => {
     const call = async () => {
       const data = await API.post("/dailyQuestion", {
@@ -60,13 +64,13 @@ const Profile = () => {
   const getShieldStyle = (shield) => {
     switch (shield) {
       case "Gold":
-        return "bg-yellow-400 text-yellow-900";
+        return " text-yellow-500";
       case "Silver":
-        return "bg-gray-400 text-gray-900";
+        return " text-gray-900";
       case "Bronze":
-        return "bg-orange-400 text-orange-900";
+        return "text-orange-900";
       default:
-        return "bg-gray-200 text-gray-700";
+        return " text-gray-700";
     }
   };
 
@@ -104,6 +108,46 @@ const Profile = () => {
       console.log(err.message);
     }
   };
+
+
+   // --- Pagination helpers ---
+  const top100 = useMemo(
+    () =>
+      (leaderboard || [])
+        .filter((s) => s.position <= 100)
+        .sort((a, b) => a.position - b.position),
+    [leaderboard]
+  );
+
+  const totalPages = Math.max(1, Math.ceil(top100.length / itemsPerPage));
+
+  // ensure currentPage in bounds when leaderboard changes
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [totalPages]);
+
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return top100.slice(start, start + itemsPerPage);
+  }, [top100, currentPage]);
+
+  const gotoPage = (page) => {
+    const p = Math.max(1, Math.min(totalPages, page));
+    setCurrentPage(p);
+  };
+
+  const handlePrev = () => gotoPage(currentPage - 1);
+  const handleNext = () => gotoPage(currentPage + 1);
+
+  // jump to page containing current user (if present)
+  const goToMyRank = () => {
+    if (!currentUserRank) return;
+    const idx = top100.findIndex((s) => s.userId === currentUserRank.userId);
+    if (idx === -1) return;
+    const page = Math.floor(idx / itemsPerPage) + 1;
+    gotoPage(page);
+  };
+
   return (
     <div className="p-6 min-h-screen">
       {isModalOpen && (
@@ -383,7 +427,7 @@ const Profile = () => {
           ))}
         </div>
       </div>
-      {/* Leaderboard (Placeholder) */}
+       {/* Leaderboard (with pagination) */}
       <div className="mt-8">
         <h2 className="text-lg flex gap-2 font-semibold text-gray-700 items-center">
           {" "}
@@ -401,26 +445,17 @@ const Profile = () => {
               <div className="text-sm text-gray-700">
                 {currentUserRank.username}
               </div>
-              <div className="flex items-center gap-2">
-                {currentUserRank.shield === "Gold" && (
-                  <span className="text-yellow-500 text-lg">
-                    <FaShieldAlt />
-                  </span>
-                )}
-                {currentUserRank.shield === "Silver" && (
-                  <span className="text-gray-400 text-lg">
-                    <FaShieldAlt />
-                  </span>
-                )}
-                {currentUserRank.shield === "Bronze" && (
-                  <span className="text-red-600 text-lg">
-                    <FaShieldAlt />
-                  </span>
-                )}
-                <div className="text-sm font-medium text-gray-800">
-                  {currentUserRank.totalScore} pts
-                </div>
-              </div>
+              
+                 <div className="flex items-center gap-2">
+       <span className={`${getShieldStyle(currentUserRank.shield)} text-lg`}>
+       <FaShieldAlt />
+       </span>
+
+    <div className="text-sm font-medium text-gray-800">
+    {currentUserRank.totalScore} pts
+    </div>
+   </div>
+
             </motion.div>
           )}
 
@@ -430,55 +465,117 @@ const Profile = () => {
             transition={{ duration: 0.8 }}
             className="grid grid-cols-1 gap-4 mt-4 overflow-y-auto h-80"
           >
-            {leaderboard
-              .filter((student) => student.position <= 100) // Filter top 100 students
-              .map((student, index) => (
-                <motion.div
-                  key={student.position}
-                  onClick={() => handleProfileClick(student.userId)}
-                  className={`flex cursor-pointer hover:opacity-90 items-center justify-between p-4 rounded-lg shadow transform hover:scale-105 transition-transform duration-200 ${
-                    student.position <= 3 ? "bg-yellow-400" : "bg-grey-100"
-                  }`}
-                  initial={{ x: "-50vw" }}
-                  animate={{ x: 0 }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 70,
-                    delay: index * 0.05,
-                  }}
-                >
-                  <div className="text-lg font-semibold text-gray-800">
-                    #{student.position}
+            {paginated.map((student, index) => (
+              <motion.div
+                key={student.position}
+                onClick={() => handleProfileClick(student.userId)}
+                className={`flex cursor-pointer hover:opacity-90 items-center justify-between p-4 rounded-lg shadow transform hover:scale-105 transition-transform duration-200 ${
+                  student.position <= 3 ? "bg-yellow-400" : "bg-grey-100"
+                }`}
+                initial={{ x: "-50vw" }}
+                animate={{ x: 0 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 70,
+                  delay: index * 0.05,
+                }}
+              >
+                <div className="text-lg font-semibold text-gray-800">
+                  #{student.position}
+                </div>
+                <div className="text-sm text-gray-700">{student.username}</div>
+                <div className="flex items-center gap-2">
+                  {student.shield === "Gold" && (
+                    <span className="text-yellow-500 text-lg">
+                      <FaShieldAlt />
+                    </span>
+                  )}
+                  {student.shield === "Silver" && (
+                    <span className="text-gray-500 text-lg">
+                      <FaShieldAlt />
+                    </span>
+                  )}
+                  {student.shield === "Bronze" && (
+                    <span className="text-red-600 text-lg">
+                      <FaShieldAlt />
+                    </span>
+                  )}
+                  <div className="text-sm font-medium text-gray-800">
+                    {student.totalScore} pts
                   </div>
-                  <div className="text-sm text-gray-700">
-                    {student.username}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {student.shield === "Gold" && (
-                      <span className="text-yellow-500 text-lg">
-                        <FaShieldAlt />
-                      </span>
-                    )}
-                    {student.shield === "Silver" && (
-                      <span className="text-gray-500 text-lg">
-                        <FaShieldAlt />
-                      </span>
-                    )}
-                    {student.shield === "Bronze" && (
-                      <span className="text-red-600 text-lg">
-                        <FaShieldAlt />
-                      </span>
-                    )}
-                    <div className="text-sm font-medium text-gray-800">
-                      {student.totalScore} pts
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+                </div>
+              </motion.div>
+            ))}
           </motion.div>
+
+          {/* Pagination controls (10 items per page) */}
+          <div className="mt-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handlePrev}
+                disabled={currentPage === 1}
+                className="px-3 py-1 rounded border disabled:opacity-50"
+                aria-label="Previous page"
+              >
+                Prev
+              </button>
+
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }).map((_, i) => {
+                  const pageNum = i + 1;
+                  const shouldShow =
+                    pageNum === 1 ||
+                    pageNum === totalPages ||
+                    Math.abs(pageNum - currentPage) <= 2;
+                  if (!shouldShow) {
+                    const leftGap = pageNum < currentPage - 2 && pageNum === 2;
+                    const rightGap =
+                      pageNum > currentPage + 2 && pageNum === totalPages - 1;
+                    return leftGap || rightGap ? (
+                      <span key={pageNum} className="px-2">
+                        ...
+                      </span>
+                    ) : null;
+                  }
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => gotoPage(pageNum)}
+                      className={`px-3 py-1 rounded border ${
+                        pageNum === currentPage ? "bg-gray-300" : ""
+                      }`}
+                      aria-current={pageNum === currentPage ? "page" : undefined}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={handleNext}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 rounded border disabled:opacity-50"
+                aria-label="Next page"
+              >
+                Next
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="text-sm text-gray-600">
+                Page {currentPage} of {totalPages}
+              </div>
+              <button
+                onClick={goToMyRank}
+                className="px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600"
+              >
+                Go to my rank
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-
       {showModel && (
         <ProfileModel setShowModal={setShowModal} userId={userId} />
       )}

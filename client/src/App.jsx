@@ -46,6 +46,8 @@ import SearchInternship from "./pages/searching/SearchInternship";
 import JobSearch from "./pages/searching/JobSearch";
 import Notification from "./pages/notification/Notification";
 import ChatPage from "./pages/message/ChatPage";
+import FloatingAIButton from "./component/AiButton"
+import AiDrawer from "./component/AiDrawer";
 function AppWrapper() {
   return (
     <BrowserRouter>
@@ -55,6 +57,7 @@ function AppWrapper() {
 }
 function App() {
   const location = useLocation();
+  const [aiOpen, setAiOpen] = useState(false);
 
   return (
     <>
@@ -198,6 +201,14 @@ function App() {
         <Route path="/search/job/:query" element={<JobSearch />} />
         <Route path="/add-interest" element={<Interest />} />
       </Routes>
+
+      <FloatingAIButton onClick={() => setAiOpen(true)} />
+
+      <AiDrawer
+        open={aiOpen}
+        onClose={() => setAiOpen(false)}
+      />
+
     </>
   );
 }
