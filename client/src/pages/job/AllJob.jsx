@@ -125,7 +125,7 @@ const AllJob=()=>{
         </div>
 
         {/* Job Cards */}
-        {filteredJobs?.length === 0 ? (
+        {filteredJobs?.length === 0 && !loading ? (
           <div className="mt-16 flex flex-col items-center">
             <img
               src={cannot}
@@ -144,7 +144,7 @@ const AllJob=()=>{
             {loading ? (
               <Xskeletonn />
             ) : (
-              <div className="mt-16 grid grid-cols-1 place-items-center sm:grid-cols-2 lg:grid-cols-3 gap-10">
+              <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 items-stretch">
                 {paginatedJobs.map((job, index) => (
                   <JobCard job={job} studentData={studentData}/>
                 ))}

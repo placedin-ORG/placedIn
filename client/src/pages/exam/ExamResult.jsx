@@ -53,6 +53,19 @@ const ExamResult = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+   const [uploading, setUploading] = useState(false);
+
+   // 🟡 Check for video upload status from localStorage
+  useEffect(() => {
+    const checkUploadStatus = () => {
+      const isUploading = localStorage.getItem("uploadingVideo") === "true";
+      setUploading(isUploading);
+    };
+
+    checkUploadStatus();
+    const interval = setInterval(checkUploadStatus, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const fetchResults = async () => {
     if(!currentUser?._id) {
@@ -109,7 +122,23 @@ const ExamResult = () => {
   };
 
   return (
+
+    
     <div className="min-h-screen bg-gray-50">
+    {/* 🟣 Uploading Overlay */}
+      {uploading && (
+        <div className="fixed inset-0 bg-black/70 z-[2000] flex flex-col items-center justify-center text-white text-center p-6 backdrop-blur-sm">
+          <div className="bg-gray-900/80 px-6 py-8 rounded-xl shadow-lg max-w-sm w-full">
+            <BiLoaderAlt className="w-12 h-12 mx-auto text-primary animate-spin mb-4" />
+            <h2 className="text-xl font-semibold mb-2">
+              Uploading Proctor Video...
+            </h2>
+            <p className="text-sm mb-4">
+              Please do not close this tab until the upload completes.
+            </p>
+          </div>
+        </div>
+      )}
       <Navbar />
 
       <AnimatePresence>

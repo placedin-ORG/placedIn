@@ -126,7 +126,7 @@ console.log(typeof(filters.category))
         </div>
 
         {/* Internship Cards */}
-        {filteredInternships?.length === 0 ? (
+        {filteredInternships?.length === 0 && !loading ? (
           <div className="mt-16 flex flex-col items-center">
             <img
               src={cannot}

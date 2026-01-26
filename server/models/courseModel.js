@@ -112,20 +112,19 @@ const courseSchema = new mongoose.Schema(
     questions: [
       {
         questionText: { type: String },
-        options: [{ type: String }],
+        weightage: { type: Number, default: 1 },
         level: { type: String, default: "Easy" },
-        weightage: { type: Number, default: 0 },
+        type: { type: String, enum: ["objective", "subjective"], default: "objective" },
+        options: [String], 
         correctAnswer: { type: String },
-        image: { type: String }, // Optional for image-based questions
-      },
+        image: { type: String },
+      }
     ],
     setLive: {
       type: Boolean,
       default: false,
     },
-    examDuration: {
-      type: Number,
-    },
+    examDuration: { type: Number, default: 60 },
     sponsoredBy: { type: String }, // e.g., 'Google', 'Facebook'
     isSponsored: { type: Boolean, default: false },
   },

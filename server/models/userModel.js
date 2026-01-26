@@ -121,11 +121,13 @@ const userSchema = new mongoose.Schema({
       finalExam: {
         questions: [
           {
-            questionText: { type: String, required: true },
-            options: [{ type: String, required: true }],
-            correctAnswer: { type: String, required: true },
-            image: { type: String }, // Optional for image-based questions
-            level:{type:String}
+            questionText: String,
+            options: [String],
+            correctAnswer: String,
+            image: String,
+            level: String,
+            type: { type: String, enum: ["objective","subjective"], default: "objective" },
+            weightage: { type: Number, default: 1 }
           },
         ],
         isCurrent: {
@@ -135,6 +137,10 @@ const userSchema = new mongoose.Schema({
         isCompleted: {
           type: Boolean,
           default: false,
+        },
+        proctorVideoUrl: {
+          type: String,
+          default: null,
         },
         result: {
           answers: [

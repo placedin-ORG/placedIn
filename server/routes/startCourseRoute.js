@@ -8,10 +8,30 @@ router.post("/fetchCourse", async (req, res) => {
     const { id, userId } = req.body;
 
     const course = await Course.findById(id).populate("teacher");
-    const relatedCourses = await Course.find({
-      category: course?.category,
-      _id: { $ne: id },
-    }).populate("teacher");
+
+    // 1. Fetch courses from same category (excluding current course)
+    let relatedCourses = await Course.find({
+        courseCategory: course?.category,
+        _id: { $ne: id },
+        setLive: true
+    })
+    .limit(10)
+    .select('_id title courseThumbnail price reviews teacher')
+    .populate("teacher", "name");
+
+    // 2. If less than 10, fetch more from ANY category
+    if (relatedCourses.length < 10) {
+        const moreCourses = await Course.find({
+            _id: { $nin: [...relatedCourses.map(c => c._id), id] },
+            setLive: true
+        })
+        .limit(10 - relatedCourses.length)
+        .select('_id title courseThumbnail price reviews teacher')
+        .populate("teacher", "name");
+
+        relatedCourses = [...relatedCourses, ...moreCourses];
+    }
+
     if (userId !== null) {
       const user = await User.findOne({
         _id: userId,
@@ -30,80 +50,100 @@ router.post("/fetchCourse", async (req, res) => {
     console.log(err);
   }
 });
+
+
 router.post("/startLearning", async (req, res) => {
   try {
     const { _id, userId } = req.body;
-    // console.log(userId);
+
+    // Check if user already enrolled in course
     const user = await User.findOne({
       _id: userId,
       "ongoingCourses.courseId": _id,
     });
 
     if (user) {
-      // console.log("Course found in user data");
-      // console.log(user);
-      return res.json({ status: true, updatedUse: user }); // Course is present
-    } else {
-      const course = await Course.findById(_id);
-      await Course.findByIdAndUpdate(
-        _id,
-        { $inc: { studentEnrolled: 1 } }, // MongoDB $inc operator
-        { new: true } // Return the updated document
-      );
-      console.log(course.questions)
-      const courseData = {
-        courseId: course._id,
-        examDuration: course.examDuration,
-        courseName: course.title,
-        chapters: course.chapters.map((chapter, chapterIndex) => ({
-          title: chapter.title,
-          isCompleted: false, // Set default
-          isCurrent: chapterIndex === 0, // First chapter is set to isCurrent: true
-          topics: chapter.topics.map((topic, topicIndex) => ({
-            name: topic.name,
-            content: topic.content,
-            videoUrl: topic.videoUrl,
-            isCompleted: false, // Set default
-            isCurrent: chapterIndex === 0 && topicIndex === 0, // First topic of the first chapter is set to isCurrent: true
-          })),
-          quiz: {
-            quizQuestions: chapter.quiz.map((quizItem) => ({
-              question: quizItem.question,
-              options: quizItem.options,
-              correctAnswer: quizItem.correctAnswer,
-              // Set default
-            })),
-            isCompleted: false,
-            isCurrent: false,
-          },
-        })),
-        finalExam: {
-          isCurrent: false,
-          isCompleted: false,
-          questions: course.questions.map((question) => ({
-            questionText: question.questionText,
-            options: question.options,
-            correctAnswer: question.correctAnswer,
-            image: question.image,
-            level:question.level
-          })),
-        },
-      };
-      const updatedUse = await User.findByIdAndUpdate(
-        userId,
-        {
-          $push: { ongoingCourses: courseData },
-        },
-        { new: true }
-      );
-      // console.log(updatedUse);
-
-      return res.json({ status: true, updatedUse }); // Course is not present
+      return res.json({ status: true, updatedUse: user });
     }
+
+    // If user not enrolled
+    const course = await Course.findById(_id);
+
+    await Course.findByIdAndUpdate(
+      _id,
+      { $inc: { studentEnrolled: 1 } },
+      { new: true }
+    );
+
+    // Build user course enrollment object
+    const courseData = {
+      courseId: course._id,
+      examDuration: course.examDuration,  
+      courseName: course.title,
+
+      chapters: course.chapters.map((chapter, chapterIndex) => ({
+        title: chapter.title,
+        isCompleted: false,
+        isCurrent: chapterIndex === 0,
+        topics: chapter.topics.map((topic, topicIndex) => ({
+          name: topic.name,
+          content: topic.content,
+          videoUrl: topic.videoUrl,
+          videoDuration: topic.videoDuration,
+          isCompleted: false,
+          isCurrent: chapterIndex === 0 && topicIndex === 0,
+        })),
+        quiz: {
+          quizQuestions: chapter.quiz,
+          isCompleted: false,
+          isCurrent: false,
+        },
+      })),
+
+      // ⭐ FINAL EXAM FIXED SECTION ⭐
+      finalExam: {
+        isCurrent: false,
+        isCompleted: false,
+
+        questions: course.questions.map((q) => ({
+          questionText: q.questionText,
+          options: q.options,
+          correctAnswer: q.correctAnswer,
+          image: q.image,
+          level: q.level,
+
+          // REQUIRED BY GiveExam:
+          type: q.type || "objective",
+          weightage: q.weightage || 1
+        })),
+
+        result: {
+          accuracy: null,
+          answers: [{}],
+        },
+
+        certificate: {
+          name: "",
+          downloaded: false,
+        },
+      },
+    };
+
+    // Push course into user's ongoingCourses
+    const updatedUse = await User.findByIdAndUpdate(
+      userId,
+      { $push: { ongoingCourses: courseData } },
+      { new: true }
+    );
+
+    return res.json({ status: true, updatedUse });
+
   } catch (err) {
     console.log(err);
+    res.json({ status: false, msg: "Server error" });
   }
 });
+
 
 router.post("/updateUser", async (req, res) => {
   try {
@@ -475,6 +515,137 @@ router.post("/examData", async (req, res) => {
     console.log(err);
   }
 });
+
+
+router.post("/final-exam", async (req, res) => {
+  try {
+    const { userId, courseId } = req.body;
+
+    const userData = await User.findOne(
+      { _id: userId, "ongoingCourses.courseId": courseId },
+      { "ongoingCourses.$": 1 }
+    );
+
+    const course = userData?.ongoingCourses?.[0];
+
+    if (!course) {
+      return res.json({ status: false, msg: "course not found" });
+    }
+
+    // Prepare GiveExam compatible structure
+    const exam = {
+      questions: course.finalExam.questions,
+      duration: parseInt(course.examDuration ?? 60)
+    };
+
+    if (course.finalExam.isCompleted) {
+      return res.json({
+        status: true,
+        msg: "user found",
+        exam,
+        course,
+        result: course.finalExam.result,
+        certificate: course.finalExam.certificate
+      });
+    }
+
+    return res.json({
+      status: true,
+      msg: "exam found",
+      exam
+    });
+
+  } catch (err) {
+    console.log(err);
+    res.json({ status: false, msg: "server error" });
+  }
+});
+
+
+router.post("/submit-final-exam", async (req, res) => {
+  try {
+    const { userId, courseId, userAnswers } = req.body;
+
+    if (!userId || !courseId || !userAnswers) {
+      return res.json({ status: false, msg: "Missing required fields" });
+    }
+
+    const user = await User.findOne(
+      { _id: userId, "ongoingCourses.courseId": courseId },
+      { "ongoingCourses.$": 1 }
+    );
+
+    if (!user) {
+      return res.json({ status: false, msg: "Course not found" });
+    }
+
+    const courseData = user.ongoingCourses[0];
+
+    // ❌ If already submitted once
+    if (courseData.finalExam.isCompleted) {
+      return res.json({
+        status: false,
+        msg: "Final exam already completed",
+        result: courseData.finalExam.result
+      });
+    }
+
+    const finalExamQuestions = courseData.finalExam.questions;
+    const objectiveAnswers = userAnswers.objective || {};
+    const subjectiveAnswers = userAnswers.subjective || {};
+
+    let correctCount = 0;
+    let attempted = 0;
+
+    // Calculate score only for objective questions
+    finalExamQuestions.forEach((question, index) => {
+      const qIndex = index.toString();
+
+      if (question.type === "objective") {
+        if (objectiveAnswers[qIndex] !== undefined) {
+          attempted += 1;
+          if (question.options[(objectiveAnswers[qIndex])] === String(question.correctAnswer)) {
+            correctCount += 1;
+          }
+        }
+      }
+    });
+
+    const totalQuestions = finalExamQuestions.filter(q => q.type === "objective").length;
+    const accuracy = totalQuestions === 0 ? 0 : Math.round((correctCount / totalQuestions) * 100);
+
+    // Store results in user document
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: userId, "ongoingCourses.courseId": courseId },
+      {
+        $set: {
+          "ongoingCourses.$.finalExam.isCompleted": true,
+          "ongoingCourses.$.finalExam.result.answers": [objectiveAnswers],
+          "ongoingCourses.$.finalExam.result.accuracy": accuracy
+        }
+      },
+      { new: true }
+    );
+    console.log("exam submitted")
+    return res.json({
+      status: true,
+      msg: "Final exam submitted",
+      result: {
+        accuracy,
+        correct: correctCount,
+        attempted,
+        totalQuestions,
+        answers: objectiveAnswers
+      },
+      updatedCourse: updatedUser.ongoingCourses[0]
+    });
+
+  } catch (err) {
+    console.log("SUBMIT FINAL EXAM ERROR:", err);
+    return res.json({ status: false, msg: "Server error" });
+  }
+});
+
 
 router.post("/examresult", async (req, res) => {
   try {
